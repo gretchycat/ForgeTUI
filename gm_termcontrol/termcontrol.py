@@ -1,5 +1,13 @@
 #!/usr/bin/python3
-import sys, os, fcntl, select, asyncio, termios, tty, logging, pyte, re, icat
+from __future__ import annotations
+import sys, os, fcntl, select, asyncio, time, termios, tty, logging, pyte, re, icat
+try:
+    from libansiscreen.screen import Screen
+    from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
+except:
+    Screen=None
+from .termkeymap import gen_keymap
+
 
 """
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
@@ -203,7 +211,7 @@ class termcontrol:
             pass #FIXME
         return {'red':127, 'green':127, 'blue':127}
 
-    def ansicolor(self, fg=7, bg=None,
+    def ansicolor(self, fg='default', bg='default',
                   bold=False, dim=False, italic=False, underline=False,
                   strike=False, blink=False, blink2=False, reverse=False,
                   bold_is_bright=False):
@@ -343,7 +351,6 @@ class termcontrol:
                 img.close()
             except:
                 pass
-                #logging.WARNING(f"can't open {image} as an image.")
             filename=os.path.basename(image)
             desc=f'({imgX}x{imgY}) {filename}'[:w]
             descX=int(x+(w/2)-(len(desc)/2))+1
@@ -498,6 +505,8 @@ class boxDraw:
             else:
                 buff+=self.term.ansicolor(colors[4], self.bgColor)
                 buff+=F"\x1b[{w-2}C"
+
+            buff+=self.term.ansicolor(self.fg0, self.bg0)
             buff+=self.term.ansicolor(colors[5], self.bg0)+self.chars[5]
             buff+=self.term.ansicolor(self.fg0, self.bg0)
         buff+=self.term.gotoxy(x,y+h-1)
@@ -519,22 +528,28 @@ class boxDraw:
 
 class termKeyboard:
     def __init__(self):
-        self.kbtimeout=0.25
-        self.keymap={"\x1b[A":"Up", "\x1b[B":"Down",\
-                 "\x1b[C":"Right", "\x1b[D":"Left",\
-                 "\x7f":"Backspace", "\x09":"Tab",\
-                 "\x0a":"Enter", "\x1b\x1b":"Esc",\
-                 "\x1b[H":"Home", "\x1b[F":"End",\
-                 "\x1b[5~":"PgUp", "\x1b[6~":"PgDn",\
-                 "\x1b[2~":"Ins", "\x1b[3~":"Del",\
-                 "\x1bOP":"F1", "\x1bOQ":"F2",\
-                 "\x1bOR":"F3", "\x1bOS":"F4",\
-                 "\x1b[15~":"F5", "\x1b[17~": "F6",\
-                 "\x1b[18~":"F7", "\x1b[19~": "F8",\
-                 "\x1b[20~":"F9", "\x1b[21~": "F10",\
-                 "\x1b[23~":"F11", "\x1b[24~": "F12",\
-                 "\x1b[32~":"SyRq", "\x1b[34~": "Brk",
-                 "\x1b[Z":"Shift Tab"}
+        self.timeout=0.25
+        self.start=0
+        self.keymap=gen_keymap()
+        self.buffer=''
+        self.flags = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
+        fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, self.flags | os.O_NONBLOCK)
+        self.filedescriptors = termios.tcgetattr(sys.stdin)
+        # Set the terminal to cooked mode
+        tty.setcbreak(sys.stdin)
+
+    def __enter__(self):
+        fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, self.flags | os.O_NONBLOCK)
+        # Set the terminal to cooked mode
+        tty.setcbreak(sys.stdin)
+
+    def __del__(self):
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.filedescriptors)
+        fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, self.flags & ~os.O_NONBLOCK)
+
+    def __exit__(self):
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.filedescriptors)
+        fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, self.flags & ~os.O_NONBLOCK)
 
     def disable_keyboard_echo(self): # Get the current terminal attributes
         attributes = termios.tcgetattr(sys.stdin)
@@ -550,17 +565,18 @@ class termKeyboard:
         # Apply the modified attributes
         termios.tcsetattr(sys.stdin, termios.TCSANOW, attributes)
 
-    def read(self, bin=False):
-        rlist, _, _ = select.select([sys.stdin], [], [], self.kbtimeout)
+    def read(self, bin=False, wait=False):
+        self.buffer=''
+        rlist, _, _ = select.select([sys.stdin], [], [], self.timeout)
         if rlist:
             if not bin:
                 try:
-                    return sys.stdin.read(1)
+                    self.buffer += sys.stdin.read()
                 except:
-                    return sys.stdin.buffer.read(1)
+                    self.buffer+=sys.stdin.buffer.read()
             else:
-                return sys.stdin.buffer.read(1)
-        return ''
+                self.buffer+= sys.stdin.buffer.read()
+        return self.buffer #self.check_keys(self.buffer)
 
     def ord(self, d):
         if(type(d)==int):
@@ -572,41 +588,18 @@ class termKeyboard:
         return int(d)
 
     def read_keyboard_input(self): # Get the current settings of the terminal
-        flags = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
-        fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, flags | os.O_NONBLOCK)
-        filedescriptors = termios.tcgetattr(sys.stdin)
-        # Set the terminal to cooked mode
-        tty.setcbreak(sys.stdin)
         char = self.read()
-        buffer=char
-        # Check if the character is an arrow key or a function key
-        if char == "\x1b":
-            char = self.read()
-            buffer+=char
-            if(char=='O'):      #special key F1-F4
-                char = self.read()
-                buffer+=char
-            elif char=='[':     #special key or mouse
-                char = self.read()
-                buffer+=char
-                if char=='M':   #mouse
-                    b = self.ord(self.read(bin=True))-32
-                    x = self.ord(self.read(bin=True))-32
-                    y = self.ord(self.read(bin=True))-32
-                    buffer+=f'\x1b[M{b};{x};{y}'
-                    mouse=[b, x, y]
-                else:           #other ansi sequence
-                    while char>='0' and char<='9' or char==';':
-                        char = self.read()
-                        buffer+=char
-        # Restore the original settings of the terminal
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, filedescriptors)
-        fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, flags & ~os.O_NONBLOCK)
+        buffer=char or ''
         key=self.keymap.get(str(buffer))
         return key or str(buffer)
 
 class widget():
     def __init__(self, x=1, y=1, w=1, h=1, fg=7, bg=0, key=None, action=None):
+        if Screen:
+            self.screen=Screen(width=w, height=h)
+        else:
+            self.screen=None
+        self.forceRefresh=False
         self.fg0=7
         self.bg0=0
         self.invert=False
@@ -619,6 +612,7 @@ class widget():
         self.setSize(x, y, w, h)
         self.setColors(fg, bg)
         self.widgetList=[]
+        self.eventList={}
         self.outstream=None #sys.stdout
         self.focus=None
         self.parent=None
@@ -626,38 +620,65 @@ class widget():
     def __del__(self):
         pass
 
+    def addEvent(self, trigger, func):
+        self.eventList[trigger]=func
+
     def checkWidgetEvents(self, key, w):
-        if key!='':
-            esc='\x1b'
-            #print(f'{self.t.gotoxy(10,19)}  {key.replace(esc, "<")}         ')
-        if w.key==key:
-            if f'{type(self.action)}' in [ "function", "<class 'method'>" ]:
-                self.invert=True
-                self.action()
-            else:
-                print(f'{self.t.gotoxy(10,20)}invalid action for "{key}" type: {type(self.action)}             ')
+        if self.key not in self.eventList.items():
+            self.eventList[self.key]=self.action
+        for  k, m in self.eventList.items():
+            if k==key or k=='':
+                if f'{type(self.eventList[k])}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
+                    self.action=self.eventList[k]
+                    if 'method' in f'{type(self.eventList[k])}':
+                        self.action(event=key)
+                    elif 'function' in f'{type(self.eventList[k])}':
+                        self.action(self, event=key)
+                else:
+                    print(f'{self.t.gotoxy(10,20)}invalid action for "{k}" type: {type(self.eventList[k])}')
         for cw in w.widgetList:
             cw.checkWidgetEvents(key, cw)
 
-    def guiLoop(self):
+    def refresh(self, event=None):
+        self.forceRefresh=True
+
+    def guiLoop(self, outputmode=[]):
         self.go=True
         print(self.t.disable_cursor(), end='')
         print(self.t.enable_mouse(), end='')
         print(self.t.alt_screen(), end='')
+        print(self.t.clear(), end='')
+        home=self.t.gotoxy(1, 1)
         buffercache=""
+        if self.screen:
+            emitter = ANSIEmitter(dos_mode=False, ice_mode=False)
+            sbuffer=self.screen.copy()
+            #print(dir(self.screen))
         while self.go:
             buffer=self.draw()
-            if buffer != buffercache:
-                buffercache=buffer
-                print(buffer, end='')
+            if type(buffer)==str:
+                if buffer != buffercache or self.forceRefresh:
+                    self.forceRefresh=False
+                    buffercache=buffer
+                    if(self.screen):
+                        sbuffer.print(home+buffer)
+                        print(home+emitter.emit_diff(sbuffer, self.screen), end='', flush=True)
+                        self.screen=sbuffer.copy()
+                    else:
+                        print(home+buffer, end='', flush=True)
+            else:
+                print(home+emitter.emit_diff(buffer, self.screen), end='', flush=True)
+                self.screen=buffer.copy()
             key=self.kb.read_keyboard_input()
-            self.checkWidgetEvents(key, self)
+            if key != '':
+                self.checkWidgetEvents(key, self)
+        print(self.t.clear(), end='')
         print(self.t.enable_cursor(), end='')
         print(self.t.disable_mouse(), end='')
-        print(self.t.normal_screen(), end='')
+        print(self.t.normal_screen(), end='', flush=True)
 
-    def quit(self):
-        exit(0)
+    def quit(self, event=None):
+        self.go=False
 
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
@@ -684,6 +705,8 @@ class widget():
         self.y=y
         self.w=w
         self.h=h
+        if self.screen:
+            self.screen.resize(w, h)
 
     def addWidget(self, widget):
         widget.parent=self
@@ -691,6 +714,7 @@ class widget():
         widget.bg0=self.bg
         self.widgetList.append(widget)
         return self.widgetList[-1]
+
 
     def resize(self):
         for w in self.widgetList:
@@ -703,13 +727,15 @@ class widget():
         return buffer
 
     def draw(self):
+        if self.parent is None:
+            buffer+=self.t.gotoxy(1,1)
         buffer=self.drawChildren()
         if self.outstream:
             self.outstream.write(buffer)
         return buffer
 
     def setFocus(self):
-        pas
+        pass
 
     def onFocus(self):
         pass
@@ -732,7 +758,7 @@ class widget():
 class widgetScreen(widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
-        if theme:
+        if style:
             self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0)
         else:
             self.box=None
@@ -745,14 +771,14 @@ class widgetScreen(widget):
         self.minW=5
         self.minH=5
         if self.box:
-            self.screen = pyte.Screen(self.w-4, self.h-2)
-            self.screen.screen_lines=self.h-2
+            self.pscreen = pyte.Screen(self.w-4, self.h-2)
+            self.pscreen.screen_lines=self.h-2
         else:
-            self.screen = pyte.Screen(self.w, self.h)
-            self.screen.screen_lines=self.h
-        self.screen.mode.add(pyte.modes.LNM)
-        self.screen.encoding='utf-8'
-        self.stream = pyte.Stream(self.screen)
+            self.pscreen = pyte.Screen(self.w, self.h)
+            self.pscreen.screen_lines=self.h
+        self.pscreen.mode.add(pyte.modes.LNM)
+        self.pscreen.encoding='utf-8'
+        self.stream = pyte.Stream(self.pscreen)
         self.stream.write=self.stream.feed
 
     def draw(self):
@@ -771,11 +797,11 @@ class widgetScreen(widget):
             buffer+=self.box.draw(self.x, self.y, self.w, self.h)
         self.stream.feed(self.t.ansicolor(self.fg, self.bg))
         self.stream.feed(super().drawChildren())
-        self.stream.feed(self.t.gotoxy(1, self.screen.screen_lines))
+        self.stream.feed(self.t.gotoxy(1, self.pscreen.screen_lines))
         if self.box:
-            buffer+=self.t.pyte_render(self.x+2, self.y+1, self.screen, fg=self.fg, bg=self.bg)
+            buffer+=self.t.pyte_render(self.x+2, self.y+1, self.pscreen, fg=self.fg, bg=self.bg)
         else:
-            buffer+=self.t.pyte_render(self.x, self.y, self.screen, fg=self.fg, bg=self.bg)
+            buffer+=self.t.pyte_render(self.x, self.y, self.pscreen, fg=self.fg, bg=self.bg)
         if self.outstream:
             self.outstream.write(buffer)
         return buffer
@@ -784,9 +810,9 @@ class widgetScreen(widget):
         if maxlen < 1:
             maxlen=1
         if self.box:
-            buffer = self.t.gotoxy(self.screen.cursor.x+self.x+2, self.screen.cursor.y+self.y+1)
+            buffer = self.t.gotoxy(self.pscreen.cursor.x+self.x+2, self.pscreen.cursor.y+self.y+1)
         else:
-            buffer = self.t.gotoxy(self.screen.cursor.x+self.x, self.screen.cursor.y+self.y)
+            buffer = self.t.gotoxy(self.pscreen.cursor.x+self.x, self.pscreen.cursor.y+self.y)
         buffer+=str
         buffer +=self.t.reset()+' '*maxlen+self.t.left(maxlen)
         return input(buffer) #, maxlen=maxlen)
@@ -851,7 +877,7 @@ class widgetSlider(widget):
             RLabel=f'{self.max}'
         elif self.labelType=='time':
             LLabel=f'{hmsf(self.min)}'
-            RLabel=f'{hmsf(self.max)}' 
+            RLabel=f'{hmsf(self.max)}'
         else:
             pass
         barw=self.w-len(LLabel)-len(RLabel)-2-len(self.slider)-2
