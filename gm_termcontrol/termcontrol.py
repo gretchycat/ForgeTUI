@@ -78,6 +78,7 @@ class termcontrol:
             self.image_support.append('sixel')
 
     def enable_mouse(self, utf8=True):
+        return "\x1b[?1002h\x1b[?1006h"
         if(utf8):
             return "\x1b[?1005h"
         return "\x1b[?1000h"
@@ -526,7 +527,7 @@ class boxDraw:
             pass
         return buff
 
-class termKeyboard:
+class termInput:
     def __init__(self):
         self.timeout=0.25
         self.start=0
@@ -537,11 +538,13 @@ class termKeyboard:
         self.filedescriptors = termios.tcgetattr(sys.stdin)
         # Set the terminal to cooked mode
         tty.setcbreak(sys.stdin)
+        #tty.setraw(sys.stdin)
 
     def __enter__(self):
         fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, self.flags | os.O_NONBLOCK)
         # Set the terminal to cooked mode
         tty.setcbreak(sys.stdin)
+        #tty.setraw(sys.stdin)
 
     def __del__(self):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.filedescriptors)
@@ -587,11 +590,40 @@ class termKeyboard:
             return int.from_bytes(d)
         return int(d)
 
-    def read_keyboard_input(self): # Get the current settings of the terminal
-        char = self.read()
-        buffer=char or ''
-        key=self.keymap.get(str(buffer))
-        return key or str(buffer)
+    def split_codes(self, buffer):
+        inputlist=buffer.split('\x1b')
+        for k,i in enumerate(inputlist[1:], start=1):
+            inputlist[k]='\x1b'+i
+        if inputlist[0]=='':
+            inputlist.pop(0)
+        return inputlist
+
+    def mouse_input(self, buffer):
+        m = re.match(r"\x1b\[<(\d+);(\d+);(\d+)([Mm])", buffer)
+        if m:
+            button, column, row, event = m.groups()
+            button = int(button)
+            column = int(column)
+            row = int(row)
+            action = "Down" if event == "M" else "Up" if event == "m" else "Unknown"
+            return {'button':button, 'Column':column, 'Row':row, 'action':action }
+        return None
+
+    def read_input(self): # Get the current settings of the terminal
+        buffer = self.read()
+        inputs=self.split_codes(buffer)
+        all_inputs=[]
+        for i in inputs:
+            key=self.keymap.get(i)
+            if key:
+                all_inputs.append(key)
+                continue
+            mouse=self.mouse_input(i)
+            if mouse:
+                all_inputs.append(mouse)
+                continue
+            all_inputs.append(i)
+        return all_inputs
 
 class widget():
     def __init__(self, x=1, y=1, w=1, h=1, fg=7, bg=0, key=None, action=None):
@@ -608,7 +640,7 @@ class widget():
         self.minW=1
         self.minH=1
         self.t=termcontrol()
-        self.kb=termKeyboard()
+        self.input=termInput()
         self.setSize(x, y, w, h)
         self.setColors(fg, bg)
         self.widgetList=[]
@@ -648,12 +680,12 @@ class widget():
         print(self.t.enable_mouse(), end='')
         print(self.t.alt_screen(), end='')
         print(self.t.clear(), end='')
-        home=self.t.gotoxy(1, 1)
+        home=self.t.gotoxy(self.x, self.y)
+        origin=self.t.gotoxy(1, 1)
         buffercache=""
         if self.screen:
             emitter = ANSIEmitter(dos_mode=False, ice_mode=False)
             sbuffer=self.screen.copy()
-            #print(dir(self.screen))
         while self.go:
             buffer=self.draw()
             if type(buffer)==str:
@@ -661,17 +693,21 @@ class widget():
                     self.forceRefresh=False
                     buffercache=buffer
                     if(self.screen):
-                        sbuffer.print(home+buffer)
-                        print(home+emitter.emit_diff(sbuffer, self.screen), end='', flush=True)
+                        sbuffer.print(origin+buffer)
+                        print(home+emitter.emit_diff(sbuffer, self.screen), end='')
                         self.screen=sbuffer.copy()
                     else:
-                        print(home+buffer, end='', flush=True)
+                        print(home+buffer, end='')
             else:
-                print(home+emitter.emit_diff(buffer, self.screen), end='', flush=True)
+                print(home+emitter.emit_diff(buffer, self.screen), end='')
                 self.screen=buffer.copy()
-            key=self.kb.read_keyboard_input()
-            if key != '':
-                self.checkWidgetEvents(key, self)
+            try:
+                print('',end='',flush=True)
+            except:
+                pass
+            for inp in self.input.read_input():
+                if inp != '':
+                    self.checkWidgetEvents(inp, self)
         print(self.t.clear(), end='')
         print(self.t.enable_cursor(), end='')
         print(self.t.disable_mouse(), end='')
