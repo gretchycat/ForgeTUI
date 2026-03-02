@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-from gm_termcontrol import widget, widgetScreen
+from gm_termcontrol.widget import widget
+from gm_termcontrol.widget_ansi import widgetScreen
 import signal
 import sys
 
