@@ -213,7 +213,7 @@ class termcontrol:
 
     def drawRuler(self,w,h):
         buffer=''
-        for y in range(0,h):
+        for y in range(0,h-1):
             for x in range(0,int((w)/10)):
                 buffer+=self.gotoxy(x*10+1,y)
                 buffer+=f'({x*10+1},{y})'

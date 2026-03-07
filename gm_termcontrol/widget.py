@@ -12,6 +12,27 @@ from .box_glyphs import grchr, theme
 
 rgb_file_path = '/usr/share/X11/rgb.txt'
 
+import os
+import select
+
+CHUNK_SIZE = 4096  # safe per-write chunk
+
+def output(data, fd=sys.stdout.fileno()):
+    """Queue a string or bytes for non-blocking terminal output."""
+    outbuf = bytearray()  # persistent buffer
+    if isinstance(data, str):
+        data = data.encode()
+    outbuf.extend(data)
+    # drain in chunks
+    while outbuf:
+        chunk = outbuf[:CHUNK_SIZE]
+        try:
+            n = os.write(fd, chunk)
+            del outbuf[:n]
+        except BlockingIOError:
+            # wait until fd is writable
+            select.select([], [fd], [])
+
 class widget():
     def __init__(self, x=1, y=1, w=1, h=1, fg=7, bg=0, key=None, action=None):
         self.screen=None
@@ -63,10 +84,10 @@ class widget():
         self.go=True
         self.input=termInput()
         self.input.raw=True
-        print(self.t.disable_cursor(), end='')
-        print(self.t.enable_mouse(), end='')
-        print(self.t.alt_screen(), end='')
-        print(self.t.clear(), end='')
+        output(self.t.disable_cursor())
+        output(self.t.enable_mouse())
+        output(self.t.alt_screen())
+        output(self.t.clear())
         #home=self.t.gotoxy(self.x, self.y)
         home=self.t.gotoxy(1, 1)
         origin=self.t.gotoxy(1, 1)
@@ -74,38 +95,41 @@ class widget():
         if self.screen:
             emitter = ANSIEmitter(dos_mode=False, ice_mode=False)
             sbuffer=self.screen.copy()
-        while self.go:
-            #resize to full screen
-            sz=self.t.get_terminal_size()
-            if sz['columns']!=self.w or sz['rows']!=self.h:
-                self.setSize(0,0,0,0)
-            buffer=self.draw()
-            if type(buffer)==str:
-                if buffer != buffercache or self.forceRefresh:
-                    self.forceRefresh=False
-                    buffercache=buffer
-                    if(self.screen):
-                        sbuffer.print(origin+buffer)
-                        print(home+emitter.emit_diff(sbuffer, self.screen), end='')
-                        self.screen=sbuffer.copy()
-                    else:
-                        print(home+buffer, end='')
-            else:
-                print(home+emitter.emit_diff(buffer, self.screen), end='')
-                self.screen=buffer.copy()
-            try:
-                print('',end='',flush=True)
-            except:
-                pass
-            for inp in self.input.read_input():
-                if inp != '':
-                    self.checkWidgetEvents(inp, self)
-        print(self.t.clear(), end='')
-        print(self.t.enable_cursor(), end='')
-        print(self.t.disable_mouse(), end='')
-        print(self.t.normal_screen(), end='')
+        with open("output.log", "w") as log:
+            while self.go:
+                #resize to full screen
+                sz=self.t.get_terminal_size()
+                if sz['columns']!=self.w or sz['rows']!=self.h:
+                    self.setSize(0,0,0,0)
+                buffer=self.draw()
+                if type(buffer)==str:
+                    if buffer != buffercache or self.forceRefresh:
+                        self.forceRefresh=False
+                        buffercache=buffer
+                        if(self.screen):
+                            sbuffer.print(origin+buffer)
+                            out=home+emitter.emit_diff(sbuffer, self.screen,raw=True)
+                            output(out)
+                            log.write(out)
+                            self.screen=sbuffer.copy()
+                        else:
+                            output(home+buffer)
+                else:
+                    output(home+emitter.emit_diff(buffer, self.screen))
+                    self.screen=buffer.copy()
+                try:
+                    sys.stdout.flush()
+                except:
+                    pass
+                for inp in self.input.read_input():
+                    if inp != '':
+                        self.checkWidgetEvents(inp, self)
+        output(self.t.clear())
+        output(self.t.enable_cursor())
+        output(self.t.disable_mouse())
+        output(self.t.normal_screen())
         try:
-            print('',end='',flush=True)
+            sys.stdout.flush()
         except:
             pass
 
