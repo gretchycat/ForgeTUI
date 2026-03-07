@@ -14,10 +14,7 @@ rgb_file_path = '/usr/share/X11/rgb.txt'
 
 class widget():
     def __init__(self, x=1, y=1, w=1, h=1, fg=7, bg=0, key=None, action=None):
-        if Screen:
-            self.screen=Screen(width=w, height=h)
-        else:
-            self.screen=None
+        self.screen=None
         self.forceRefresh=False
         self.fg0=7
         self.bg0=0
@@ -27,8 +24,9 @@ class widget():
         self.minW=1
         self.minH=1
         self.t=termcontrol()
-        self.input=termInput()
         self.setSize(x, y, w, h)
+        if Screen:
+            self.screen=Screen(width=self.w, height=self.h)
         self.setColors(fg, bg)
         self.widgetList=[]
         self.eventList={}
@@ -63,17 +61,24 @@ class widget():
 
     def guiLoop(self, outputmode=[]):
         self.go=True
+        self.input=termInput()
+        self.input.raw=True
         print(self.t.disable_cursor(), end='')
         print(self.t.enable_mouse(), end='')
         print(self.t.alt_screen(), end='')
         print(self.t.clear(), end='')
-        home=self.t.gotoxy(self.x, self.y)
+        #home=self.t.gotoxy(self.x, self.y)
+        home=self.t.gotoxy(1, 1)
         origin=self.t.gotoxy(1, 1)
         buffercache=""
         if self.screen:
             emitter = ANSIEmitter(dos_mode=False, ice_mode=False)
             sbuffer=self.screen.copy()
         while self.go:
+            #resize to full screen
+            sz=self.t.get_terminal_size()
+            if sz['columns']!=self.w or sz['rows']!=self.h:
+                self.setSize(0,0,0,0)
             buffer=self.draw()
             if type(buffer)==str:
                 if buffer != buffercache or self.forceRefresh:
@@ -98,7 +103,12 @@ class widget():
         print(self.t.clear(), end='')
         print(self.t.enable_cursor(), end='')
         print(self.t.disable_mouse(), end='')
-        print(self.t.normal_screen(), end='', flush=True)
+        print(self.t.normal_screen(), end='')
+        try:
+            print('',end='',flush=True)
+        except:
+            pass
+
 
     def quit(self, event=None):
         self.go=False
@@ -112,6 +122,10 @@ class widget():
         if y<1:
             y=1
         scr=self.t.get_terminal_size()
+        if w==0:
+            w=scr['columns']
+        if h==0:
+            h=scr['rows']
         if w<self.minW:
             w=self.minW
         if h<self.minH:
@@ -150,8 +164,7 @@ class widget():
         return buffer
 
     def draw(self):
-        if self.parent is None:
-            buffer+=self.t.gotoxy(1,1)
+        
         buffer=self.drawChildren()
         if self.outstream:
             self.outstream.write(buffer)

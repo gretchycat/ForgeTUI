@@ -11,17 +11,16 @@ class termInput:
         self.keymap=gen_keymap()
         self.buffer=''
         self.flags = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
-        fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, self.flags | os.O_NONBLOCK)
         self.filedescriptors = termios.tcgetattr(sys.stdin)
-        # Set the terminal to cooked mode
-        tty.setcbreak(sys.stdin)
-        #tty.setraw(sys.stdin)
+        self.raw=False
+        self.__enter__()
 
     def __enter__(self):
         fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, self.flags | os.O_NONBLOCK)
-        # Set the terminal to cooked mode
-        tty.setcbreak(sys.stdin)
-        #tty.setraw(sys.stdin)
+        if self.raw:
+            tty.setraw(sys.stdin)
+        else:
+            tty.setcbreak(sys.stdin)
 
     def __del__(self):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.filedescriptors)

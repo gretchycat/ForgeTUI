@@ -10,6 +10,138 @@ from .widget import widget
 from .termcontrol import termcontrol
 from .box_glyphs import grchr, theme
 
+class boxDraw:
+    def __init__(self, bgColor=24,
+                bg0=0, fg0=7,
+                chars="",
+                frameColors=[],
+                title="", statusBar='',
+                mode='auto', charset='utf8',
+                style='inside',
+                ):
+        self.term=termcontrol()
+        self.fg0, self.bg0=fg0, bg0
+        self.bgColor=bgColor
+        if len(chars)!=9:
+            cd=grchr['utf8']
+            if charset.lower() in ['utf8', 'utf-8']:
+                cd=grchr['utf8']
+            else:
+                cd=grchr['ascii']
+            self.chars=f'{cd[theme[style]["TL"]]}{cd[theme[style]["TC"]]}{cd[theme[style]["TR"]]}'\
+                        f'{cd[theme[style]["ML"]]}{cd[theme[style]["MC"]]}{cd[theme[style]["MR"]]}'\
+                        f'{cd[theme[style]["BL"]]}{cd[theme[style]["BC"]]}{cd[theme[style]["BR"]]}'
+        else:
+            self.chars=chars
+        fr=False
+        if len(frameColors)!=9:
+            fr=True
+        if mode in ['sixel', 'kitty', '24bit', '24-bit', 'auto']:
+            if fr:
+                self.frameColors=['#FFF', '#AAA','#777','#AAA', 0, '#555', '#777','#555','#333']
+            if type(bgColor)==int and bgColor>255:
+                self.bgColor=0
+            else:
+                self.bgColor=bgColor
+        elif mode in ['8bit', '8-bit', '256color', '8bitgrey', 'grey', '8bitbright']:
+            if fr:
+                self.frameColors=[255, 245, 240, 245, 0, 237, 240, 237, 235]
+            if type(bgColor)!=int or bgColor>255:
+                self.bgColor=0
+            else:
+                self.bgColor=bgColor
+        elif mode in ['4bit', '4-bit', '16color', '4bitgrey']:
+            if fr:
+                self.frameColors=[15, 7, 8, 7, 0, 8, 7, 8, 0]
+            if type(bgColor)!=int or bgColor>15:
+                self.bgColor=0
+            else:
+                self.bgColor=bgColor
+        else:
+            if fr:
+                self.frameColors=[7, 7, 7, 7, 0, 7, 7, 7, 7]
+            self.bgColor=0
+        self.tinted=None
+        self.title=title
+        self.statusBar=statusBar
+
+    def setColors(self, bgcolor, frameColors):
+        self.bgColor=bgColor
+        self.frameColors=frameColors
+
+    def tintFrame(self, color):
+        if color==None:
+            self.tinted=None
+            return
+        c=self.term.getRGB(color)
+        r, g, b=c['red'], c['green'], c['blue']
+        r=r/255.0
+        g=g/255.0
+        b=b/255.0
+        self.tinted=[]
+        for i in range(0, len(self.frameColors)):
+            c=self.term.getRGB(i)
+            fr,fg,fb=c['red'], c['green'], c['blue']
+            fr=int(fr/16*r)
+            fg=int(fg/16*g)
+            fb=int(fb/16*b)
+            self.tinted.append(F"#{fr:X}{fg:X}{fb:X}")
+
+    def unTintFrame(self):
+        self.tinted=None
+
+    def setCharacters(self):
+        self.chars=chars
+
+    def invert(self, cl):
+        c=cl.copy()
+        for i in range(0, len(cl)):
+            c[i]=cl[8-i]
+        return c
+
+    def draw(self, x, y, w, h, fill=True, invert=False):
+        if(w<3): w=3
+        if(h<3): h=3
+        colors=self.frameColors
+        if(self.tinted):
+            colors=self.tinted
+        if invert:
+            colors=self.invert(colors)
+            pass
+        buff=self.term.gotoxy(x,y)
+        buff+=self.term.ansicolor(colors[0], self.bg0)+self.chars[0]
+        buff+=self.term.ansicolor(colors[1], self.bg0)+self.chars[1]*(w-2)
+        buff+=self.term.ansicolor(colors[2], self.bg0)+self.chars[2]
+        buff+=self.term.ansicolor(self.fg0, self.bg0)
+        for i in range(1,h-1):
+            buff+=self.term.gotoxy(x,y+i)+\
+                self.term.ansicolor(colors[3], self.bg0)+self.chars[3]
+            if(fill):
+                buff+=self.term.ansicolor(colors[4], self.bgColor)+self.chars[4]*(w-2)
+            else:
+                buff+=self.term.ansicolor(colors[4], self.bgColor)
+                buff+=F"\x1b[{w-2}C"
+
+            buff+=self.term.ansicolor(self.fg0, self.bg0)
+            buff+=self.term.ansicolor(colors[5], self.bg0)+self.chars[5]
+            buff+=self.term.ansicolor(self.fg0, self.bg0)
+        buff+=self.term.gotoxy(x,y+h-1)
+        buff+=self.term.ansicolor(colors[6], self.bg0)+self.chars[6]
+        buff+=self.term.ansicolor(colors[7], self.bg0)+self.chars[7]*(w-2)
+        buff+=self.term.ansicolor(colors[8], self.bg0)+self.chars[8]
+        buff+=self.term.ansicolor(self.fg0, self.bg0)
+        if self.title!='':
+            desc=self.title
+            descX=int(x+(w/2)-(len(desc)/2))+1
+            descY=int(y)
+            descPos=self.move(descX, descY)
+            descColor=self.term.ansicolor(16, colors[1])
+            buff+=f'{descPos}{descColor}{desc}'
+            buff+=self.term.ansicolor(self.fg0, self.bg0)
+        if self.statusBar!='':
+            pass
+        return buff
+
 class widgetProgressBar(widget):
     def __init__(self, x, y, w, h, fg=7, bg=0, p0='\u2591', p1='\u2588', note=''):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
@@ -157,138 +289,6 @@ class pyteLogger(logging.Logger):
         logging.critical(clean(msg), *args, **kwargs)
         if self.refresh_class: self.refresh_class.refresh()
         exit()
-
-class boxDraw:
-    def __init__(self, bgColor=24,
-                bg0=0, fg0=7,
-                chars="",
-                frameColors=[],
-                title="", statusBar='',
-                mode='auto', charset='utf8',
-                style='inside',
-                ):
-        self.term=termcontrol()
-        self.fg0, self.bg0=fg0, bg0
-        self.bgColor=bgColor
-        if len(chars)!=9:
-            cd=grchr['utf8']
-            if charset.lower() in ['utf8', 'utf-8']:
-                cd=grchr['utf8']
-            else:
-                cd=grchr['ascii']
-            self.chars=f'{cd[theme[style]["TL"]]}{cd[theme[style]["TC"]]}{cd[theme[style]["TR"]]}'\
-                        f'{cd[theme[style]["ML"]]}{cd[theme[style]["MC"]]}{cd[theme[style]["MR"]]}'\
-                        f'{cd[theme[style]["BL"]]}{cd[theme[style]["BC"]]}{cd[theme[style]["BR"]]}'
-        else:
-            self.chars=chars
-        fr=False
-        if len(frameColors)!=9:
-            fr=True
-        if mode in ['sixel', 'kitty', '24bit', '24-bit', 'auto']:
-            if fr:
-                self.frameColors=['#FFF', '#AAA','#777','#AAA', 0, '#555', '#777','#555','#333']
-            if type(bgColor)==int and bgColor>255:
-                self.bgColor=0
-            else:
-                self.bgColor=bgColor
-        elif mode in ['8bit', '8-bit', '256color', '8bitgrey', 'grey', '8bitbright']:
-            if fr:
-                self.frameColors=[255, 245, 240, 245, 0, 237, 240, 237, 235]
-            if type(bgColor)!=int or bgColor>255:
-                self.bgColor=0
-            else:
-                self.bgColor=bgColor
-        elif mode in ['4bit', '4-bit', '16color', '4bitgrey']:
-            if fr:
-                self.frameColors=[15, 7, 8, 7, 0, 8, 7, 8, 0]
-            if type(bgColor)!=int or bgColor>15:
-                self.bgColor=0
-            else:
-                self.bgColor=bgColor
-        else:
-            if fr:
-                self.frameColors=[7, 7, 7, 7, 0, 7, 7, 7, 7]
-            self.bgColor=0
-        self.tinted=None
-        self.title=title
-        self.statusBar=statusBar
-
-    def setColors(self, bgcolor, frameColors):
-        self.bgColor=bgColor
-        self.frameColors=frameColors
-
-    def tintFrame(self, color):
-        if color==None:
-            self.tinted=None
-            return
-        c=self.term.getRGB(color)
-        r, g, b=c['red'], c['green'], c['blue']
-        r=r/255.0
-        g=g/255.0
-        b=b/255.0
-        self.tinted=[]
-        for i in range(0, len(self.frameColors)):
-            c=self.term.getRGB(i)
-            fr,fg,fb=c['red'], c['green'], c['blue']
-            fr=int(fr/16*r)
-            fg=int(fg/16*g)
-            fb=int(fb/16*b)
-            self.tinted.append(F"#{fr:X}{fg:X}{fb:X}")
-
-    def unTintFrame(self):
-        self.tinted=None
-
-    def setCharacters(self):
-        self.chars=chars
-
-    def invert(self, cl):
-        c=cl.copy()
-        for i in range(0, len(cl)):
-            c[i]=cl[8-i]
-        return c
-
-    def draw(self, x, y, w, h, fill=True, invert=False):
-        if(w<3): w=3
-        if(h<3): h=3
-        colors=self.frameColors
-        if(self.tinted):
-            colors=self.tinted
-        if invert:
-            colors=self.invert(colors)
-            pass
-        buff=self.term.gotoxy(x,y)
-        buff+=self.term.ansicolor(colors[0], self.bg0)+self.chars[0]
-        buff+=self.term.ansicolor(colors[1], self.bg0)+self.chars[1]*(w-2)
-        buff+=self.term.ansicolor(colors[2], self.bg0)+self.chars[2]
-        buff+=self.term.ansicolor(self.fg0, self.bg0)
-        for i in range(1,h-1):
-            buff+=self.term.gotoxy(x,y+i)+\
-                self.term.ansicolor(colors[3], self.bg0)+self.chars[3]
-            if(fill):
-                buff+=self.term.ansicolor(colors[4], self.bgColor)+self.chars[4]*(w-2)
-            else:
-                buff+=self.term.ansicolor(colors[4], self.bgColor)
-                buff+=F"\x1b[{w-2}C"
-
-            buff+=self.term.ansicolor(self.fg0, self.bg0)
-            buff+=self.term.ansicolor(colors[5], self.bg0)+self.chars[5]
-            buff+=self.term.ansicolor(self.fg0, self.bg0)
-        buff+=self.term.gotoxy(x,y+h-1)
-        buff+=self.term.ansicolor(colors[6], self.bg0)+self.chars[6]
-        buff+=self.term.ansicolor(colors[7], self.bg0)+self.chars[7]*(w-2)
-        buff+=self.term.ansicolor(colors[8], self.bg0)+self.chars[8]
-        buff+=self.term.ansicolor(self.fg0, self.bg0)
-        if self.title!='':
-            desc=self.title
-            descX=int(x+(w/2)-(len(desc)/2))+1
-            descY=int(y)
-            descPos=self.move(descX, descY)
-            descColor=self.term.ansicolor(16, colors[1])
-            buff+=f'{descPos}{descColor}{desc}'
-            buff+=self.term.ansicolor(self.fg0, self.bg0)
-        if self.statusBar!='':
-            pass
-        return buff
 
 class widgetScreen(widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None):
