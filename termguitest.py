@@ -16,7 +16,7 @@ signal.signal(signal.SIGTSTP, handle_sigint)
 
 s=widgetScreen(0,0,0,0, style='curve', bg=233)
 s.stream.feed(s.t.drawRuler(s.w, s.h))
-box=s.addWidget(widgetScreen(23, 5, 20, 10, style='outside', bg=65,fg=1))
+box=s.addWidget(widgetScreen(23, 5, 20, 10, style='inside', bg=65,fg=1))
 box2=s.addWidget(widgetScreen(53, 10, 20, 10, style='inside', bg=75,fg=16))
 box.stream.feed(box.t.gotoxy(1,1)+box2.t.ansicolor(fg='black')+"Testing 123")
 box2.stream.feed(box2.t.gotoxy(3,3)+box2.t.ansicolor(fg=16)+"hello\n")

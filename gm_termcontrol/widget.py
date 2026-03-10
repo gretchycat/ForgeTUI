@@ -94,13 +94,14 @@ class widget():
         buffercache=""
         if self.screen:
             emitter = ANSIEmitter(dos_mode=False, ice_mode=False)
-            sbuffer=self.screen.copy()
         with open("output.log", "w") as log:
             while self.go:
                 #resize to full screen
                 sz=self.t.get_terminal_size()
                 if sz['columns']!=self.w or sz['rows']!=self.h:
                     self.setSize(0,0,0,0)
+                if self.screen:
+                    sbuffer=self.screen.copy()
                 buffer=self.draw()
                 if type(buffer)==str:
                     if buffer != buffercache or self.forceRefresh:
@@ -188,7 +189,7 @@ class widget():
         return buffer
 
     def draw(self):
-        
+
         buffer=self.drawChildren()
         if self.outstream:
             self.outstream.write(buffer)
