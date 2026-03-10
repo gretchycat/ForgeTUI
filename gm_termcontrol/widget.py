@@ -48,6 +48,7 @@ class widget():
         self.setSize(x, y, w, h)
         if Screen:
             self.screen=Screen(width=self.w, height=self.h)
+        #self.screen=None
         self.setColors(fg, bg)
         self.widgetList=[]
         self.eventList={}
