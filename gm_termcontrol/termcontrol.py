@@ -22,16 +22,54 @@ class termcontrol:
         if 'vt340' in term or len(konsole_ver or '')>0:
             self.image_support.append('sixel')
 
-    def enable_mouse(self, utf8=True):
+    def enable_mouseX(self, utf8=True):
         return "\x1b[?1002h\x1b[?1006h"
         if(utf8):
             return "\x1b[?1005h"
         return "\x1b[?1000h"
 
-    def disable_mouse(self, utf8=True):
+    def disable_mouseX(self, utf8=True):
         if(utf8):
             return "\x1b[?1005l"
         return "\x1b[?1000l"
+
+    # ------------------------------------------------------------------
+    # Mouse control
+    # ------------------------------------------------------------------
+    def enable_mouse(self, utf8=True, all_motion=False):
+        """
+        Enable mouse reporting.
+        Parameters:
+        - utf8: Use UTF-8 or SGR encoding for coordinates (1005 / 1006)
+        - all_motion: Track all mouse motion events, even without buttons (1003)
+        """
+        codes = []
+        # Base tracking
+        codes.append("\x1b[?1002h")  # Button-event tracking (press/release + drag)
+        # Optional: all motion reporting
+        if all_motion:
+            codes.append("\x1b[?1003h")  # Any-motion tracking (hover)
+        # Coordinate encoding
+        if utf8:
+            codes.append("\x1b[?1005h")  # UTF-8 coordinates
+        codes.append("\x1b[?1006h")      # SGR coordinates (decimal)
+        return "".join(codes)
+
+    def disable_mouse(self, utf8=True, all_motion=False):
+        """
+        Disable mouse reporting.
+        """
+        codes = []
+        # Base tracking
+        codes.append("\x1b[?1002l")  # Disable button-event tracking
+        # Optional: disable all-motion reporting
+        if all_motion:
+            codes.append("\x1b[?1003l")  # Disable any-motion tracking
+        # Coordinate encoding
+        if utf8:
+            codes.append("\x1b[?1005l")  # Disable UTF-8 coordinates
+        codes.append("\x1b[?1006l")      # Disable SGR coordinates
+        return "".join(codes)
 
     def enable_cursor(self):
         return "\x1b[?25h"
@@ -145,8 +183,8 @@ class termcontrol:
                       }
                 return color
             if co.get(color):
-                return co.get(color)
-            return self.x11_colors.get(color)
+                return co.get(color.lower())
+            return self.x11_colors.get(color.lower())
         return None
 
     def getRGB(self, c):
@@ -213,7 +251,7 @@ class termcontrol:
 
     def drawRuler(self,w,h):
         buffer=''
-        for y in range(0,h-1):
+        for y in range(0,h):
             for x in range(0,int((w)/10)):
                 buffer+=self.gotoxy(x*10+1,y)
                 buffer+=f'({x*10+1},{y})'

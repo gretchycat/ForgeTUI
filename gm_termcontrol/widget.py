@@ -4,6 +4,7 @@ import sys, os, fcntl, select, asyncio, time, termios, tty, logging, pyte, re, i
 try:
     from libansiscreen.screen import Screen
     from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
+    from libansiscreen.color.palette import Palette, create_ansi_256_palette
 except:
     Screen=None
 from .termcontrol import termcontrol
@@ -11,11 +12,10 @@ from .terminput import termInput
 from .box_glyphs import grchr, theme
 
 rgb_file_path = '/usr/share/X11/rgb.txt'
-
-import os
-import select
-
 CHUNK_SIZE = 4096  # safe per-write chunk
+#
+
+p=create_ansi_256_palette().get_colors()
 
 def output(data, fd=sys.stdout.fileno()):
     """Queue a string or bytes for non-blocking terminal output."""
@@ -32,6 +32,182 @@ def output(data, fd=sys.stdout.fileno()):
         except BlockingIOError:
             # wait until fd is writable
             select.select([], [fd], [])
+
+class boxDraw:
+    def __init__(self, bgColor=24,
+                bg0=0, fg0=7,
+                chars="",
+                frameColors=[],
+                title="", statusBar='',
+                mode='auto', charset='utf8',
+                style='inside',
+                ):
+        self.screen=None
+        self.style=style
+        self.term=termcontrol()
+        self.fg0, self.bg0=fg0, bg0
+        self.bgColor=bgColor
+        if len(chars)!=9:
+            if style in theme.keys():
+                cd=grchr['utf8']
+                if charset.lower() in ['utf8', 'utf-8']:
+                    cd=grchr['utf8']
+                else:
+                    cd=grchr['ascii']
+                self.chars= f'{cd[theme[style]["TL"]]}{cd[theme[style]["TC"]]}{cd[theme[style]["TR"]]}'\
+                            f'{cd[theme[style]["ML"]]}{cd[theme[style]["MC"]]}{cd[theme[style]["MR"]]}'\
+                            f'{cd[theme[style]["BL"]]}{cd[theme[style]["BC"]]}{cd[theme[style]["BR"]]}'
+            else:
+                self.chars="         "
+                pass
+        else:
+            self.chars=chars
+        fr=False
+        if len(frameColors)!=9:
+            fr=True
+        if mode in ['sixel', 'kitty', '24bit', '24-bit', 'auto']:
+            if fr:
+                self.frameColors=['#FFF', '#AAA','#777','#AAA', 0, '#555', '#777','#555','#333']
+                self.frameColors=[255, 245, 240, 245, 0, 237, 240, 237, 235]
+            if type(bgColor)==int and bgColor>255:
+                self.bgColor=0
+            else:
+                self.bgColor=bgColor
+        elif mode in ['8bit', '8-bit', '256color', '8bitgrey', 'grey', '8bitbright']:
+            if fr:
+                self.frameColors=[255, 245, 240, 245, 0, 237, 240, 237, 235]
+            if type(bgColor)!=int or bgColor>255:
+                self.bgColor=0
+            else:
+                self.bgColor=bgColor
+        elif mode in ['4bit', '4-bit', '16color', '4bitgrey']:
+            if fr:
+                self.frameColors=[15, 7, 8, 7, 0, 8, 7, 8, 0]
+            if type(bgColor)!=int or bgColor>15:
+                self.bgColor=0
+            else:
+                self.bgColor=bgColor
+        else:
+            if fr:
+                self.frameColors=[7, 7, 7, 7, 0, 7, 7, 7, 7]
+            self.bgColor=0
+        self.tinted=None
+        self.title=title
+        self.statusBar=statusBar
+
+    def setColors(self, bgcolor, frameColors):
+        self.bgColor=bgColor
+        self.frameColors=frameColors
+
+    def tintFrame(self, color):
+        if color==None:
+            self.tinted=None
+            return
+        c=self.term.getRGB(color)
+        r, g, b=c['red'], c['green'], c['blue']
+        r=r/255.0
+        g=g/255.0
+        b=b/255.0
+        self.tinted=[]
+        for i in range(0, len(self.frameColors)):
+            c=self.term.getRGB(i)
+            fr,fg,fb=c['red'], c['green'], c['blue']
+            fr=int(fr/16*r)
+            fg=int(fg/16*g)
+            fb=int(fb/16*b)
+            self.tinted.append(F"#{fr:X}{fg:X}{fb:X}")
+
+    def unTintFrame(self):
+        self.tinted=None
+
+    def setCharacters(self):
+        self.chars=chars
+
+    def invert(self, cl):
+        c=cl.copy()
+        for i in range(0, len(cl)):
+            c[i]=cl[8-i]
+        return c
+
+    def draw(self, x=0, y=0, w=0, h=0, fill=True, invert=False, screen=None):
+        if screen is None:
+            if(w<3): w=3
+            if(h<3): h=3
+        colors=self.frameColors
+        if(self.tinted):
+            colors=self.tinted
+        if invert:
+            colors=self.invert(colors)
+            pass
+        if screen==None:
+            buff=self.term.gotoxy(x,y)
+            buff+=self.term.ansicolor(colors[0], self.bgColor)+self.chars[0]
+            buff+=self.term.ansicolor(colors[1], self.bgColor)+self.chars[1]*(w-2)
+            buff+=self.term.ansicolor(colors[2], self.bgColor)+self.chars[2]
+            buff+=self.term.ansicolor(self.fg0, self.bg0)
+            for i in range(1,h-1):
+                buff+=self.term.gotoxy(x,y+i)+\
+                    self.term.ansicolor(colors[3], self.bgColor)+self.chars[3]
+                if(fill):
+                    buff+=self.term.ansicolor(colors[4], self.bgColor)+self.chars[4]*(w-2)
+                else:
+                    buff+=self.term.ansicolor(colors[4], self.bgColor)
+                    buff+=F"\x1b[{w-2}C"
+                buff+=self.term.ansicolor(colors[5], self.bgColor)+self.chars[5]
+                buff+=self.term.ansicolor(self.fg0, self.bg0)
+            buff+=self.term.gotoxy(x,y+h-1)
+            buff+=self.term.ansicolor(colors[6], self.bgColor)+self.chars[6]
+            buff+=self.term.ansicolor(colors[7], self.bgColor)+self.chars[7]*(w-2)
+            buff+=self.term.ansicolor(colors[8], self.bgColor)+self.chars[8]
+            buff+=self.term.ansicolor(self.fg0, self.bg0)
+            if self.title!='':
+                desc=self.title
+                descX=int(x+(w/2)-(len(desc)/2))+1
+                descY=int(y)
+                descPos=self.move(descX, descY)
+                descColor=self.term.ansicolor(16, colors[1])
+                buff+=f'{descPos}{descColor}{desc}'
+                buff+=self.term.ansicolor(self.fg0, self.bg0)
+            if self.statusBar!='':
+                pass
+            return buff
+        else:
+            if self.style in ['', 'plot']:
+                pass
+                #screen.print(self.t.ansicolor(self.bgColor))
+                #screen.print(self.t.clear())
+                if fill:
+                    for y in range(1, screen.height-2):
+                        for x in range(1, screen.width-1):
+                            screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
+                screen.plot(0,0,p[colors[0]])
+                screen.plot(screen.width-1,0,p[colors[2]])
+                for x in range(1,screen.width-1):
+                    screen.plot(x,0,p[colors[1]])
+                    screen.plot(x,1,p[self.bgColor])
+                    screen.plot(x,screen.height*2-4,p[self.bgColor])
+                    screen.plot(x,screen.height*2-3,p[colors[7]])
+                for y in range(1, screen.height*2-3):
+                    screen.plot(0,y,p[colors[3]])
+                    screen.plot(screen.width-1,y,p[colors[5]])
+                screen.plot(0,screen.height*2-3,p[colors[6]])
+                screen.plot(screen.width-1,screen.height*2-3,p[colors[8]])
+            else:
+                screen.put_cell(0,0,char=self.chars[0], fg=p[colors[0]], bg=p[self.bgColor])
+                screen.put_cell(screen.width-1,0,char=self.chars[2], fg=p[colors[2]], bg=p[self.bgColor])
+                for x in range(1, screen.width-1):
+                    screen.put_cell(x,0,char=self.chars[1], fg=p[colors[1]], bg=p[self.bgColor])
+                    screen.put_cell(x,screen.height-2,char=self.chars[7], fg=p[colors[7]], bg=p[self.bgColor])
+                for y in range(1, screen.height-2):
+                    screen.put_cell(0,y,char=self.chars[3], fg=p[colors[3]], bg=p[self.bgColor])
+                    screen.put_cell(screen.width-1,y,char=self.chars[5], fg=p[colors[5]], bg=p[self.bgColor])
+                    if fill:
+                        for x in range(1, screen.width-1):
+                            screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
+                screen.put_cell(0,screen.height-2,char=self.chars[6], fg=p[colors[6]], bg=p[self.bgColor])
+                screen.put_cell(screen.width-1,screen.height-2,char=self.chars[8], fg=p[colors[8]], bg=p[self.bgColor]) 
+            return screen
+        return ''
 
 class widget():
     def __init__(self, x=1, y=1, w=1, h=1, fg=7, bg=0, key=None, action=None):
@@ -52,7 +228,6 @@ class widget():
         self.setColors(fg, bg)
         self.widgetList=[]
         self.eventList={}
-        self.outstream=None #sys.stdout
         self.focus=None
         self.parent=None
 
@@ -93,8 +268,6 @@ class widget():
         home=self.t.gotoxy(1, 1)
         origin=self.t.gotoxy(1, 1)
         buffercache=""
-        if self.screen:
-            emitter = ANSIEmitter(dos_mode=False, ice_mode=False)
         with open("output.log", "w") as log:
             while self.go:
                 #resize to full screen
@@ -110,14 +283,14 @@ class widget():
                         buffercache=buffer
                         if(self.screen):
                             sbuffer.print(origin+buffer)
-                            out=home+emitter.emit_diff(sbuffer, self.screen,raw=True)
+                            out=home+sbuffer.emit_diff(self.screen,raw=True)
                             output(out)
                             log.write(out)
                             self.screen=sbuffer.copy()
                         else:
                             output(home+buffer)
                 else:
-                    output(home+emitter.emit_diff(buffer, self.screen))
+                    output(home+buffer.emit_diff(self.screen, raw=True))
                     self.screen=buffer.copy()
                 try:
                     sys.stdout.flush()
@@ -134,7 +307,6 @@ class widget():
             sys.stdout.flush()
         except:
             pass
-
 
     def quit(self, event=None):
         self.go=False
@@ -183,18 +355,25 @@ class widget():
         for w in self.widgetList:
             w.resize()
 
-    def drawChildren(self):
-        buffer=''
-        for w in self.widgetList:
-            buffer+=w.draw()
-        return buffer
+    def drawChildren(self, screen=None):
+        if screen:
+            buffer=''
+            for w in self.widgetList:
+                ch=w.draw()
+                if type(ch)==str:
+                    screen.print(ch)
+                    buffer+=ch
+                else:
+                    screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
+            return buffer
+        else:
+            buffer=''
+            for w in self.widgetList:
+                buffer+=w.draw()
+            return buffer
 
     def draw(self):
-
-        buffer=self.drawChildren()
-        if self.outstream:
-            self.outstream.write(buffer)
-        return buffer
+        return self.drawChildren(screen=self.screen)
 
     def setFocus(self):
         pass
