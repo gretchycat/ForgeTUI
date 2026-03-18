@@ -47,6 +47,7 @@ class boxDraw:
         self.term=termcontrol()
         self.fg0, self.bg0=fg0, bg0
         self.bgColor=bgColor
+        self.frame={'w':2, 'h':1}
         if len(chars)!=9:
             if style in theme.keys():
                 cd=grchr['utf8']
@@ -212,7 +213,7 @@ class boxDraw:
 class widget():
     def __init__(self, x=1, y=1, w=1, h=1, fg=7, bg=0, key=None, action=None):
         self.screen=None
-        self.forceRefresh=False
+        self.force_refresh=True
         self.fg0=7
         self.bg0=0
         self.invert=False
@@ -234,6 +235,9 @@ class widget():
     def __del__(self):
         pass
 
+    def refresh(self, event=None):
+        self.force_refresh=True
+
     def addEvent(self, trigger, func):
         self.eventList[trigger]=func
 
@@ -252,9 +256,6 @@ class widget():
                     print(f'{self.t.gotoxy(10,20)}invalid action for "{k}" type: {type(self.eventList[k])}')
         for cw in w.widgetList:
             cw.checkWidgetEvents(key, cw)
-
-    def refresh(self, event=None):
-        self.forceRefresh=True
 
     def guiLoop(self, outputmode=[]):
         self.go=True
@@ -278,19 +279,23 @@ class widget():
                     sbuffer=self.screen.copy()
                 buffer=self.draw()
                 if type(buffer)==str:
-                    if buffer != buffercache or self.forceRefresh:
-                        self.forceRefresh=False
+                    if buffer != buffercache or self.force_refresh:
+                        self.force_refresh=False
                         buffercache=buffer
                         if(self.screen):
                             sbuffer.print(origin+buffer)
                             out=home+sbuffer.emit_diff(self.screen,raw=True)
                             output(out)
-                            log.write(out)
+                            #log.write(out)
                             self.screen=sbuffer.copy()
                         else:
                             output(home+buffer)
                 else:
-                    output(home+buffer.emit_diff(self.screen, raw=True))
+                    if self.force_refresh:
+                        self.force_refresh=False
+                        output(home+buffer.emit(raw=True))
+                    else:
+                        output(home+buffer.emit_diff(self.screen, raw=True))
                     self.screen=buffer.copy()
                 try:
                     sys.stdout.flush()
@@ -350,8 +355,7 @@ class widget():
         self.widgetList.append(widget)
         return self.widgetList[-1]
 
-
-    def resize(self):
+    def resize(self, event=None):
         for w in self.widgetList:
             w.resize()
 
