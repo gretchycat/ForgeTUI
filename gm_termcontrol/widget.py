@@ -275,6 +275,7 @@ class widget():
                 sz=self.t.get_terminal_size()
                 if sz['columns']!=self.w or sz['rows']!=self.h:
                     self.setSize(0,0,0,0)
+                    self.resize()
                 if self.screen:
                     sbuffer=self.screen.copy()
                 buffer=self.draw()
@@ -357,7 +358,7 @@ class widget():
 
     def resize(self, event=None):
         for w in self.widgetList:
-            w.resize()
+            w.resize(event)
 
     def drawChildren(self, screen=None):
         if screen:

@@ -41,7 +41,7 @@ class widgetScreen(widget):
         self.show_x_scrollbar=False
         self.show_y_scrollbar=False
 
-    def resize(self):
+    def resize(self, event=None):
         super().resize()
         fw=0
         fh=0
@@ -88,21 +88,19 @@ class widgetScreen(widget):
             fh=self.box.frame['h']*2
         self.scroll_x=x
         self.scroll_y=y
-        if self.box==None:
-            fw,fh=0,0
         if self.scroll_type=='eof':
-            x_max=max(1, self.content.width-(self.screen.width-fw))
-            y_max=max(1, self.content.height-(self.screen.height-fh-1))
+            x_max=max(0, self.content.width-(self.screen.width-fw))
+            y_max=max(0, self.content.height-(self.screen.height-fh))
         if self.scroll_type=='cursor':
-            x_max=max(1, self.content.cursor.x-(self.screen.width-fw))
-            y_max=max(1, self.content.cursor.y-(self.screen.height-fh-1))
+            x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw))
+            y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh))
         if self.scroll_type=='cursor_center':
-            x_max=max(1, self.content.cursor.x-(self.screen.width-fw)//2)
-            y_max=max(1, self.content.cursor.y-(self.screen.height-fh-1)//2)
-        if x<0 or x>=x_max:
+            x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw)//2)
+            y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh)//2)
+        if x<0 or x>x_max:
             x=x_max
             self.scroll_x=-1
-        if y<0 or y>=y_max:
+        if y<0 or y>y_max:
             y=y_max
             self.scroll_y=-1
         return x,y
