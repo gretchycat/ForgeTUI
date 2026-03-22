@@ -15,42 +15,82 @@ U+257x   ╰   ╱   ╲   ╳   ╴   ╵   ╶   ╷   ╸   ╹   ╺   ╻  
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
 U+258x   ▀   ▁   ▂   ▃   ▄   ▅   ▆   ▇   █   ▉   ▊   ▋   ▌   ▍   ▎   ▏
 U+259x   ▐   ░   ▒   ▓   ▔   ▕   ▖   ▗   ▘   ▙   ▚   ▛   ▜   ▝   ▞   ▟
+
+         0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+U+219x   ←   ↑   →   ↓   ↔   ↕   ↖   ↗   ↘   ↙   ↚   ↛   ↜   ↝   ↞   ↟
+U+21Ax   ↠   ↡   ↢   ↣   ↤   ↥   ↦   ↧   ↨   ↩   ↪   ↫   ↬   ↭   ↮   ↯
+U+21Bx   ↰   ↱   ↲   ↳   ↴   ↵   ↶   ↷   ↸   ↹   ↺   ↻   ↼   ↽   ↾   ↿
+U+21Cx   ⇀   ⇁   ⇂   ⇃   ⇄   ⇅   ⇆   ⇇   ⇈   ⇉   ⇊   ⇋   ⇌   ⇍   ⇎   ⇏
+U+21Dx   ⇐   ⇑   ⇒   ⇓   ⇔   ⇕   ⇖   ⇗   ⇘   ⇙   ⇚   ⇛   ⇜   ⇝   ⇞   ⇟
+U+21Ex   ⇠   ⇡   ⇢   ⇣   ⇤   ⇥   ⇦   ⇧   ⇨   ⇩   ⇪   ⇫   ⇬   ⇭   ⇮   ⇯
+U+21Fx   ⇰   ⇱   ⇲   ⇳   ⇴   ⇵   ⇶   ⇷   ⇸   ⇹   ⇺   ⇻   ⇼   ⇽   ⇾   ⇿
 """
 
 grchr={}
-grchr['ascii']={'hline':'-', 'vline':'|',
+grchr['ascii']={
+                'hline':'-', 'vline':'|',
+                'hline2':'=', 'vline2':'|',
+                'UP': '^', 'DOWN': 'v', 'LEFT': '<', 'RIGHT': '>',
                 'TH':'^', 'BH':'o',
-                'B0':' ', 'B25':':', 'BN60':'$', 'B75':'#', 'B100':'@',
+                'B0':' ', 'B25':':', 'B50':'$', 'B75':'#', 'B100':'@',
                 'BLC':'\\', 'TLC':'/', 'BRC':'/', 'TRC':'\\',
                 'BLB':'+', 'TLB':'+', 'BRB':'+', 'TRB':'+',
-                'TBR':'|', 'TBL':'|', 'BLR':'-', 'TLR':'-', 'TBLR':'+',
+                'BLR':'+', 'TLR':'+', 'BRR':'+', 'TRR':'+',
+                'BL2':'+', 'TL2':'+', 'BR2':'+', 'TR2':'+',
                 }
 
 grchr['utf8']={ 'hline':'\u2500', 'vline':'\u2502',
+                'hline2':'\u2550', 'vline2':'\u2551',
+                'UP': '\u2191', 'DOWN': '\u2193', 'LEFT': '\u2190', 'RIGHT': '\u2192',
                 'TH':'\u2580', 'BH':'\u2584',
                 'B0':' ', 'B25':'\u2591', 'B50':'\u2593', 'B75':'\u2593', 'B100':'\u2588',
                 'BLC':'\u256E', 'TLC':'\u256F', 'BRC':'\u256D', 'TRC':'\u2570',
-                'BLB':'\u2510', 'TLB':'\u2518', 'BRB':'\u250C', 'TRB':'\u2514',
-                'TBR':'\u251C', 'TBL':'\u2524', 'BLR':'\u252C', 'TLR':'\u2534', 'TBLR':'\u253C',
+                'BLR':'\u2510', 'TLR':'\u2518', 'BRR':'\u250C', 'TRR':'\u2514',
+                'BL2':'\u2557', 'TL2':'\u255D', 'BR2':'\u2554', 'TR2':'\u255A',
+                '♦': '♦'
                }
 
 theme={}
 theme['inside']={
         'TL': 'BH', 'TC': 'BH', 'TR': 'BH',
         'ML': 'B100', 'MC': 'B75', 'MR': 'B100',
-        'BL': 'TH', 'BC': 'TH', 'BR': 'TH'
+        'BL': 'TH', 'BC': 'TH', 'BR': 'TH',
+        'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
+        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
         }
 
 theme['outside']={
         'TL': 'B100', 'TC': 'TH', 'TR': 'B100',
         'ML': 'B100', 'MC': 'B0', 'MR': 'B100',
-        'BL': 'B100', 'BC': 'BH', 'BR': 'B100'
+        'BL': 'B100', 'BC': 'BH', 'BR': 'B100',
+        'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
+        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
         }
+
+theme['plot']=theme['outside']
 
 theme['curve']={
         'TL': 'BRC', 'TC': 'hline', 'TR': 'BLC',
         'ML': 'vline', 'MC': 'B0', 'MR': 'vline',
-        'BL': 'TRC', 'BC': 'hline', 'BR': 'TLC'
+        'BL': 'TRC', 'BC': 'hline', 'BR': 'TLC',
+        'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
+        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
+        }
+
+theme['line']={
+        'TL': 'BRR', 'TC': 'hline', 'TR': 'BLR',
+        'ML': 'vline', 'MC': 'B0', 'MR': 'vline',
+        'BL': 'TRR', 'BC': 'hline', 'BR': 'TLR',
+        'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
+        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
+        }
+
+theme['2line']={
+        'TL': 'BR2', 'TC': 'hline2', 'TR': 'BL2',
+        'ML': 'vline2', 'MC': 'B0', 'MR': 'vline2',
+        'BL': 'TR2', 'BC': 'hline2', 'BR': 'TL2',
+        'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
+        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
         }
 
 

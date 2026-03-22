@@ -30,7 +30,7 @@ def eventout(self, event=None):
     self.feed(repr(str(event))+"\n")
 
 style=None
-style='plot'
+style='2line'
 #style='curve'
 #style='inside'
 #style='outside'
@@ -39,8 +39,8 @@ s=widgetScreen(0,0,0,0, style=style, bg=233)
 #s.stream.feed(s.t.drawRuler(s.w-4, s.h-2))
 s.scroll(0,0)
 draw_ruler(s)
-box=s.addWidget(widgetScreen(10, 5, 40, 10, style='plot', bg=65,fg=16))
-box2=s.addWidget(widgetScreen(15, 7, 60, 10, style=None, bg=75,fg=0))
+box=s.addWidget(widgetScreen(10, 5, 40, 10, style='2line', bg=65,fg=16))
+box2=s.addWidget(widgetScreen(15, 7, 60, 10, style='line', bg=75,fg=0))
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Inputs here\n")
