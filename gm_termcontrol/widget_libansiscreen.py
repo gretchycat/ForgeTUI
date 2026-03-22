@@ -3,10 +3,71 @@ from __future__ import annotations
 import sys, os, fcntl, asyncio, time, re, icat
 try:
     from libansiscreen.screen import Screen
+    from libansiscreen.color.palette import Palette, create_ansi_256_palette
 except:
     Screen=None
 from .termkeymap import gen_keymap
-from .widget import widget, frameDraw
+from .widget import widget, boxDraw
+
+p=create_ansi_256_palette().get_colors()
+
+class frameDraw(boxDraw):
+    def __init__(self, bgColor=0,
+                bg0=0, fg0=7,
+                chars="",
+                frameColors=[],
+                mode='auto', charset='utf8',
+                style='inside',
+                scrollbar_bg=7,
+                scrollbar_fg=0,
+                widget=None,
+                ):
+        super().__init__(bgColor=bgColor,bg0=bg0,fg0=fg0,
+                         chars=chars,frameColors=frameColors,
+                         mode=mode,charset=charset,style=style)
+        self.widget=widget
+        self.scrollbar_bg=scrollbar_bg
+        self.scrollbar_fg=scrollbar_fg
+
+    def draw(self, x=0, y=0, w=0, h=0,
+             fill=True,  invert=False,
+             screen=None,
+             show_vsb=False,
+             show_hsb=False,
+             sx=0,sx_max=0,
+             sy=0,sy_max=0,
+             ):
+        frame=super().draw(x=x, y=y, w=w, h=h,
+                           fill=fill, invert=invert, screen=screen)
+        c=[ '↑', '|', '↓']
+        sh,sv=0,0
+        if self.widget.x_max>0:
+            sh=int((w-5)*(self.widget.sx/self.widget.x_max))
+        if self.widget.y_max>0:
+            sv=int((h-5)*(self.widget.sy/self.widget.y_max))
+        if(screen):
+            if show_vsb:
+                screen.put_cell(w-1,1,char=self.chars[9],
+                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+                for y in range(2,h-2):
+                    screen.put_cell(w-1,y,char=self.chars[13],
+                            fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+                screen.put_cell(w-1,2+sv,char=self.chars[15],
+                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+                screen.put_cell(w-1,h-2,char=self.chars[10],
+                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+            if show_hsb:
+                pass
+                screen.put_cell(1,h-1,char=self.chars[11],
+                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+                for x in range(2,w-2):
+                    screen.put_cell(x,h-1,char=self.chars[14],
+                            fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+                screen.put_cell(w-2,h-1,char=self.chars[12],
+                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+                screen.put_cell(2+sh,h-1,char=self.chars[15],
+                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+        return frame
 
 class widgetProgressBar(widget):
     pass
@@ -25,7 +86,7 @@ class widgetScreen(widget):
         self.style=style
         self.frame=None
         if style:
-            self.frame=frameDraw(style=style, bgColor=self.bg, bg0=self.bg0)
+            self.frame=frameDraw(style=style, bgColor=self.bg, bg0=self.bg0, widget=self)
         fw=0
         fh=0
         if(self.frame):
@@ -90,18 +151,20 @@ class widgetScreen(widget):
         self.scroll_x=x
         self.scroll_y=y
         if self.scroll_type=='cursor':
-            x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw))
-            y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh))
+            self.x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw))
+            self.y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh))
         if self.scroll_type=='cursor_center':
-            x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw)//2)
-            y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh)//2)
-        if x<0 or x>x_max:
-            x=x_max
+            self.x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw)//2)
+            self.y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh)//2)
+        if x<0 or x>self.x_max:
+            x=self.x_max
             self.scroll_x=-1
-        if y<0 or y>y_max:
-            y=y_max
+        if y<0 or y>self.y_max:
+            y=self.y_max
             self.scroll_y=-1
-        return x,y
+        self.sx=x
+        self.sy=y
+        return x, y
 
     def onFocus(self):
         pass
