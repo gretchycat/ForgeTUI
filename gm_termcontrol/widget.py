@@ -213,7 +213,7 @@ class boxDraw:
         return ''
 
 class widget():
-    def __init__(self, x=1, y=1, w=1, h=1, fg=7, bg=0, key=None, action=None):
+    def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=0, key=None, action=None):
         self.screen=None
         self.force_refresh=True
         self.fg0=7
@@ -235,6 +235,21 @@ class widget():
 
     def __del__(self):
         pass
+
+    def offset(self):
+        pox, poy=0,0
+        if self.parent:
+            pox,poy=self.parent.offset()
+        return pox+self.x, poy+self.y
+
+    def rel_event(self, event=None):
+        if type(event)==dict:
+            ox,oy=self.offset()
+            revent=event.copy()
+            revent['Column']=event['Column']-ox
+            revent['Row']=event['Row']-oy
+            return revent
+        return event
 
     def refresh(self, event=None):
         self.force_refresh=True
