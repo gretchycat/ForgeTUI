@@ -1,12 +1,9 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import sys, os, fcntl, select, asyncio, time, termios, tty, logging, pyte, re, icat
-try:
-    from libansiscreen.screen import Screen
-    from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
-    from libansiscreen.color.palette import Palette, create_ansi_256_palette
-except:
-    Screen=None
+from libansiscreen.screen import Screen
+from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
+from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
 from .box_glyphs import grchr, theme
@@ -62,7 +59,6 @@ class boxDraw:
                             f'{cd[theme[style]["SVR"]]}{cd[theme[style]["SHR"]]}{cd[theme[style]["SH"]]}{cd[theme[style]["SC"]]}'
             else:
                 self.chars="         ^v<>:-O*"
-                pass
         else:
             self.chars=chars
         fr=False
@@ -142,80 +138,43 @@ class boxDraw:
         if invert:
             colors=self.invert(colors)
             pass
-        if screen==None:
-            buff=self.term.gotoxy(x,y)
-            buff+=self.term.ansicolor(colors[0], self.bgColor)+self.chars[0]
-            buff+=self.term.ansicolor(colors[1], self.bgColor)+self.chars[1]*(w-2)
-            buff+=self.term.ansicolor(colors[2], self.bgColor)+self.chars[2]
-            buff+=self.term.ansicolor(self.fg0, self.bg0)
-            for i in range(1,h-1):
-                buff+=self.term.gotoxy(x,y+i)+\
-                    self.term.ansicolor(colors[3], self.bgColor)+self.chars[3]
-                if(fill):
-                    buff+=self.term.ansicolor(colors[4], self.bgColor)+self.chars[4]*(w-2)
-                else:
-                    buff+=self.term.ansicolor(colors[4], self.bgColor)
-                    buff+=F"\x1b[{w-2}C"
-                buff+=self.term.ansicolor(colors[5], self.bgColor)+self.chars[5]
-                buff+=self.term.ansicolor(self.fg0, self.bg0)
-            buff+=self.term.gotoxy(x,y+h-1)
-            buff+=self.term.ansicolor(colors[6], self.bgColor)+self.chars[6]
-            buff+=self.term.ansicolor(colors[7], self.bgColor)+self.chars[7]*(w-2)
-            buff+=self.term.ansicolor(colors[8], self.bgColor)+self.chars[8]
-            buff+=self.term.ansicolor(self.fg0, self.bg0)
-            if self.title!='':
-                desc=self.title
-                descX=int(x+(w/2)-(len(desc)/2))+1
-                descY=int(y)
-                descPos=self.move(descX, descY)
-                descColor=self.term.ansicolor(16, colors[1])
-                buff+=f'{descPos}{descColor}{desc}'
-                buff+=self.term.ansicolor(self.fg0, self.bg0)
-            if self.statusBar!='':
-                pass
-            return buff
-        else:
-            if self.style in ['', 'plot']:
-                pass
-                #screen.print(self.t.ansicolor(self.bgColor))
-                #screen.print(self.t.clear())
-                if fill:
-                    for y in range(1, screen.height-2):
-                        for x in range(1, screen.width-1):
-                            screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
-                screen.plot(0,0,p[colors[0]])
-                screen.plot(screen.width-1,0,p[colors[2]])
-                for x in range(1,screen.width-1):
-                    screen.plot(x,0,p[colors[1]])
-                    screen.plot(x,1,p[self.bgColor])
-                    screen.plot(x,screen.height*2-4,p[self.bgColor])
-                    screen.plot(x,screen.height*2-3,p[colors[7]])
-                for y in range(1, screen.height*2-3):
-                    screen.plot(0,y,p[colors[3]])
-                    screen.plot(screen.width-1,y,p[colors[5]])
-                screen.plot(0,screen.height*2-3,p[colors[6]])
-                screen.plot(screen.width-1,screen.height*2-3,p[colors[8]])
-            else:
-                screen.put_cell(0,0,char=self.chars[0], fg=p[colors[0]], bg=p[self.bgColor])
-                screen.put_cell(screen.width-1,0,char=self.chars[2], fg=p[colors[2]], bg=p[self.bgColor])
-                for x in range(1, screen.width-1):
-                    screen.put_cell(x,0,char=self.chars[1], fg=p[colors[1]], bg=p[self.bgColor])
-                    screen.put_cell(x,screen.height-2,char=self.chars[7], fg=p[colors[7]], bg=p[self.bgColor])
+        if self.style in ['', 'plot']:
+            if fill:
                 for y in range(1, screen.height-2):
-                    screen.put_cell(0,y,char=self.chars[3], fg=p[colors[3]], bg=p[self.bgColor])
-                    screen.put_cell(screen.width-1,y,char=self.chars[5], fg=p[colors[5]], bg=p[self.bgColor])
-                    if fill:
-                        for x in range(1, screen.width-1):
-                            screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
-                screen.put_cell(0,screen.height-2,char=self.chars[6], fg=p[colors[6]], bg=p[self.bgColor])
-                screen.put_cell(screen.width-1,screen.height-2,char=self.chars[8], fg=p[colors[8]], bg=p[self.bgColor])
-            return screen
-        return ''
+                    for x in range(1, screen.width-1):
+                        screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
+            screen.plot(0,0,p[colors[0]])
+            screen.plot(screen.width-1,0,p[colors[2]])
+            for x in range(1,screen.width-1):
+                screen.plot(x,0,p[colors[1]])
+                screen.plot(x,1,p[self.bgColor])
+                screen.plot(x,screen.height*2-4,p[self.bgColor])
+                screen.plot(x,screen.height*2-3,p[colors[7]])
+            for y in range(1, screen.height*2-3):
+                screen.plot(0,y,p[colors[3]])
+                screen.plot(screen.width-1,y,p[colors[5]])
+            screen.plot(0,screen.height*2-3,p[colors[6]])
+            screen.plot(screen.width-1,screen.height*2-3,p[colors[8]])
+        else:
+            screen.put_cell(0,0,char=self.chars[0], fg=p[colors[0]], bg=p[self.bgColor])
+            screen.put_cell(screen.width-1,0,char=self.chars[2], fg=p[colors[2]], bg=p[self.bgColor])
+            for x in range(1, screen.width-1):
+                screen.put_cell(x,0,char=self.chars[1], fg=p[colors[1]], bg=p[self.bgColor])
+                screen.put_cell(x,screen.height-2,char=self.chars[7], fg=p[colors[7]], bg=p[self.bgColor])
+            for y in range(1, screen.height-2):
+                screen.put_cell(0,y,char=self.chars[3], fg=p[colors[3]], bg=p[self.bgColor])
+                screen.put_cell(screen.width-1,y,char=self.chars[5], fg=p[colors[5]], bg=p[self.bgColor])
+                if fill:
+                    for x in range(1, screen.width-1):
+                        screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
+            screen.put_cell(0,screen.height-2,char=self.chars[6], fg=p[colors[6]], bg=p[self.bgColor])
+            screen.put_cell(screen.width-1,screen.height-2,char=self.chars[8], fg=p[colors[8]], bg=p[self.bgColor])
+        return screen
 
 class widget():
     def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=0, key=None, action=None):
-        self.screen=None
         self.force_refresh=True
+        self.screen=None
         self.fg0=7
         self.bg0=0
         self.invert=False
@@ -225,8 +184,7 @@ class widget():
         self.minH=1
         self.t=termcontrol()
         self.setSize(x, y, w, h)
-        if Screen:
-            self.screen=Screen(width=self.w, height=self.h)
+        self.screen=Screen(width=self.w, height=self.h)
         self.setColors(fg, bg)
         self.widgetList=[]
         self.eventList={}
@@ -269,7 +227,7 @@ class widget():
                     elif 'function' in f'{type(self.eventList[k])}':
                         self.action(self, event=key)
                 else:
-                    print(f'{self.t.gotoxy(10,20)}invalid action for "{k}" type: {type(self.eventList[k])}')
+                    self.out.write(f'{self.t.gotoxy(10,20)}invalid action for "{k}" type: {type(self.eventList[k])}')
         for cw in w.widgetList:
             cw.checkWidgetEvents(key, cw)
 
@@ -285,7 +243,7 @@ class widget():
         home=self.t.gotoxy(1, 1)
         origin=self.t.gotoxy(1, 1)
         buffercache=""
-        with open("output.log", "w") as log:
+        with open("output.log", "w") as self.log:
             while self.go:
                 #resize to full screen
                 sz=self.t.get_terminal_size()
@@ -295,29 +253,12 @@ class widget():
                 if self.screen:
                     sbuffer=self.screen.copy()
                 buffer=self.draw()
-                if type(buffer)==str:
-                    if buffer != buffercache or self.force_refresh:
-                        self.force_refresh=False
-                        buffercache=buffer
-                        if(self.screen):
-                            sbuffer.print(origin+buffer)
-                            out=home+sbuffer.emit_diff(self.screen,raw=True)
-                            output(out)
-                            #log.write(out)
-                            self.screen=sbuffer.copy()
-                        else:
-                            output(home+buffer)
+                if self.force_refresh:
+                    self.force_refresh=False
+                    output(home+buffer.emit(raw=True))
                 else:
-                    if self.force_refresh:
-                        self.force_refresh=False
-                        output(home+buffer.emit(raw=True))
-                    else:
-                        output(home+buffer.emit_diff(self.screen, raw=True))
-                    self.screen=buffer.copy()
-                try:
-                    sys.stdout.flush()
-                except:
-                    pass
+                    output(home+buffer.emit_diff(self.screen, raw=True))
+                self.screen=buffer.copy()
                 for inp in self.input.read_input():
                     if inp != '':
                         self.checkWidgetEvents(inp, self)
