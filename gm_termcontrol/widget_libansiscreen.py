@@ -101,16 +101,6 @@ class widgetScreen(widget):
         self.resize()
         self.scroll_type='cursor'
 
-    def offset(self):
-        pox, poy=0,0
-        if self.parent:
-            pox,poy=self.parent.offset()
-        fx,fy=0,0
-        if(self.frame):
-            fx=self.frame.frame['w']
-            fy=self.frame.frame['h']
-        return pox+self.x+fx, poy+self.y+fy
-
     def resize(self, event=None):
         super().resize()
         fw=0

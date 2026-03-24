@@ -76,13 +76,24 @@ class termInput:
 
     def mouse_input(self, buffer):
         m = re.match(r"\x1b\[<(\d+);(\d+);(\d+)([Mm])", buffer)
+        scroll_dir={64:'down', 65:'up',66:'right',67:'left'}
         if m:
             button, column, row, event = m.groups()
+            detail=''
             button = int(button)
-            column = int(column)
-            row = int(row)
+            if button>=64:
+                if button<=67:
+                    detail='scroll '+scroll_dir[button]
+                else:
+                    detail='scroll'
+            elif button >= 32:
+                button=button%32
+                detail='drag'
+            column = int(column)-1
+            row = int(row)-1
             action = "Down" if event == "M" else "Up" if event == "m" else "Unknown"
-            return {'button':button, 'Column':column, 'Row':row, 'action':action }
+            return {'button':button, 'x':column, 'y':row,
+                    'action':action, 'detail': detail }
         return None
 
     def read_input(self): # Get the current settings of the terminal

@@ -246,8 +246,8 @@ class widget():
         if type(event)==dict:
             ox,oy=self.offset()
             revent=event.copy()
-            revent['Column']=event['Column']-ox
-            revent['Row']=event['Row']-oy
+            revent['x']=event['x']-ox+1
+            revent['y']=event['y']-oy+1
             return revent
         return event
 
