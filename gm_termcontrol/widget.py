@@ -206,7 +206,9 @@ class widget():
             revent=event.copy()
             revent['x']=event['x']-ox+1
             revent['y']=event['y']-oy+1
-            return revent
+            if  0<=revent['x']<self.w and 0<=revent['y']<self.h:
+                return revent
+            return ''
         return event
 
     def refresh(self, event=None):
@@ -215,21 +217,22 @@ class widget():
     def addEvent(self, trigger, func):
         self.eventList[trigger]=func
 
-    def checkWidgetEvents(self, key, w):
-        if self.key not in self.eventList.items():
-            self.eventList[self.key]=self.action
-        for  k, m in self.eventList.items():
-            if k==key or k=='':
-                if f'{type(self.eventList[k])}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
-                    self.action=self.eventList[k]
-                    if 'method' in f'{type(self.eventList[k])}':
-                        self.action(event=key)
-                    elif 'function' in f'{type(self.eventList[k])}':
-                        self.action(self, event=key)
+    def checkWidgetEvents(self, event, w):
+        event=self.rel_event(event)
+        if event=='':
+            return
+        for  e, m in self.eventList.items():
+            if e==event or e=='':
+                if f'{type(self.eventList[e])}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
+                    self.action=self.eventList[e]
+                    if 'method' in f'{type(self.eventList[e])}':
+                        self.action(event=event)
+                    elif 'function' in f'{type(self.eventList[e])}':
+                        self.action(self, event=event)
                 else:
-                    self.out.write(f'{self.t.gotoxy(10,20)}invalid action for "{k}" type: {type(self.eventList[k])}')
+                    self.out.write(f'{self.t.gotoxy(10,20)}invalid action for "{e}" type: {type(self.eventList[e])}')
         for cw in w.widgetList:
-            cw.checkWidgetEvents(key, cw)
+            cw.checkWidgetEvents(event, cw)
 
     def guiLoop(self, outputmode=[]):
         self.go=True

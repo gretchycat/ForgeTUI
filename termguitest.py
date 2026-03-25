@@ -27,7 +27,8 @@ def draw_ruler(self, event=None):
     self.feed(self.t.drawRuler(self.content.width, self.content.height))
 
 def eventout(self, event=None):
-    self.feed(repr(str(self.rel_event(event)))+"\n")
+    if event:
+        self.feed(repr(str(event))+"\n")
 
 style='line'
 style3='curve'
