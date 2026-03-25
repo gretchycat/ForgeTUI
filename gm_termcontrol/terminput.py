@@ -81,19 +81,19 @@ class termInput:
             button, column, row, event = m.groups()
             detail=''
             button = int(button)
+            action = "Down" if event == "M" else "Up" if event == "m" else "Unknown"
             if button>=64:
                 if button<=67:
-                    detail='scroll '+scroll_dir[button]
+                    action='scroll '+scroll_dir[button]
                 else:
-                    detail='scroll'
+                    action='scroll'
             elif button >= 32:
                 button=button%32
-                detail='drag'
+                action='drag'
             column = int(column)-1
             row = int(row)-1
-            action = "Down" if event == "M" else "Up" if event == "m" else "Unknown"
             return {'button':button, 'x':column, 'y':row,
-                    'action':action, 'detail': detail }
+                    'action':action}
         return None
 
     def read_input(self): # Get the current settings of the terminal
