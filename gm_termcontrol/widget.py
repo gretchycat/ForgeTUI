@@ -171,10 +171,13 @@ class boxDraw:
             screen.put_cell(screen.width-1,screen.height-2,char=self.chars[8], fg=p[colors[8]], bg=p[self.bgColor])
         return screen
 
-class widget():
+class Widget():
     def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=0, key=None, action=None):
         self.force_refresh=True
         self.screen=None
+        self.active=False
+        self.child_active=False
+        self.hidden=False
         self.fg0=7
         self.bg0=0
         self.invert=False
@@ -196,9 +199,33 @@ class widget():
 
     def offset(self):
         pox, poy=0,0
-        if self.parent:
-            pox,poy=self.parent.offset()
+        w=self
+        while w.parent:
+            pox,poy=w.parent.offset()
+            w=w.parent
         return pox+self.x, poy+self.y
+
+    def coordinate_in_widget(self, x, y):
+        if self.hidden:
+            return False
+        ox,oy=self.offset()
+        rx=x-ox+1
+        ry=y-oy+1
+        return  0<=rx<self.w and 0<=ry<self.h
+
+    def widget_at_coordinate(self, x,y):
+        root=self
+        while root.parent:
+            root=root.parent
+        stack=[ root ]
+        while stack:
+            node=stack.pop()
+            for n in node.widgetList:
+                stack.append(n)
+        for w in reverse(stack):
+            if w.coordinate_in_widget(x,y):
+                return w
+        return None
 
     def rel_event(self, event=None):
         if type(event)==dict:
@@ -210,6 +237,82 @@ class widget():
                 return revent
             return ''
         return event
+
+    def set_active(self):
+        root=self
+        while root.parent:
+            root=root.parent
+        #deactivate all widgets and clear child active
+        stack=[ root ]
+        while stack:
+            node=stack.pop()
+            node.active=False
+            node.child_active=False
+            for n in node.widgetList:
+                stack.append(n)
+        #activate self and set child_active on all parents
+        node=self
+        self.active=True
+        self.hidden=False
+        while node.parent:
+            node=node.parent
+            node.child_active=True
+
+    def next_active(self):
+        root=self
+        while root.parent:
+            root=root.parent
+        found=False
+        stack=[ root ]
+        while stack:
+            node=stack.pop()
+            if found:
+                node.set_active()
+                return node
+            if node==self:
+                found=True
+            for n in node.widgetList:
+                stack.append(n)
+
+    def prev_active(self):
+        root=self
+        while root.parent:
+            root=root.parent
+        stack=[ root ]
+        while stack:
+            node=stack.pop()
+            if node==self:
+                if stack:
+                    prev=stack.pop()
+                    prev.set_active()
+                    return prev
+            for n in node.widgetList:
+                stack.append(n)
+
+    def hide(self, next='parent'):
+        if next=='parent':
+            if self.parent:
+                self.parent.set_active()
+                self.hidden=True
+                return True
+        if next=='next':
+            self.next_active()
+            return True
+        if next=='prev':
+            self.prev_active()
+            return True
+        elif isinstance(next, Widget):
+            if next!=self:
+                next.set_active()
+                self.hidden=True
+                return True
+        return False
+
+    def unhide(self, activate=True):
+        self.hidden=False
+        if activate:
+            self.set_active()
+        return True
 
     def refresh(self, event=None):
         self.force_refresh=True
@@ -314,6 +417,7 @@ class widget():
         widget.fg0=self.fg
         widget.bg0=self.bg
         self.widgetList.append(widget)
+        self.set_active()
         return self.widgetList[-1]
 
     def resize(self, event=None):
@@ -321,27 +425,20 @@ class widget():
             w.resize(event)
 
     def drawChildren(self, screen=None):
-        if screen:
-            buffer=''
-            for w in self.widgetList:
-                ch=w.draw()
-                if type(ch)==str:
-                    screen.print(ch)
-                    buffer+=ch
+        last=None
+        for w in self.widgetList:
+            if not w.hidden:
+                w.draw()
+                if w.active or w.child_active:
+                    last=w
                 else:
                     screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
-            return buffer
-        else:
-            buffer=''
-            for w in self.widgetList:
-                buffer+=w.draw()
-            return buffer
+        if last:
+            screen.paste (last.screen, box=(last.x,last.y,last.last,last.h))
+        return
 
     def draw(self):
         return self.drawChildren(screen=self.screen)
-
-    def setFocus(self):
-        pass
 
     def onFocus(self):
         pass

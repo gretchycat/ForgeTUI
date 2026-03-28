@@ -7,7 +7,7 @@ try:
 except:
     Screen=None
 from .termkeymap import gen_keymap
-from .widget import widget, boxDraw
+from .widget import Widget, boxDraw
 
 p=create_ansi_256_palette().get_colors()
 
@@ -69,16 +69,16 @@ class frameDraw(boxDraw):
                         fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
         return frame
 
-class widgetProgressBar(widget):
+class widgetProgressBar(Widget):
     pass
 
-class widgetSlider(widget):
+class widgetSlider(Widget):
     pass
 
-class widgetButton(widget):
+class widgetButton(Widget):
    pass
 
-class widgetScreen(widget):
+class widgetScreen(Widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
         self.show_x_scrollbar=True
