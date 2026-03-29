@@ -172,17 +172,16 @@ class boxDraw:
         return screen
 
 class Widget():
-    def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=0, key=None, action=None):
+    def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=0):
+        self.log_file=None
         self.force_refresh=True
         self.screen=None
-        self.active=False
-        self.child_active=False
+        self.focus=False
+        self.child_focus=False
         self.hidden=False
         self.fg0=7
         self.bg0=0
         self.invert=False
-        self.key=key
-        self.action=action
         self.minW=1
         self.minH=1
         self.t=termcontrol()
@@ -196,6 +195,18 @@ class Widget():
 
     def __del__(self):
         pass
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(id={id(self):x})"
+
+    def log(self, string):
+        winfo = repr(self)
+        root = self
+        while root.parent:
+            root = root.parent
+        if root.log_file:
+            root.log_file.write(f"{winfo}: {string}\n")
+            root.log_file.flush()
 
     def offset(self):
         pox, poy=0,0
@@ -218,14 +229,22 @@ class Widget():
         while root.parent:
             root=root.parent
         stack=[ root ]
+        full_stack=[]
         while stack:
             node=stack.pop()
+            full_stack.append(node)
             for n in node.widgetList:
                 stack.append(n)
-        for w in reverse(stack):
+        widgets=[]
+        for w in full_stack:
             if w.coordinate_in_widget(x,y):
-                return w
-        return None
+                widgets.append(w)
+        self.log(str(widgets))
+        for w in widgets:
+            if w!=root:
+                if w.focus:
+                    return w
+        return widgets[-1]
 
     def rel_event(self, event=None):
         if type(event)==dict:
@@ -238,27 +257,27 @@ class Widget():
             return ''
         return event
 
-    def set_active(self):
+    def set_focus(self):
         root=self
         while root.parent:
             root=root.parent
-        #deactivate all widgets and clear child active
+        #deactivate all widgets and clear child focus
         stack=[ root ]
         while stack:
             node=stack.pop()
-            node.active=False
-            node.child_active=False
+            node.focus=False
+            node.child_focus=False
             for n in node.widgetList:
                 stack.append(n)
-        #activate self and set child_active on all parents
+        #activate self and set child_focus on all parents
         node=self
-        self.active=True
+        self.focus=True
         self.hidden=False
         while node.parent:
             node=node.parent
-            node.child_active=True
+            node.child_focus=True
 
-    def next_active(self):
+    def next_focus(self):
         root=self
         while root.parent:
             root=root.parent
@@ -267,14 +286,14 @@ class Widget():
         while stack:
             node=stack.pop()
             if found:
-                node.set_active()
+                node.set_focus()
                 return node
             if node==self:
                 found=True
             for n in node.widgetList:
                 stack.append(n)
 
-    def prev_active(self):
+    def prev_focus(self):
         root=self
         while root.parent:
             root=root.parent
@@ -284,7 +303,7 @@ class Widget():
             if node==self:
                 if stack:
                     prev=stack.pop()
-                    prev.set_active()
+                    prev.set_focus()
                     return prev
             for n in node.widgetList:
                 stack.append(n)
@@ -292,18 +311,18 @@ class Widget():
     def hide(self, next='parent'):
         if next=='parent':
             if self.parent:
-                self.parent.set_active()
+                self.parent.set_focus()
                 self.hidden=True
                 return True
         if next=='next':
-            self.next_active()
+            self.next_focus()
             return True
         if next=='prev':
-            self.prev_active()
+            self.prev_focus()
             return True
         elif isinstance(next, Widget):
             if next!=self:
-                next.set_active()
+                next.set_focus()
                 self.hidden=True
                 return True
         return False
@@ -311,7 +330,7 @@ class Widget():
     def unhide(self, activate=True):
         self.hidden=False
         if activate:
-            self.set_active()
+            self.set_focus()
         return True
 
     def refresh(self, event=None):
@@ -320,7 +339,16 @@ class Widget():
     def addEvent(self, trigger, func):
         self.eventList[trigger]=func
 
-    def checkWidgetEvents(self, event, w):
+    def check_mouse_focus_change(self, event):
+        if type(event)==dict:
+            x=event.get('x')
+            y=event.get('y')
+            focused=self.widget_at_coordinate(x,y)
+            if focused:
+                self.log(str(focused))
+                focused.set_focus()
+
+    def checkWidgetEvents(self, event):
         event=self.rel_event(event)
         if event=='':
             return
@@ -333,9 +361,9 @@ class Widget():
                     elif 'function' in f'{type(self.eventList[e])}':
                         self.action(self, event=event)
                 else:
-                    self.out.write(f'{self.t.gotoxy(10,20)}invalid action for "{e}" type: {type(self.eventList[e])}')
-        for cw in w.widgetList:
-            cw.checkWidgetEvents(event, cw)
+                    self.log(f'invalid action for "{e}" type: {type(self.eventList[e])}')
+        for cw in self.widgetList:
+            cw.checkWidgetEvents(event)
 
     def guiLoop(self, outputmode=[]):
         self.go=True
@@ -349,7 +377,7 @@ class Widget():
         home=self.t.gotoxy(1, 1)
         origin=self.t.gotoxy(1, 1)
         buffercache=""
-        with open("output.log", "w") as self.log:
+        with open("output.log", "w") as self.log_file:
             while self.go:
                 #resize to full screen
                 sz=self.t.get_terminal_size()
@@ -367,7 +395,8 @@ class Widget():
                 self.screen=buffer.copy()
                 for inp in self.input.read_input():
                     if inp != '':
-                        self.checkWidgetEvents(inp, self)
+                        self.check_mouse_focus_change(inp)
+                        self.checkWidgetEvents(inp)
         output(self.t.clear())
         output(self.t.enable_cursor())
         output(self.t.disable_mouse())
@@ -417,7 +446,7 @@ class Widget():
         widget.fg0=self.fg
         widget.bg0=self.bg
         self.widgetList.append(widget)
-        self.set_active()
+        self.set_focus()
         return self.widgetList[-1]
 
     def resize(self, event=None):
@@ -429,12 +458,12 @@ class Widget():
         for w in self.widgetList:
             if not w.hidden:
                 w.draw()
-                if w.active or w.child_active:
+                if w.focus or w.child_focus:
                     last=w
                 else:
                     screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
         if last:
-            screen.paste (last.screen, box=(last.x,last.y,last.last,last.h))
+            screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
         return
 
     def draw(self):

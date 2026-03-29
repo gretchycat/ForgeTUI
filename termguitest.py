@@ -37,12 +37,12 @@ style2='2line'
 #style='inside'
 #style='outside'
 #style='gdw4thjj'
-s=widgetScreen(0,0,0,0, style=style, bg=233)
+s=widgetScreen(0,0,0,0, style=style, bg=233, title='root')
 #s.stream.feed(s.t.drawRuler(s.w-4, s.h-2))
 s.scroll(0,0)
 draw_ruler(s)
-box=s.addWidget(widgetScreen(10, 5, 40, 10, style=style2, bg=65,fg=16))
-box2=s.addWidget(widgetScreen(15, 7, 60, 10, style=style3, bg=75,fg=0))
+box=s.addWidget(widgetScreen(10, 5, 40, 10, style=style2, bg=65,fg=16,title='green'))
+box2=s.addWidget(widgetScreen(15, 7, 60, 10, style=style3, bg=75,fg=0,title='blue'))
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Inputs here\n")
