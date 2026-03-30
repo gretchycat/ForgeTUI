@@ -85,9 +85,11 @@ class widgetScreen(Widget):
         self.show_y_scrollbar=True
         self.title=title
         self.style=style
+        self.reorder=True
         self.frame=None
         if style:
-            self.frame=frameDraw(style=style, bgColor=self.bg, bg0=self.bg0, widget=self)
+            self.frame=frameDraw(style=style, bgColor=self.bg,
+                                 bg0=self.bg0, widget=self)
         fw=0
         fh=0
         if(self.frame):

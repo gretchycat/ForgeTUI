@@ -177,6 +177,7 @@ class Widget():
         self.force_refresh=True
         self.screen=None
         self.focus=False
+        self.reotder=False
         self.child_focus=False
         self.hidden=False
         self.fg0=7
@@ -233,7 +234,7 @@ class Widget():
         while stack:
             node=stack.pop()
             full_stack.append(node)
-            for n in node.widgetList:
+            for n in reversed(node.widgetList):
                 stack.append(n)
         widgets=[]
         for w in full_stack:
@@ -241,7 +242,7 @@ class Widget():
                 widgets.append(w)
         self.log(str(widgets))
         for w in widgets:
-            if w!=root:
+            if w != root:
                 if w.focus:
                     return w
         return widgets[-1]
@@ -276,6 +277,8 @@ class Widget():
         while node.parent:
             node=node.parent
             node.child_focus=True
+        if self.reorder:
+            pass #move focus and child_focus last
 
     def next_focus(self):
         root=self
@@ -446,7 +449,7 @@ class Widget():
         widget.fg0=self.fg
         widget.bg0=self.bg
         self.widgetList.append(widget)
-        self.set_focus()
+        widget.set_focus()
         return self.widgetList[-1]
 
     def resize(self, event=None):
