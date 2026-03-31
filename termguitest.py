@@ -30,7 +30,6 @@ style2='2line'
 #style='outside'
 #style='gdw4thjj'
 s=widgetScreen(0,0,0,0, style=style, bg=233, title='root')
-#s.stream.feed(s.t.drawRuler(s.w-4, s.h-2))
 s.scroll(0,0)
 draw_ruler(s)
 box=s.addWidget(widgetScreen(10, 5, 40, 10, style=style2, bg=65,fg=16,title='green'))
@@ -41,6 +40,7 @@ box2.feed("Inputs here\n")
 s.addEvent('Ctrl Q', s.quit)
 s.addEvent('r', s.refresh)
 box2.addEvent('', eventout)
+box.addEvent('', eventout)
 s.addEvent('Ctrl D', get_dims)
 box.addEvent('Ctrl D', get_dims)
 box2.addEvent('Ctrl D', get_dims)

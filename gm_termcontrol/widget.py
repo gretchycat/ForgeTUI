@@ -368,19 +368,17 @@ class Widget():
                 focused.set_focus()
 
     def checkWidgetEvents(self, event):
-        event=self.rel_event(event)
-        if event=='':
-            return
-        for  e, m in self.eventList.items():
-            if e==event or e=='':
-                if f'{type(self.eventList[e])}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
-                    self.action=self.eventList[e]
-                    if 'method' in f'{type(self.eventList[e])}':
-                        self.action(event=event)
-                    elif 'function' in f'{type(self.eventList[e])}':
-                        self.action(self, event=event)
-                else:
-                    self.log(f'invalid action for "{e}" type: {type(self.eventList[e])}')
+        if event!='' and self.focus:
+            for  e, m in self.eventList.items():
+                if e==event or e=='':
+                    if f'{type(self.eventList[e])}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
+                        self.action=self.eventList[e]
+                        if 'method' in f'{type(self.eventList[e])}':
+                            self.action(event=event)
+                        elif 'function' in f'{type(self.eventList[e])}':
+                            self.action(self, event=event)
+                    else:
+                        self.log(f'invalid action for "{e}" type: {type(self.eventList[e])}')
         for cw in self.widgetList:
             cw.checkWidgetEvents(event)
 
@@ -419,7 +417,7 @@ class Widget():
                 for inp in self.input.read_input():
                     if inp != '':
                         self.check_mouse_focus_change(inp)
-                        self.checkWidgetEvents(inp)
+                        self.checkWidgetEvents(self.rel_event(inp))
         output(self.t.clear())
         output(self.t.enable_cursor())
         output(self.t.disable_mouse())
