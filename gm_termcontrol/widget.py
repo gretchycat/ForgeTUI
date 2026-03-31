@@ -355,8 +355,8 @@ class Widget():
     def refresh(self, event=None):
         self.force_refresh=True
 
-    def addEvent(self, trigger, func):
-        self.eventList[trigger]=func
+    def addEvent(self, trigger, func, persist=False):
+        self.eventList[trigger]={ 'func':func, 'persist':persist }
 
     def check_mouse_focus_change(self, event):
         if type(event)==dict:
@@ -370,15 +370,17 @@ class Widget():
     def checkWidgetEvents(self, event):
         if event!='' and self.focus:
             for  e, m in self.eventList.items():
+                func=m.get('func')
+                persist=m.get('persist')
                 if e==event or e=='' or (type(event)==dict and e==event['action']):
-                    if f'{type(self.eventList[e])}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
-                        self.action=self.eventList[e]
-                        if 'method' in f'{type(self.eventList[e])}':
+                    if f'{type(func)}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
+                        self.action=func
+                        if 'method' in f'{type(func)}':
                             self.action(event=event)
-                        elif 'function' in f'{type(self.eventList[e])}':
+                        elif 'function' in f'{type(func)}':
                             self.action(self, event=event)
                     else:
-                        self.log(f'invalid action for "{e}" type: {type(self.eventList[e])}')
+                        self.log(f'invalid action for "{e}" type: {type(func)}')
         for cw in self.widgetList:
             cw.checkWidgetEvents(event)
 
