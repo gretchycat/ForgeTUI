@@ -33,9 +33,8 @@ def output(data, fd=sys.stdout.fileno()):
 class boxDraw:
     def __init__(self, bgColor=24,
                 bg0=0, fg0=7,
-                chars="",
                 frameColors=[],
-                title="", statusBar='',
+                chars='',
                 mode='auto', charset='utf8',
                 style='inside',
                 ):
@@ -91,8 +90,6 @@ class boxDraw:
                 self.frameColors=[7, 7, 7, 7, 0, 7, 7, 7, 7]
             self.bgColor=0
         self.tinted=None
-        self.title=title
-        self.statusBar=statusBar
 
     def setColors(self, bgcolor, frameColors):
         self.bgColor=bgColor
@@ -195,24 +192,23 @@ class Widget():
         self.parent=None
 
     def suspend(self, signum, frame):
-        print(self.t.disable_mouse())
-        print(self.t.enable_cursor())
-        print(self.t.normal_screen())
-        print("Preparing for suspend")
+        output(self.t.disable_mouse())
+        output(self.t.enable_cursor())
+        output(self.t.normal_screen())
+        output("Preparing for suspend\n")
         os.kill(os.getpid(), signal.SIGSTOP)
 
     def resume(self, signum, frame):
-        print(self.t.enable_mouse())
-        print(self.t.disable_cursor())
-        print(self.t.alt_screen())
-        print("Resuming")
+        output(self.t.enable_mouse())
+        output(self.t.disable_cursor())
+        output(self.t.alt_screen())
+        output("Resuming\n")
 
     def stop(self, signum, frame):
-        print(self.t.normal_screen())
-        print('Quit requested. Stopping')
-        print(self.t.alt_screen())
+        output(self.t.normal_screen())
+        output('Quit requested. Stopping\n')
+        output(self.t.alt_screen())
         self.quit()
-        
 
     def __del__(self):
         pass
