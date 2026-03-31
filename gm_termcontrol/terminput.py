@@ -81,7 +81,7 @@ class termInput:
             button, column, row, event = m.groups()
             detail=''
             button = int(button)
-            action = "Down" if event == "M" else "Up" if event == "m" else "Unknown"
+            action = "button down" if event == "M" else "button up" if event == "m" else "Unknown"
             if button>=64:
                 if button<=67:
                     action='scroll '+scroll_dir[button]

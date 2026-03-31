@@ -370,7 +370,7 @@ class Widget():
     def checkWidgetEvents(self, event):
         if event!='' and self.focus:
             for  e, m in self.eventList.items():
-                if e==event or e=='':
+                if e==event or e=='' or (type(event)==dict and e==event['action']):
                     if f'{type(self.eventList[e])}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
                         self.action=self.eventList[e]
                         if 'method' in f'{type(self.eventList[e])}':
