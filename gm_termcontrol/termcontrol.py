@@ -1,12 +1,10 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import sys, os, fcntl, select, asyncio, time, termios, tty, logging, pyte, re, icat
-try:
-    from libansiscreen.screen import Screen
-    from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
-except:
-    Screen=None
-from .termkeymap import gen_keymap
+from libansiscreen.screen import Screen
+from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
+from gm_termcontrol.termkeymap import gen_keymap
+
 
 rgb_file_path = '/usr/share/X11/rgb.txt'
 
@@ -21,17 +19,6 @@ class termcontrol:
             self.image_support.append('kitty')
         if 'vt340' in term or len(konsole_ver or '')>0:
             self.image_support.append('sixel')
-
-    def enable_mouseX(self, utf8=True):
-        return "\x1b[?1002h\x1b[?1006h"
-        if(utf8):
-            return "\x1b[?1005h"
-        return "\x1b[?1000h"
-
-    def disable_mouseX(self, utf8=True):
-        if(utf8):
-            return "\x1b[?1005l"
-        return "\x1b[?1000l"
 
     # ------------------------------------------------------------------
     # Mouse control

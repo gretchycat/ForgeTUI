@@ -1,11 +1,8 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import sys, os, fcntl, asyncio, time, re, icat
-try:
-    from libansiscreen.screen import Screen
-    from libansiscreen.color.palette import Palette, create_ansi_256_palette
-except:
-    Screen=None
+from libansiscreen.screen import Screen
+from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termkeymap import gen_keymap
 from .widget import Widget, boxDraw
 

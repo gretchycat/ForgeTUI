@@ -1,16 +1,8 @@
 #!/usr/bin/python3
 from gm_termcontrol.widget import Widget
 from gm_termcontrol.widget_libansiscreen import widgetScreen
-#from gm_termcontrol.widget_ansi import widgetScreen
-import signal
+from gm_termcontrol.termcontrol import termcontrol
 import sys
-
-def handle_sigtstp(signum, frame):
-    pass
-
-#signal.signal(signal.SIGINT, handle_sigint)
-signal.signal(signal.SIGTSTP, handle_sigtstp)
-#signal.signal(signal.SIGQUIT, handle_sigquit)
 
 def clear(self, event=None):
     self.feed(self.t.clear())

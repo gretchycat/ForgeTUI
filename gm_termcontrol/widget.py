@@ -7,10 +7,10 @@ from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
 from .box_glyphs import grchr, theme
+import signal
 
 rgb_file_path = '/usr/share/X11/rgb.txt'
 CHUNK_SIZE = 4096  # safe per-write chunk
-#
 
 p=create_ansi_256_palette().get_colors()
 
@@ -193,6 +193,26 @@ class Widget():
         self.eventList={}
         self.focus=None
         self.parent=None
+
+    def suspend(self, signum, frame):
+        print(self.t.disable_mouse())
+        print(self.t.enable_cursor())
+        print(self.t.normal_screen())
+        print("Preparing for suspend")
+        os.kill(os.getpid(), signal.SIGSTOP)
+
+    def resume(self, signum, frame):
+        print(self.t.enable_mouse())
+        print(self.t.disable_cursor())
+        print(self.t.alt_screen())
+        print("Resuming")
+
+    def stop(self, signum, frame):
+        print(self.t.normal_screen())
+        print('Quit requested. Stopping')
+        print(self.t.alt_screen())
+        self.quit()
+        
 
     def __del__(self):
         pass
@@ -380,6 +400,10 @@ class Widget():
         home=self.t.gotoxy(1, 1)
         origin=self.t.gotoxy(1, 1)
         buffercache=""
+        signal.signal(signal.SIGINT, self.stop)
+        signal.signal(signal.SIGQUIT, self.stop)
+        signal.signal(signal.SIGTSTP, self.suspend)
+        signal.signal(signal.SIGCONT, self.resume)
         with open("output.log", "w") as self.log_file:
             while self.go:
                 #resize to full screen
