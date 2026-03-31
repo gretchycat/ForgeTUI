@@ -37,7 +37,7 @@ box2=s.addWidget(widgetScreen(15, 7, 60, 10, style=style3, bg=75,fg=0,title='blu
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Inputs here\n")
-s.addEvent('Ctrl Q', s.quit)
+s.addEvent('Ctrl Q', s.quit, persist=True)
 s.addEvent('r', s.refresh)
 box2.addEvent('', eventout)
 box.addEvent('', eventout)

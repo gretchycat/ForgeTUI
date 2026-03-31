@@ -368,19 +368,20 @@ class Widget():
                 focused.set_focus()
 
     def checkWidgetEvents(self, event):
-        if event!='' and self.focus:
+        if event!='':
             for  e, m in self.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
-                if e==event or e=='' or (type(event)==dict and e==event['action']):
-                    if f'{type(func)}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
-                        self.action=func
-                        if 'method' in f'{type(func)}':
-                            self.action(event=event)
-                        elif 'function' in f'{type(func)}':
-                            self.action(self, event=event)
-                    else:
-                        self.log(f'invalid action for "{e}" type: {type(func)}')
+                if self.focus or persist:
+                    if e==event or e=='' or (type(event)==dict and e==event['action']):
+                        if f'{type(func)}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
+                            self.action=func
+                            if 'method' in f'{type(func)}':
+                                self.action(event=event)
+                            elif 'function' in f'{type(func)}':
+                                self.action(self, event=event)
+                        else:
+                            self.log(f'invalid action for "{e}" type: {type(func)}')
         for cw in self.widgetList:
             cw.checkWidgetEvents(event)
 
