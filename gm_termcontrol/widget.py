@@ -294,7 +294,7 @@ class Widget():
             node=node.parent
             node.child_focus=True
         if self.reorder:
-            pass #move focus and child_focus last
+            pass #TODO move focus and child_focus last
 
     def next_focus(self):
         root=self
