@@ -383,7 +383,7 @@ class Widget():
                         else:
                             self.log(f'invalid action for "{e}" type: {type(func)}')
         for cw in self.widgetList:
-            cw.checkWidgetEvents(event)
+            cw.checkWidgetEvents(cw.rel_event(event))
 
     def guiLoop(self, outputmode=[]):
         self.go=True
@@ -420,7 +420,7 @@ class Widget():
                 for inp in self.input.read_input():
                     if inp != '':
                         self.check_mouse_focus_change(inp)
-                        self.checkWidgetEvents(self.rel_event(inp))
+                        self.checkWidgetEvents(inp)
         output(self.t.clear())
         output(self.t.enable_cursor())
         output(self.t.disable_mouse())
