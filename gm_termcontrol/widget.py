@@ -279,9 +279,12 @@ class Widget():
         while root.parent:
             root=root.parent
         #deactivate all widgets and clear child focus
+        defocused=None
         stack=[ root ]
         while stack:
             node=stack.pop()
+            if node.focus:
+                defocused=node
             node.focus=False
             node.child_focus=False
             for n in node.widgetList:
@@ -305,7 +308,11 @@ class Widget():
                 if move:
                     node.widgetList.remove(move)
                     node.widgetList.append(move)
-     
+        if self!=defocused:
+            if defocused:
+                defocused.on_defocus()
+            self.on_focus()
+
     def next_focus(self): #FIXME
         root=self
         while root.parent:
@@ -446,6 +453,14 @@ class Widget():
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
 
+    def addWidget(self, widget):
+        widget.parent=self
+        widget.fg0=self.fg
+        widget.bg0=self.bg
+        self.widgetList.append(widget)
+        widget.set_focus()
+        return self.widgetList[-1]
+
     def setSize(self, x, y, w, h): #should always be okay
         if x<1:
             x=1
@@ -475,13 +490,8 @@ class Widget():
         if self.screen:
             self.screen.resize(w, h)
 
-    def addWidget(self, widget):
-        widget.parent=self
-        widget.fg0=self.fg
-        widget.bg0=self.bg
-        self.widgetList.append(widget)
-        widget.set_focus()
-        return self.widgetList[-1]
+    def move(self, x,y):
+        pass
 
     def resize(self, event=None):
         for w in self.widgetList:
@@ -503,21 +513,9 @@ class Widget():
     def draw(self):
         return self.drawChildren(screen=self.screen)
 
-    def onFocus(self):
+    def on_focus(self):
         pass
 
-    def onDeFocus(self):
-        pass
-
-    def mouseEvent(self, x, y, buttons):
-        pass
-
-    def kbEvent(self, ch):
-        pass
-
-    def save(self, f):
-        pass
-
-    def load(self, f):
+    def on_defocus(self):
         pass
 
