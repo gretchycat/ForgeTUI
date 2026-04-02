@@ -26,6 +26,7 @@ class frameDraw(boxDraw):
         self.scrollbar_bg=scrollbar_bg
         self.scrollbar_fg=scrollbar_fg
         #TODO add scrollbar mouse controls
+        #TODO add mouse drag move, resize
 
     def draw(self, x=0, y=0, w=0, h=0,
              fill=True,  invert=False,
