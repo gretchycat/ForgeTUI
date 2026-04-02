@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, fcntl, select, asyncio, time, termios, tty, logging, pyte, re, icat
+import sys, os, fcntl, select, asyncio, time, termios, tty, re
 from libansiscreen.screen import Screen
 from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
@@ -294,9 +294,19 @@ class Widget():
             node=node.parent
             node.child_focus=True
         if self.reorder:
-            pass #TODO move focus and child_focus last
-
-    def next_focus(self):
+            stack=[ root ]
+            while stack:
+                node=stack.pop()
+                move=None
+                for n in node.widgetList:
+                    stack.append(n)
+                    if n.focus or n.child_focus:
+                        move=n
+                if move:
+                    node.widgetList.remove(move)
+                    node.widgetList.append(move)
+     
+    def next_focus(self): #FIXME
         root=self
         while root.parent:
             root=root.parent
@@ -312,7 +322,7 @@ class Widget():
             for n in node.widgetList:
                 stack.append(n)
 
-    def prev_focus(self):
+    def prev_focus(self): #FIXME
         root=self
         while root.parent:
             root=root.parent
