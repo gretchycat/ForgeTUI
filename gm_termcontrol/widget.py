@@ -261,7 +261,9 @@ class Widget():
             if w != root:
                 if w.focus:
                     return w
-        return widgets[-1]
+        if widgets:
+            return widgets[-1]
+        return None
 
     def rel_event(self, event=None):
         if type(event)==dict:
@@ -462,10 +464,10 @@ class Widget():
         return self.widgetList[-1]
 
     def setSize(self, x, y, w, h): #should always be okay
-        if x<1:
-            x=1
-        if y<1:
-            y=1
+        if x<0:
+            x=0
+        if y<0:
+            y=0
         scr=self.t.get_terminal_size()
         if w==0:
             w=scr['columns']
