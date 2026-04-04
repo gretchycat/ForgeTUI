@@ -4,9 +4,9 @@ def gen_keymap():
         "\x7f":"Backspace",
         "\x1b":"Esc",
         "\x00":"Ctrl  ",
-        "\x09":"Tab", 
-        "\x0a":"Enter", 
-        "\x0d":"Enter", 
+        "\x09":"Tab",
+        "\x0a":"Enter",
+        "\x0d":"CR",
         "\x1b[Z":"Shift Tab",
         "\x1b\n":"Alt Enter",
     }
@@ -31,15 +31,19 @@ def gen_keymap():
 
     # CSI Suffixes (1;modX)
     nav_f_codes = {
-        "A": "Up", "B": "Down", "C": "Right", "D": "Left", 
+        "A": "Up", "B": "Down", "C": "Right", "D": "Left",
         "H": "Home", "F": "End", "P": "F1", "Q": "F2", "R": "F3", "S": "F4"
     }
 
     # Tilde Codes (code;mod~)
     tilde_codes = {
-        "2": "Ins", "3": "Del", "5": "PgUp", "6": "PgDn",
-        "15": "F5", "17": "F6", "18": "F7", "19": "F8", 
+        "1": "Home", "2": "Ins", "3": "Del", "4": 'End',
+        "5": "PgUp", "6": "PgDn",
+        "15": "F5", "17": "F6", "18": "F7", "19": "F8",
         "20": "F9", "21": "F10", "23": "F11", "24": "F12",
+        "25": "F13", "26": "F14", "28": "F15", "29": "F16",
+        "31": "F17", "32": "F18", "33": "F19", "34": "F20",
+        "35": "F21", "36": "F22", "37": "F23", "38": "F24",
         "32": "SysRq", "34": "Break",
     }
 

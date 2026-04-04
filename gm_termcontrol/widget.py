@@ -237,8 +237,8 @@ class Widget():
         if self.hidden:
             return False
         ox,oy=self.offset()
-        rx=x-ox+1
-        ry=y-oy+1
+        rx=x-ox
+        ry=y-oy
         return  0<=rx<self.w and 0<=ry<self.h
 
     def widget_at_coordinate(self, x,y):
@@ -269,8 +269,8 @@ class Widget():
         if type(event)==dict:
             ox,oy=self.offset()
             revent=event.copy()
-            revent['x']=event['x']-ox+1
-            revent['y']=event['y']-oy+1
+            revent['x']=event['x']-ox
+            revent['y']=event['y']-oy
             if  0<=revent['x']<self.w and 0<=revent['y']<self.h:
                 return revent
             return ''
