@@ -35,7 +35,7 @@ class frameDraw(boxDraw):
         p=create_ansi_256_palette().get_colors()
         frame=super().draw(x=x, y=y, w=w, h=h,
                            fill=fill, invert=invert, screen=screen)
-        c=[ '↑', '|', '↓']
+        #c=[ '↑', '|', '↓']
         sh,sv=0,0
         if self.widget.x_max>0:
             sh=int((w-5)*(self.widget.sx/self.widget.x_max))
