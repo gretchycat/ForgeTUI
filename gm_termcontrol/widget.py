@@ -1,19 +1,14 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, fcntl, select, asyncio, time, termios, tty, re
+import sys, os, select, re
 from libansiscreen.screen import Screen
-from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
 from .box_glyphs import grchr, theme
 import signal
 
-rgb_file_path = '/usr/share/X11/rgb.txt'
 CHUNK_SIZE = 4096  # safe per-write chunk
-
-p=create_ansi_256_palette().get_colors()
-
 def output(data, fd=sys.stdout.fileno()):
     """Queue a string or bytes for non-blocking terminal output."""
     outbuf = bytearray()  # persistent buffer
@@ -129,6 +124,7 @@ class boxDraw:
         if screen is None:
             if(w<3): w=3
             if(h<3): h=3
+        p=create_ansi_256_palette().get_colors()
         colors=self.frameColors
         if(self.tinted):
             colors=self.tinted

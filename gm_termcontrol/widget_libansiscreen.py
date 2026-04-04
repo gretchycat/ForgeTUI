@@ -1,12 +1,8 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, fcntl, asyncio, time, re, icat
 from libansiscreen.screen import Screen
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
-from .termkeymap import gen_keymap
 from .widget import Widget, boxDraw
-
-p=create_ansi_256_palette().get_colors()
 
 class frameDraw(boxDraw):
     def __init__(self, bgColor=0,
@@ -36,6 +32,7 @@ class frameDraw(boxDraw):
              sx=0,sx_max=0,
              sy=0,sy_max=0,
              ):
+        p=create_ansi_256_palette().get_colors()
         frame=super().draw(x=x, y=y, w=w, h=h,
                            fill=fill, invert=invert, screen=screen)
         c=[ '↑', '|', '↓']

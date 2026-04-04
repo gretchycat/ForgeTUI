@@ -64,5 +64,7 @@ def gen_keymap():
     # --- 3. Alt + Keys (Meta) ---
     for i in range(32, 127): # Space through ~
         term_keymap[f"\x1b{chr(i)}"] = f"Alt {chr(i)}"
-
+        for m in [ 9,10,12,13,14,15,16]:
+            term_keymap[f"\x1b[{str(i)};{str(m)}u" ] = f"{modifiers[str(m)]} {chr(i)}"
     return term_keymap
+
