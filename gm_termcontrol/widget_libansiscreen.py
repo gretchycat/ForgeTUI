@@ -96,6 +96,7 @@ class widgetScreen(Widget):
         self.scroll_y=-1
         self.resize()
         self.scroll_type='cursor'
+        self.addEvent('mouse_down', self.scroll_up)
         #TODO add scrollbar mouse controls
         #TODO add mouse drag move, resize
 
@@ -168,7 +169,9 @@ class widgetScreen(Widget):
         return x, y
 
     def scroll_up(self, input=None):
-        if self.scroll_yi==-1:
+        if type(input)==dict:
+            if input['x']!=self.w-1 or input['y']!=1: return
+        if self.scroll_y==-1:
             return
         self.scroll(self.scroll_x, self.scroll_y+1)
 
@@ -186,7 +189,7 @@ class widgetScreen(Widget):
 
     def scroll_right(self, input=None):
         if self.scroll_x==-1:
-            self.scroll(self.scroll_x, self.y_max)
+            self.scroll(self.x_max, self.scroll_y)
             return
         if self.scroll_x>0:
             self.scroll(self.scroll_x-1, self.scroll_y)
@@ -195,7 +198,8 @@ class widgetScreen(Widget):
         if type(input)==dict:
             pass
 
-    def scroll_x(self, input=None):
+    def scroll_y(self, input=None):
         if type(input)==dict:
             pass
+
 
