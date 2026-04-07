@@ -168,15 +168,27 @@ class widgetScreen(Widget):
         return x, y
 
     def scroll_up(self, input=None):
-        if self.scroll_y-1:
+        if self.scroll_yi==-1:
             return
         self.screll(self.scroll_x, self.scroll_y+1)
 
     def scroll_down(self, input=None):
-        if self.scroll_y-1:
+        if self.scroll_y==-1:
         self.screll(self.scroll_x, self.y_max)
             return
         if self.scroll_y>0:
             self.screll(self.scroll_x, self.scroll_y-1)
+
+    def scroll_left(self, input=None):
+        if self.scroll_x==-1:
+            return
+        self.screll(self.scroll_x+1, self.scroll_y)
+
+    def scroll_right(self, input=None):
+        if self.scroll_x==-1:
+        self.screll(self.scroll_x, self.y_max)
+            return
+        if self.scroll_x>0:
+            self.screll(self.scroll_x-1, self.scroll_y)
 
 
