@@ -311,36 +311,28 @@ class Widget():
                 defocused.on_defocus()
             self.on_focus()
 
-    def next_focus(self): #FIXME
-        root=self
-        while root.parent:
-            root=root.parent
-        found=False
-        stack=[ root ]
-        while stack:
-            node=stack.pop()
-            if found:
-                node.set_focus()
-                return node
-            if node==self:
-                found=True
-            for n in node.widgetList:
-                stack.append(n)
+    def next_focus(self):
+        next=False
+        if self.parent:
+            for w in self.parent.widgetList:
+                if w==self:
+                    next=True
+                if next:
+                    w.set_focus()
+                    return w
+        return None
 
-    def prev_focus(self): #FIXME
-        root=self
-        while root.parent:
-            root=root.parent
-        stack=[ root ]
-        while stack:
-            node=stack.pop()
-            if node==self:
-                if stack:
-                    prev=stack.pop()
-                    prev.set_focus()
+    def prev_focus(self):
+        prev=None
+        if self.parent:
+            for w in self.parent.widgetList:
+                if w==self:
+                    if prev:
+                        prev.set_focus()
                     return prev
-            for n in node.widgetList:
-                stack.append(n)
+                else:
+                    prev=w
+        return None
 
     def hide(self, next='parent'):
         if next=='parent':
@@ -349,11 +341,11 @@ class Widget():
                 self.hidden=True
                 return True
         if next=='next':
-            self.next_focus()
-            return True
+            if self.next_focus():
+                return True
         if next=='prev':
-            self.prev_focus()
-            return True
+            if self.prev_focus():
+                return True
         elif isinstance(next, Widget):
             if next!=self:
                 next.set_focus()

@@ -21,8 +21,6 @@ class frameDraw(boxDraw):
         self.widget=widget
         self.scrollbar_bg=scrollbar_bg
         self.scrollbar_fg=scrollbar_fg
-        #TODO add scrollbar mouse controls
-        #TODO add mouse drag move, resize
 
     def draw(self, x=0, y=0, w=0, h=0,
              fill=True,  invert=False,
@@ -35,7 +33,6 @@ class frameDraw(boxDraw):
         p=create_ansi_256_palette().get_colors()
         frame=super().draw(x=x, y=y, w=w, h=h,
                            fill=fill, invert=invert, screen=screen)
-        #c=[ '↑', '|', '↓']
         sh,sv=0,0
         if self.widget.x_max>0:
             sh=int((w-5)*(self.widget.sx/self.widget.x_max))
@@ -99,6 +96,8 @@ class widgetScreen(Widget):
         self.scroll_y=-1
         self.resize()
         self.scroll_type='cursor'
+        #TODO add scrollbar mouse controls
+        #TODO add mouse drag move, resize
 
     def __repr__(self):
         return f"{self.__class__.__name__}(title={self.title})"
@@ -168,16 +167,16 @@ class widgetScreen(Widget):
         self.sy=y
         return x, y
 
-    def onFocus(self):
-        pass
+    def scroll_up(self, input=None):
+        if self.scroll_y-1:
+            return
+        self.screll(self.scroll_x, self.scroll_y+1)
 
-    def onDeFocus(self):
-        pass
-
-    def mouseEvent(self, x, y, buttons):
-        pass
-
-    def kbEvent(self, ch):
-        pass
+    def scroll_down(self, input=None):
+        if self.scroll_y-1:
+        self.screll(self.scroll_x, self.y_max)
+            return
+        if self.scroll_y>0:
+            self.screll(self.scroll_x, self.scroll_y-1)
 
 

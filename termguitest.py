@@ -31,9 +31,12 @@ style2='2line'
 #style='gdw4thjj'
 s=widgetScreen(0,0,0,0, style=style, bg=233, title='root')
 s.scroll(0,0)
+s.show_x_scrollbar=False
+s.show_y_scrollbar=False
 draw_ruler(s)
 box=s.addWidget(widgetScreen(10, 5, 40, 10, style=style2, bg=65,fg=16,title='green'))
 box2=s.addWidget(widgetScreen(15, 7, 60, 10, style=style3, bg=75,fg=0,title='blue'))
+box2.show_x_scrollbar=False
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Inputs here\n")
