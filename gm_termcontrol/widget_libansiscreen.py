@@ -96,16 +96,33 @@ class widgetScreen(Widget):
         self.scroll_y=-1
         self.resize()
         self.scroll_type='cursor'
+        self.last_action=None
+        self.last_action_count=0
         self.addEvent('mouse down', self.scrollbar_mouse)
         self.addEvent('scroll down', self.scroll_down)
         self.addEvent('scroll up', self.scroll_up)
         self.addEvent('scroll right', self.scroll_right)
         self.addEvent('scroll left', self.scroll_left)
-        #TODO add acceleration to each scrolling direction
+        self.addEvent('', self.set_last_action)
+        #TODO fix scroll acceleration
         #TODO add mouse drag move, resize
 
     def __repr__(self):
         return f"{self.__class__.__name__}(title={self.title})"
+
+    def set_last_action(self, event=None):
+        if type(event)==dict:
+            if event['action']==self.last_action:
+                self.last_action_count=self.last_action_count+1
+            else:
+                self.last_action_count=0
+                self.last_action=event['action']
+        else:
+            if event==self.last_action:
+                self.last_action_count=self.last_action_count+1
+            else:
+                self.last_action_count=self.last_action_count+1
+                self.last_action=event
 
     def resize(self, event=None):
         super().resize()
@@ -175,26 +192,34 @@ class widgetScreen(Widget):
     def scroll_up(self, event=None):
         if self.scroll_y==-1:
             return
-        self.scroll(self.scroll_x, self.scroll_y+1)
+        ac=min(max(1,self.last_action_count),5)
+        self.scroll(self.scroll_x, self.scroll_y+ac)
 
     def scroll_down(self, event=None):
         if self.scroll_y==-1:
             self.scroll(self.scroll_x, self.y_max)
             return
+        ac=min(max(1,self.last_action_count),5)
+        if self.scroll_y-ac<0:
+            ac=1
         if self.scroll_y>0:
-            self.scroll(self.scroll_x, self.scroll_y-1)
+            self.scroll(self.scroll_x, self.scroll_y-ac)
 
     def scroll_left(self, event=None):
         if self.scroll_x==-1:
             return
+        ac=min(max(1,self.last_action_count),5)
         self.scroll(self.scroll_x+1, self.scroll_y)
 
     def scroll_right(self, event=None):
         if self.scroll_x==-1:
             self.scroll(self.x_max, self.scroll_y)
             return
+        ac=min(max(1,self.last_action_count),5)
+        if self.scroll_x-ac<0:
+            ac=1
         if self.scroll_x>0:
-            self.scroll(self.scroll_x-1, self.scroll_y)
+            self.scroll(self.scroll_x-ac, self.scroll_y)
 
     def scroll_x(self, event=None):
         if type(event)==dict:
@@ -205,7 +230,7 @@ class widgetScreen(Widget):
             pass
 
     def scrollbar_mouse(self, event=None):
-        if type(event)==dict:
+        if type(event)==dict: #TODO check if the scroll bars are on first
             if event['x']==self.w-1:
                 if event['y']==1:
                     self.scroll_up(event=event)
