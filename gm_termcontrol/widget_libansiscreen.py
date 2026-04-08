@@ -96,8 +96,12 @@ class widgetScreen(Widget):
         self.scroll_y=-1
         self.resize()
         self.scroll_type='cursor'
-        self.addEvent('mouse_down', self.scroll_up)
-        #TODO add scrollbar mouse controls
+        self.addEvent('mouse down', self.scrollbar_mouse)
+        self.addEvent('scroll down', self.scroll_down)
+        self.addEvent('scroll up', self.scroll_up)
+        self.addEvent('scroll right', self.scroll_right)
+        self.addEvent('scroll left', self.scroll_left)
+        #TODO add acceleration to each scrolling direction
         #TODO add mouse drag move, resize
 
     def __repr__(self):
@@ -168,38 +172,47 @@ class widgetScreen(Widget):
         self.sy=y
         return x, y
 
-    def scroll_up(self, input=None):
-        if type(input)==dict:
-            if input['x']!=self.w-1 or input['y']!=1: return
+    def scroll_up(self, event=None):
         if self.scroll_y==-1:
             return
         self.scroll(self.scroll_x, self.scroll_y+1)
 
-    def scroll_down(self, input=None):
+    def scroll_down(self, event=None):
         if self.scroll_y==-1:
             self.scroll(self.scroll_x, self.y_max)
             return
         if self.scroll_y>0:
             self.scroll(self.scroll_x, self.scroll_y-1)
 
-    def scroll_left(self, input=None):
+    def scroll_left(self, event=None):
         if self.scroll_x==-1:
             return
         self.scroll(self.scroll_x+1, self.scroll_y)
 
-    def scroll_right(self, input=None):
+    def scroll_right(self, event=None):
         if self.scroll_x==-1:
             self.scroll(self.x_max, self.scroll_y)
             return
         if self.scroll_x>0:
             self.scroll(self.scroll_x-1, self.scroll_y)
 
-    def scroll_x(self, input=None):
-        if type(input)==dict:
+    def scroll_x(self, event=None):
+        if type(event)==dict:
             pass
 
-    def scroll_y(self, input=None):
-        if type(input)==dict:
+    def scroll_y(self, event=None):
+        if type(event)==dict:
             pass
 
-
+    def scrollbar_mouse(self, event=None):
+        if type(event)==dict:
+            if event['x']==self.w-1:
+                if event['y']==1:
+                    self.scroll_up(event=event)
+                if event['y']==self.h-2:
+                    self.scroll_down(event=event)
+            elif event['y']==self.h-1:
+                if event['x']==1:
+                    self.scroll_left(event=event)
+                if event['x']==self.w-2:
+                    self.scroll_right(event=event)
