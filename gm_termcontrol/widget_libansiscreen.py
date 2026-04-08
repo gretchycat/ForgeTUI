@@ -96,33 +96,15 @@ class widgetScreen(Widget):
         self.scroll_y=-1
         self.resize()
         self.scroll_type='cursor'
-        self.last_action=None
-        self.last_action_count=0
         self.addEvent('mouse down', self.scrollbar_mouse)
         self.addEvent('scroll down', self.scroll_down)
         self.addEvent('scroll up', self.scroll_up)
         self.addEvent('scroll right', self.scroll_right)
         self.addEvent('scroll left', self.scroll_left)
-        self.addEvent('', self.set_last_action)
-        #TODO fix scroll acceleration
         #TODO add mouse drag move, resize
 
     def __repr__(self):
         return f"{self.__class__.__name__}(title={self.title})"
-
-    def set_last_action(self, event=None):
-        if type(event)==dict:
-            if event['action']==self.last_action:
-                self.last_action_count=self.last_action_count+1
-            else:
-                self.last_action_count=0
-                self.last_action=event['action']
-        else:
-            if event==self.last_action:
-                self.last_action_count=self.last_action_count+1
-            else:
-                self.last_action_count=self.last_action_count+1
-                self.last_action=event
 
     def resize(self, event=None):
         super().resize()

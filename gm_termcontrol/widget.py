@@ -186,7 +186,10 @@ class Widget():
         self.eventList={}
         self.focus=None
         self.parent=None
-
+        self.last_action=None
+        self.last_action_count=0
+        self.addEvent('', self.set_last_action)
+ 
     def suspend(self, signum, frame):
         output(self.t.disable_mouse())
         output(self.t.enable_cursor())
@@ -205,6 +208,20 @@ class Widget():
         output('Quit requested. Stopping\n')
         output(self.t.alt_screen())
         self.quit()
+
+    def set_last_action(self, event=None):
+        if type(event)==dict:
+            if event['action']==self.last_action:
+                self.last_action_count=self.last_action_count+1
+            else:
+                self.last_action_count=0
+                self.last_action=event['action']
+        else:
+            if event==self.last_action:
+                self.last_action_count=self.last_action_count+1
+            else:
+                self.last_action_count=self.last_action_count+1
+                self.last_action=event
 
     def __del__(self):
         pass
