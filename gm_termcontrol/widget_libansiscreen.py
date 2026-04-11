@@ -153,8 +153,8 @@ class widgetScreen(Widget):
         if self.frame:
             fw=self.frame.frame['w']*2
             fh=self.frame.frame['h']*2
-        self.scroll_x=x
-        self.scroll_y=y
+        self.scroll_x=int(x)
+        self.scroll_y=int(y)
         if self.scroll_type=='cursor':
             self.x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw))
             self.y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh))
@@ -203,24 +203,35 @@ class widgetScreen(Widget):
         if self.scroll_x>0:
             self.scroll(self.scroll_x-ac, self.scroll_y)
 
-    def scroll_x(self, event=None):
+    def scroll_x_bar(self, event=None):
         if type(event)==dict:
-            pass
+            pos=(event['x']-1)/(self.w-3) #always be between 0.0 and 1.0
+            s=int(pos*self.x_max)
+            self.scroll(s, self.scroll_y)
 
-    def scroll_y(self, event=None):
+    def scroll_y_bar(self, event=None):
         if type(event)==dict:
-            pass
+            pos=(event['y']-1)/(self.h-3) #always be between 0.0 and 1.0
+            s=int(pos*self.y_max)
+            self.scroll(self.scroll_x, s)
 
     def scrollbar_mouse(self, event=None):
         self.log(f"Mouse: {event}")
-        if type(event)==dict: #TODO check if the scroll bars are on first
+        if type(event)==dict:
             if event['x']==self.w-1:
-                if event['y']==1:
-                    self.scroll_up(event=event)
-                if event['y']==self.h-2:
-                    self.scroll_down(event=event)
+                if self.show_y_scrollbar:
+                    if event['y']==1:
+                        self.scroll_up(event=event)
+                    if 1 < event['y'] < self.h-2:
+                        self.scroll_y_bar(event=event)
+                    if event['y']==self.h-2:
+                        self.scroll_down(event=event)
             elif event['y']==self.h-1:
-                if event['x']==1:
-                    self.scroll_left(event=event)
-                if event['x']==self.w-2:
-                    self.scroll_right(event=event)
+                if self.show_x_scrollbar:
+                    if event['x']==1:
+                        self.scroll_left(event=event)
+                    if 1 < event['y'] < self.w-2:
+                        self.scroll_x_bar(event=event)
+                    if event['x']==self.w-2:
+                        self.scroll_right(event=event)
+
