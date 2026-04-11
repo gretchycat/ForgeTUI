@@ -165,7 +165,7 @@ class boxDraw:
         return screen
 
 class Widget():
-    def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=0):
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0):
         self.log_file=None
         self.force_refresh=True
         self.screen=None
@@ -179,6 +179,8 @@ class Widget():
         self.minW=1
         self.minH=1
         self.t=termcontrol()
+        self._x, self._y=None, None
+        self._w, self._h=None, None
         self.setSize(x, y, w, h)
         self.screen=Screen(width=self.w, height=self.h)
         self.setColors(fg, bg)
@@ -189,7 +191,7 @@ class Widget():
         self.last_action=None
         self.last_action_count=0
         self.addEvent('', self.set_last_action)
- 
+
     def suspend(self, signum, frame):
         output(self.t.disable_mouse())
         output(self.t.enable_cursor())
@@ -467,11 +469,31 @@ class Widget():
         return self.widgetList[-1]
 
     def setSize(self, x, y, w, h): #should always be okay
-        if x<0:
-            x=0
-        if y<0:
-            y=0
+        if type(x)==float or x<0: self._x=x
+        if type(y)==float or y<0: self._y=y
+        if type(w)==float or w<=0: self._w=w
+        if type(h)==float or h<=0: self._h=h
+        if self._x is not None: x=self._x
+        if self._y is not None: y=self._y
+        if self._w is not None: w=self._w
+        if self._h is not None: h=self._h
         scr=self.t.get_terminal_size()
+        if type(x)==float:
+            x=int(x*scr['columns'])
+        if type(y)==float:
+            y=int(y*scr['rows'])
+        if type(w)==float:
+            w=int(w*scr['columns'])
+        if type(h)==float:
+            h=int(h*scr['rows'])
+        if x<0:
+            x=scr['columns']+x
+        if y<0:
+            y=scr['rows']+y
+        if w<0:
+            x=scr['columns']+w
+        if h<0:
+            h=scr['rows']+h
         if w==0:
             w=scr['columns']
         if h==0:
@@ -499,6 +521,7 @@ class Widget():
         pass
 
     def resize(self, event=None):
+        self.setSize(self.x,self.y,self.w,self.h)
         for w in self.widgetList:
             w.resize(event)
 
