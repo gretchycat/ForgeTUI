@@ -76,7 +76,7 @@ class termInput:
 
     def mouse_input(self, buffer):
         m = re.match(r"\x1b\[<(\d+);(\d+);(\d+)([Mm])", buffer)
-        scroll_dir={64:'down', 65:'up',66:'right',67:'left'}
+        scroll_dir={64:'up', 65:'down',66:'left',67:'right'}
         if m:
             button, column, row, event = m.groups()
             detail=''
