@@ -478,30 +478,16 @@ class Widget():
         if self._w is not None: w=self._w
         if self._h is not None: h=self._h
         scr=self.t.get_terminal_size()
-        if type(x)==float:
-            x=int(x*scr['columns'])
-        if type(y)==float:
-            y=int(y*scr['rows'])
-        if type(w)==float:
-            w=int(w*scr['columns'])
-        if type(h)==float:
-            h=int(h*scr['rows'])
-        if x<0:
-            x=scr['columns']+x
-        if y<0:
-            y=scr['rows']+y
-        if w<0:
-            x=scr['columns']+w
-        if h<0:
-            h=scr['rows']+h
-        if w==0:
-            w=scr['columns']
-        if h==0:
-            h=scr['rows']
-        if w<self.minW:
-            w=self.minW
-        if h<self.minH:
-            h=self.minH
+        if type(x)==float: x=int(x*scr['columns'])
+        if type(y)==float: y=int(y*scr['rows'])
+        if type(w)==float: w=int(w*scr['columns'])
+        if type(h)==float: h=int(h*scr['rows'])
+        if x<=0: x=scr['columns']+x
+        if y<=0: y=scr['rows']+y
+        if w<0: w=scr['columns']+w
+        if h<0: h=scr['rows']+h
+        w=max(w,self.minW)
+        h=max(h, self.minH)
         if x>scr['columns']-self.minW:
             x=scr['columns']-self.minW
         if y>scr['rows']-self.minH:
@@ -514,8 +500,7 @@ class Widget():
         self.y=y
         self.w=w
         self.h=h
-        if self.screen:
-            self.screen.resize(w, h)
+        self.screen.resize(w, h)
 
     def move(self, x,y):
         pass
