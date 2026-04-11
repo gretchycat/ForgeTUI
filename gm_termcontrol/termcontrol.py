@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, fcntl, select, asyncio, time, termios, tty, logging, pyte, re, icat
+import sys, os, fcntl
 from libansiscreen.screen import Screen
 from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
 from gm_termcontrol.termkeymap import gen_keymap

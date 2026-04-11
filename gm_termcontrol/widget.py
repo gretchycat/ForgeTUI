@@ -269,7 +269,6 @@ class Widget():
         for w in full_stack:
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
-        self.log(str(widgets))
         for w in widgets:
             if w != root:
                 if w.focus:
@@ -388,7 +387,6 @@ class Widget():
             y=event.get('y')
             focused=self.widget_at_coordinate(x,y)
             if focused:
-                self.log(str(focused))
                 focused.set_focus()
 
     def checkWidgetEvents(self, event):
