@@ -500,7 +500,8 @@ class Widget():
         self.y=y
         self.w=w
         self.h=h
-        self.screen.resize(w, h)
+        if self.screen:
+            self.screen.resize(w, h)
 
     def move(self, x,y):
         pass
