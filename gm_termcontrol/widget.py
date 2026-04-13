@@ -482,12 +482,10 @@ class Widget():
         if type(y)==float: y=int(y*scr['rows'])
         if type(w)==float: w=int(w*scr['columns'])
         if type(h)==float: h=int(h*scr['rows'])
-        if x<=0: x=scr['columns']+x
-        if y<=0: y=scr['rows']+y
-        if w<0: w=scr['columns']+w
-        if h<0: h=scr['rows']+h
-        w=max(w,self.minW)
-        h=max(h, self.minH)
+        if x<0: x=scr['columns']+x
+        if y<0: y=scr['rows']+y
+        if w<=0: w=scr['columns']+w
+        if h<=0: h=scr['rows']+h
         if x>scr['columns']-self.minW:
             x=scr['columns']-self.minW
         if y>scr['rows']-self.minH:
@@ -503,13 +501,13 @@ class Widget():
         if self.screen:
             self.screen.resize(w, h)
 
-    def move(self, x,y):
-        pass
-
     def resize(self, event=None):
         self.setSize(self.x,self.y,self.w,self.h)
         for w in self.widgetList:
             w.resize(event)
+
+    def move(self, x,y):
+        pass
 
     def drawChildren(self, screen=None):
         last=None
