@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 from gm_termcontrol.widget import Widget
-from gm_termcontrol.widget_libansiscreen import widgetScreen
+from gm_termcontrol.widget_libansiscreen import widgetScreen, widgetButton
 from gm_termcontrol.termcontrol import termcontrol
+from gm_termcontrol.box_glyphs import make_theme
 import sys
 
 def clear(self, event=None):
@@ -10,9 +11,6 @@ def clear(self, event=None):
 def get_dims(self, event=None):
     self.feed(f"S: ({self.screen.width}, {self.screen.height}) ")
     self.feed(f"C: ({self.content.width}, {self.content.height}) ")
-    #self.feed(f"_: ({self.content.cursor.x}, {self.content.cursor.y}) ")
-    #x,y=self.scroll(self.scroll_x, self.scroll_y)
-    #self.feed(f"{x}, {y}")
     self.feed("\n")
 
 def draw_ruler(self, event=None):
@@ -25,17 +23,14 @@ def eventout(self, event=None):
 style='line'
 style3='curve'
 style2='2line'
-#style='curve'
-#style='inside'
-#style='outside'
-#style='gdw4thjj'
 s=widgetScreen(0,0,0,0, style=style, bg=233, title='root')
 s.scroll(0,0)
 s.show_x_scrollbar=False
 s.show_y_scrollbar=False
 draw_ruler(s)
 box=s.addWidget(widgetScreen(10, 5, 40, 10, style=style2, bg=65,fg=16,title='green'))
-box2=s.addWidget(widgetScreen(-0.75, 0.5, 0.5, 0.5, style=style3, bg=75,fg=0,title='blue'))
+box2=s.addWidget(widgetScreen(-0.75, 0.5, 0.5, 0.5, style=style, bg=75,fg=0,title='blue'))
+btn=s.addWidget(widgetButton(-20,2,20,3, style='curve', bg=85,fg=0,caption='Hello'))
 box2.show_x_scrollbar=False
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")
@@ -52,3 +47,5 @@ s.addEvent('Ctrl L', clear)
 box.addEvent('Ctrl L', clear)
 box2.addEvent('Ctrl L', clear)
 s.guiLoop()
+
+print(make_theme(style='2', fg="#aaa", bg="#000", inactive='darken 50', parent='desaturate 50'))

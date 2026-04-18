@@ -69,7 +69,38 @@ class widgetSlider(Widget):
     pass
 
 class widgetButton(Widget):
-   pass
+    def __init__(self, x, y, w, h, fg=7, bg=None, style='curve', caption='Button', toggle=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
+        self.bg0=0
+        self.fg0=7
+        self.invert=False
+        self.box=None
+        self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
+        self.screen.print(self.t.clear())
+        if style:
+            self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0)
+        self.tint=None
+        self.style=style
+        self.caption=caption
+        self.title=caption
+        self.resize()
+
+    def draw(self):
+        self.fg0=7
+        self.bg0=0
+        if self.parent:
+            self.fg0=self.parent.fg
+            self.bg0=self.parent.bg
+        fw=0
+        fh=0
+        if(self.box):
+            fw=self.box.frame['w']*2
+            fh=self.box.frame['h']*2
+            self.box.draw(0, 0, self.w, self.h, screen=self.screen)
+        cap_x=int(self.w/2-len(self.caption)/2)
+        cap_y=int((self.h-fh)/2+fh/2)
+        self.screen.cursor_goto(cap_x, cap_y)
+        self.screen.print(self.caption)
 
 class widgetScreen(Widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None, title=''):
@@ -145,6 +176,11 @@ class widgetScreen(Widget):
             self.screen.paste(scrolled,
                 box=(fw//2, fh//2, self.screen.width-fw,
                      self.screen.height-fh-1))
+        t_x=int(self.w/2-len(self.title)/2)
+        self.screen.cursor_goto(t_x, 0)
+        self.screen.print(self.title)
+
+
         self.drawChildren(self.screen)
         return self.screen
 

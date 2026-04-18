@@ -58,6 +58,12 @@ class termcontrol:
         codes.append("\x1b[?1006l")      # Disable SGR coordinates
         return "".join(codes)
 
+    def start_sync(self):
+        return "\x1b[?2026h"
+
+    def end_sync(self):
+        return "\x1b[?2026l"
+
     def enable_cursor(self):
         return "\x1b[?25h"
 

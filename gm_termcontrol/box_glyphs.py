@@ -1,13 +1,15 @@
 
+from libansiscreen.cell import Cell
+from libansiscreen.color.rgb import Color
 """
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
 U+250x   ─   ━   │   ┃   ┄   ┅   ┆   ┇   ┈   ┉   ┊   ┋   ┌   ┍   ┎   ┏
 U+251x   ┐   ┑   ┒   ┓   └   ┕   ┖   ┗   ┘   ┙   ┚   ┛   ├   ┝   ┞   ┟
 U+252x   ┠   ┡   ┢   ┣   ┤   ┥   ┦   ┧   ┨   ┩   ┪   ┫   ┬   ┭   ┮   ┯
 U+253x   ┰   ┱   ┲   ┳   ┴   ┵   ┶   ┷   ┸   ┹   ┺   ┻   ┼   ┽   ┾   ┿
-U+254x   ╀   ╁   ╂   ╃   ╄   ╅   ╆   ╇   ╈   ╉   ╊   ╋   ╌   ╍   ╎   ╏
 
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+U+254x   ╀   ╁   ╂   ╃   ╄   ╅   ╆   ╇   ╈   ╉   ╊   ╋   ╌   ╍   ╎   ╏
 U+255x   ═   ║   ╒   ╓   ╔   ╕   ╖   ╗   ╘   ╙   ╚   ╛   ╜   ╝   ╞   ╟
 U+256x   ╠   ╡   ╢   ╣   ╤   ╥   ╦   ╧   ╨   ╩   ╪   ╫   ╬   ╭   ╮   ╯
 U+257x   ╰   ╱   ╲   ╳   ╴   ╵   ╶   ╷   ╸   ╹   ╺   ╻   ╼   ╽   ╾   ╿
@@ -15,11 +17,22 @@ U+257x   ╰   ╱   ╲   ╳   ╴   ╵   ╶   ╷   ╸   ╹   ╺   ╻  
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
 U+258x   ▀   ▁   ▂   ▃   ▄   ▅   ▆   ▇   █   ▉   ▊   ▋   ▌   ▍   ▎   ▏
 U+259x   ▐   ░   ▒   ▓   ▔   ▕   ▖   ▗   ▘   ▙   ▚   ▛   ▜   ▝   ▞   ▟
+U+25Ax   ■   □   ▢   ▣   ▤   ▥   ▦   ▧   ▨   ▩   ▪   ▫   ▬   ▭   ▮   ▯
+U+25Bx   ▰   ▱   ▲   △   ▴   ▵   ▶   ▷   ▸   ▹   ►   ▻   ▼   ▽   ▾   ▿
 
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+U+25Cx   ◀   ◁   ◂   ◃   ◄   ◅   ◆   ◇   ◈   ◉   ◊   ○   ◌   ◍   ◎   ●
+U+25Dx   ◐   ◑   ◒   ◓   ◔   ◕   ◖   ◗   ◘   ◙   ◚   ◛   ◜   ◝   ◞   ◟
+U+25Ex   ◠   ◡   ◢   ◣   ◤   ◥   ◦   ◧   ◨   ◩   ◪   ◫   ◬   ◭   ◮   ◯
+U+25Fx   ◰   ◱   ◲   ◳   ◴   ◵   ◶   ◷   ◸   ◹   ◺   ◻   ◼   ◽   ◾   ◿
+
+         0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+U+218x   ↀ   ↁ   ↂ   Ↄ   ↄ   ↅ   ↆ   ↇ   ↈ   ↉   ↊   ↋   ↌   ↍   ↎   ↏
 U+219x   ←   ↑   →   ↓   ↔   ↕   ↖   ↗   ↘   ↙   ↚   ↛   ↜   ↝   ↞   ↟
 U+21Ax   ↠   ↡   ↢   ↣   ↤   ↥   ↦   ↧   ↨   ↩   ↪   ↫   ↬   ↭   ↮   ↯
 U+21Bx   ↰   ↱   ↲   ↳   ↴   ↵   ↶   ↷   ↸   ↹   ↺   ↻   ↼   ↽   ↾   ↿
+
+         0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
 U+21Cx   ⇀   ⇁   ⇂   ⇃   ⇄   ⇅   ⇆   ⇇   ⇈   ⇉   ⇊   ⇋   ⇌   ⇍   ⇎   ⇏
 U+21Dx   ⇐   ⇑   ⇒   ⇓   ⇔   ⇕   ⇖   ⇗   ⇘   ⇙   ⇚   ⇛   ⇜   ⇝   ⇞   ⇟
 U+21Ex   ⇠   ⇡   ⇢   ⇣   ⇤   ⇥   ⇦   ⇧   ⇨   ⇩   ⇪   ⇫   ⇬   ⇭   ⇮   ⇯
@@ -39,15 +52,40 @@ grchr['ascii']={
                 'BL2':'+', 'TL2':'+', 'BR2':'+', 'TR2':'+',
                 }
 
-grchr['utf8']={ 'hline':'\u2500', 'vline':'\u2502',
-                'hline2':'\u2550', 'vline2':'\u2551',
-                'UP': '\u2191', 'DOWN': '\u2193', 'LEFT': '\u2190', 'RIGHT': '\u2192',
+grchr['utf8']={ 'hline':'\u2500', 'vline':'\u2502', #1 line
+                'hline2':'\u2550', 'vline2':'\u2551', #2 line
+                'UP': '\u25b2', 'DOWN': '\u25bc',
+                'LEFT': '\u25c0', 'RIGHT': '\u25b6',
                 'TH':'\u2580', 'BH':'\u2584',
-                'B0':' ', 'B25':'\u2591', 'B50':'\u2593', 'B75':'\u2593', 'B100':'\u2588',
-                'BLC':'\u256E', 'TLC':'\u256F', 'BRC':'\u256D', 'TRC':'\u2570',
-                'BLR':'\u2510', 'TLR':'\u2518', 'BRR':'\u250C', 'TRR':'\u2514',
-                'BL2':'\u2557', 'TL2':'\u255D', 'BR2':'\u2554', 'TR2':'\u255A',
-                '♦': '♦'
+                'B0':' ', 'B25':'\u2591', 'B50':'\u2593',
+                'B75':'\u2593', 'B100':'\u2588',
+                '3BAR':'\u2630',
+                'U':'\u2575', 'D':'\u2577', 'L':'\u2574', 'R':'\u2576',
+                'UD': '\u2502', 'LR':'\u2500',
+                'UL': '\u2518', 'UR':'\u2514',
+                'LD': '\u2510', 'RD':'\u250c',
+                'ULR': '\u2534','LRD':'\u252c',
+                'ULD': '\u2561','URD':'\u251c', 'ULRD':'\u253c',
+                'UD.2': '\u2551', 'LR.2':'\u2550',
+                'UL.2': '\u255d', 'UR.2':'\u255a',
+                'LD.2': '\u2557', 'RD.2':'\u2554',
+                'ULR.2': '\u2569','LRD.2':'\u2566',
+                'ULD.2': '\u2563','URD.2':'\u2560', 'ULRD.2':'\u256c',
+                'UL.c': '\u256f', 'UR.c':'\u2514',
+                'LD.c': '\u256e', 'RD.c':'\u256d',
+                'U.w':'\u2579', 'D.w':'\u257b',
+                'L.w':'\u2578', 'R.w':'\u257a',
+                'UD.w':'\u2503', 'LR.w':'\u2501',
+                'RD.w':'\u250f', 'LD.w':'\u2513',
+                'UR.w':'\u2517', 'UL.w':'\u251b',
+                'LRD.w':'\u2533', 'ULR.w':'\u253b',
+                'URD.w':'\u2523', 'ULD.w':'\u252b', 'ULRD.w':'\u254b',
+                'UD.w.d2':'\u254f', 'LR.w.d2':'\u254d',
+                'UD.w.d3':'\u2507', 'LR.w.d3':'\u2505',
+                'UD.w.d4':'\u250b', 'LR.w.d4':'\u2509',
+                'UD.d2':'\u254e', 'LR.d2':'\u254c',
+                'UD.d3':'\u2506', 'LR.d3':'\u2504',
+                'UD.d4':'\u250a', 'LR.d4':'\u2508',
                }
 
 theme={}
@@ -56,7 +94,8 @@ theme['inside']={
         'ML': 'B100', 'MC': 'B75', 'MR': 'B100',
         'BL': 'TH', 'BC': 'TH', 'BR': 'TH',
         'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
-        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
+        'SHR':'B25', 'SVR':'B25','SH':'B100',
+        'TB':'3BAR','TT':' ',
         }
 
 theme['outside']={
@@ -64,33 +103,91 @@ theme['outside']={
         'ML': 'B100', 'MC': 'B0', 'MR': 'B100',
         'BL': 'B100', 'BC': 'BH', 'BR': 'B100',
         'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
-        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
+        'SHR':'B25', 'SVR':'B25','SH':'B100',
+        'TB':'3BAR','TT':' ',
         }
 
 theme['plot']=theme['outside']
 
 theme['curve']={
-        'TL': 'BRC', 'TC': 'hline', 'TR': 'BLC',
-        'ML': 'vline', 'MC': 'B0', 'MR': 'vline',
-        'BL': 'TRC', 'BC': 'hline', 'BR': 'TLC',
+        'TL': 'RD.c', 'TC': 'LR', 'TR': 'LD.c',
+        'ML': 'UD', 'MC': 'B0', 'MR': 'UD',
+        'BL': 'UR.c', 'BC': 'LR', 'BR': 'UL.c',
         'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
-        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
+        'SHR':'B25', 'SVR':'B25','SH':'B100',
+        'TB':'3BAR','TT':' ',
         }
 
 theme['line']={
-        'TL': 'BRR', 'TC': 'hline', 'TR': 'BLR',
-        'ML': 'vline', 'MC': 'B0', 'MR': 'vline',
-        'BL': 'TRR', 'BC': 'hline', 'BR': 'TLR',
+        'TL': 'RD', 'TC': 'LR', 'TR': 'LD',
+        'ML': 'UD', 'MC': 'B0', 'MR': 'UD',
+        'BL': 'UR', 'BC': 'LR', 'BR': 'UL',
         'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
-        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
+        'SHR':'B25', 'SVR':'B25','SH':'B100',
+        'TB':'3BAR','TT':' ',
         }
 
 theme['2line']={
-        'TL': 'BR2', 'TC': 'hline2', 'TR': 'BL2',
-        'ML': 'vline2', 'MC': 'B0', 'MR': 'vline2',
-        'BL': 'TR2', 'BC': 'hline2', 'BR': 'TL2',
+        'TL': 'RD.2', 'TC': 'LR.2', 'TR': 'LD.2',
+        'ML': 'UD.2', 'MC': 'B0', 'MR': 'UD.2',
+        'BL': 'UR.2', 'BC': 'LR.2', 'BR': 'UL.2',
         'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
-        'SHR':'B25', 'SVR':'B25','SH':'B100','SC':'♦',
+        'SHR':'B25', 'SVR':'B25','SH':'B100',
+        'TB':'3BAR','TT':' ',
         }
 
+theme_template={
+        'box.top_left': ( 'RD', '#fff', '#bg', 0),
+        'box.top_center': ( 'LR', '#ddd', '#bg', 0),
+        'box.top_right': ( 'LD', '#aaa', '#bg', 0),
+        'box.middle_left': ( 'UD', '#ddd', '#bg', 0),
+        'box.middle_center': ( 'B0', '#fg', '#bg', 0),
+        'box.middle_right': ( 'UD', '#888', '#000', 0),
+        'box.bottom_left': ( 'UR', '#aaa', '#bg', 0),
+        'box.bottom_center': ( 'LR', '#888', '#bg', 0),
+        'box.bottom_right': ( 'UL', '#555', '#bg', 0),
+        'scroll.up': ( 'UP', '#000', '#aaa', 0),
+        'scroll.down': ('DOWN', '#000', '#aaa', 0),
+        'scroll.left': ('LEFT', '#000', '#aaa', 0),
+        'scroll.right': ('RIGHT', '#000', '#aaa', 0),
+        'scroll.h': ('B25', '#000', '#aaa', 0),
+        'scroll.v': ('B25', '#000', '#aaa', 0),
+        'scroll.handle': ('B100', '#000', '#aaa', 0),
+        'title.bar': ('3BAR', '#008', '#00a', 0),
+        'title.text': (' ', '#fff', '#00A', 1),
+        }
 
+def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000", inactive='darken 50', parent='desaturate 50'):
+    fcs_thm=template.copy()
+    for k,v in template.items():
+        c, tfg, tbg, attr=v
+        if style:
+            c=c+'.'+style
+        cchr=None
+        while c and cchr==None:
+            print(c)
+            cchr=grchr['utf8'].get(c)
+            spc=c.split('.')
+            spc.pop()
+            if spc:
+                c='.'.join(spc)
+            else:
+                c=None
+        if tfg=='#fg':
+            tfg=fg
+        if tbg=='#bg':
+            tbg=bg
+        fcs_thm[k]=Cell(grchr['utf8'].get(c),
+                        Color.set(tfg),
+                        Color.set(tbg), attr)
+    off_thm=fcs_thm.copy()
+    prnt_thm=fcs_thm.copy()
+    return {'focus':fcs_thm, 'off':off_thm, 'parent':prnt_thm}
+
+class Style():
+    def __init__(self, style='2line', colors=None):
+        c=theme.get(style)
+        self.thm={}
+
+    def get_cell(self, idx, prop=None):
+        pass

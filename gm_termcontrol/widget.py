@@ -50,7 +50,7 @@ class boxDraw:
                             f'{cd[theme[style]["ML"]]}{cd[theme[style]["MC"]]}{cd[theme[style]["MR"]]}'\
                             f'{cd[theme[style]["BL"]]}{cd[theme[style]["BC"]]}{cd[theme[style]["BR"]]}'\
                             f'{cd[theme[style]["SU"]]}{cd[theme[style]["SD"]]}{cd[theme[style]["SL"]]}{cd[theme[style]["SR"]]}'\
-                            f'{cd[theme[style]["SVR"]]}{cd[theme[style]["SHR"]]}{cd[theme[style]["SH"]]}{cd[theme[style]["SC"]]}'
+                            f'{cd[theme[style]["SVR"]]}{cd[theme[style]["SHR"]]}{cd[theme[style]["SH"]]}'
             else:
                 self.chars="         ^v<>:-O*"
         else:
@@ -170,7 +170,7 @@ class Widget():
         self.force_refresh=True
         self.screen=None
         self.focus=False
-        self.reotder=False
+        self.reorder=False
         self.child_focus=False
         self.hidden=False
         self.fg0=7
@@ -419,6 +419,8 @@ class Widget():
         output(self.t.clear())
         #home=self.t.gotoxy(self.x, self.y)
         home=self.t.gotoxy(1, 1)
+        s_start=self.t.start_sync()
+        s_end=self.t.end_sync()
         origin=self.t.gotoxy(1, 1)
         buffercache=""
         signal.signal(signal.SIGINT, self.stop)
@@ -437,9 +439,9 @@ class Widget():
                 buffer=self.draw()
                 if self.force_refresh:
                     self.force_refresh=False
-                    output(home+buffer.emit(raw=True))
+                    output(s_start+home+buffer.emit(raw=True)+s_end)
                 else:
-                    output(home+buffer.emit_diff(self.screen, raw=True))
+                    output(s_start+home+buffer.emit_diff(self.screen, raw=True)+s_end)
                 self.screen=buffer.copy()
                 for inp in self.input.read_input():
                     if inp != '':
