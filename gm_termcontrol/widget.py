@@ -8,30 +8,13 @@ from .terminput import termInput
 from .box_glyphs import grchr, theme
 import signal
 
-CHUNK_SIZE = 4096  # safe per-write chunk
-def output(data, fd=sys.stdout.fileno()):
-    """Queue a string or bytes for non-blocking terminal output."""
-    outbuf = bytearray()  # persistent buffer
-    if isinstance(data, str):
-        data = data.encode()
-    outbuf.extend(data)
-    # drain in chunks
-    while outbuf:
-        chunk = outbuf[:CHUNK_SIZE]
-        try:
-            n = os.write(fd, chunk)
-            del outbuf[:n]
-        except BlockingIOError:
-            # wait until fd is writable
-            select.select([], [fd], [])
-
 class boxDraw:
     def __init__(self, bgColor=24,
                 bg0=0, fg0=7,
                 frameColors=[],
                 chars='',
                 mode='auto', charset='utf8',
-                style='inside',
+                style='plot',
                 ):
         self.screen=None
         self.style=style
@@ -193,22 +176,22 @@ class Widget():
         self.addEvent('', self.set_last_action)
 
     def suspend(self, signum, frame):
-        output(self.t.disable_mouse())
-        output(self.t.enable_cursor())
-        output(self.t.normal_screen())
-        output("Preparing for suspend\n")
+        self.t.output(self.t.disable_mouse())
+        self.t.output(self.t.enable_cursor())
+        self.t.output(self.t.normal_screen())
+        self.t.output("Preparing for suspend\n")
         os.kill(os.getpid(), signal.SIGSTOP)
 
     def resume(self, signum, frame):
-        output(self.t.enable_mouse())
-        output(self.t.disable_cursor())
-        output(self.t.alt_screen())
-        output("Resuming\n")
+        self.t.output(self.t.enable_mouse())
+        self.t.output(self.t.disable_cursor())
+        self.t.output(self.t.alt_screen())
+        self.t.output("Resuming\n")
 
     def stop(self, signum, frame):
-        output(self.t.normal_screen())
-        output('Quit requested. Stopping\n')
-        output(self.t.alt_screen())
+        self.t.output(self.t.normal_screen())
+        self.t.output('Quit requested. Stopping\n')
+        self.t.output(self.t.alt_screen())
         self.quit()
 
     def set_last_action(self, event=None):
@@ -413,10 +396,10 @@ class Widget():
         self.go=True
         self.input=termInput()
         self.input.raw=True
-        output(self.t.disable_cursor())
-        output(self.t.enable_mouse())
-        output(self.t.alt_screen())
-        output(self.t.clear())
+        self.t.output(self.t.disable_cursor())
+        self.t.output(self.t.enable_mouse())
+        self.t.output(self.t.alt_screen())
+        self.t.output(self.t.clear())
         #home=self.t.gotoxy(self.x, self.y)
         home=self.t.gotoxy(1, 1)
         s_start=self.t.start_sync()
@@ -427,7 +410,7 @@ class Widget():
         signal.signal(signal.SIGQUIT, self.stop)
         signal.signal(signal.SIGTSTP, self.suspend)
         signal.signal(signal.SIGCONT, self.resume)
-        with open("output.log", "w") as self.log_file:
+        with open("self.t.output.log", "w") as self.log_file:
             while self.go:
                 #resize to full screen
                 sz=self.t.get_terminal_size()
@@ -439,18 +422,18 @@ class Widget():
                 buffer=self.draw()
                 if self.force_refresh:
                     self.force_refresh=False
-                    output(s_start+home+buffer.emit(raw=True)+s_end)
+                    self.t.output(s_start+home+buffer.emit(raw=True)+s_end)
                 else:
-                    output(s_start+home+buffer.emit_diff(self.screen, raw=True)+s_end)
+                    self.t.output(s_start+home+buffer.emit_diff(self.screen, raw=True)+s_end)
                 self.screen=buffer.copy()
                 for inp in self.input.read_input():
                     if inp != '':
                         self.check_mouse_focus_change(inp)
                         self.checkWidgetEvents(inp)
-        output(self.t.clear())
-        output(self.t.enable_cursor())
-        output(self.t.disable_mouse())
-        output(self.t.normal_screen())
+        self.t.output(self.t.clear())
+        self.t.output(self.t.enable_cursor())
+        self.t.output(self.t.disable_mouse())
+        self.t.output(self.t.normal_screen())
         try:
             sys.stdout.flush()
         except:

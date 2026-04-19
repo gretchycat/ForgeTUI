@@ -184,10 +184,4 @@ def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000", inacti
     prnt_thm=fcs_thm.copy()
     return {'focus':fcs_thm, 'off':off_thm, 'parent':prnt_thm}
 
-class Style():
-    def __init__(self, style='2line', colors=None):
-        c=theme.get(style)
-        self.thm={}
 
-    def get_cell(self, idx, prop=None):
-        pass

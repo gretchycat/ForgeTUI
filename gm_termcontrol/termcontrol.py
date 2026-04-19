@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, fcntl
+import sys, os, fcntl, select
 from libansiscreen.screen import Screen
 from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
 from gm_termcontrol.termkeymap import gen_keymap
-
 
 rgb_file_path = '/usr/share/X11/rgb.txt'
 
@@ -19,6 +18,23 @@ class termcontrol:
             self.image_support.append('kitty')
         if 'vt340' in term or len(konsole_ver or '')>0:
             self.image_support.append('sixel')
+
+    def output(self, data, fd=sys.stdout.fileno()):
+        CHUNK_SIZE = 4096  # safe per-write chunk
+        """Queue a string or bytes for non-blocking terminal output."""
+        outbuf = bytearray()  # persistent buffer
+        if isinstance(data, str):
+            data = data.encode()
+        outbuf.extend(data)
+        # drain in chunks
+        while outbuf:
+            chunk = outbuf[:CHUNK_SIZE]
+            try:
+                n = os.write(fd, chunk)
+                del outbuf[:n]
+            except BlockingIOError:
+                # wait until fd is writable
+                select.select([], [fd], [])
 
     # ------------------------------------------------------------------
     # Mouse control
