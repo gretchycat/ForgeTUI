@@ -107,9 +107,13 @@ class widgetButton(Widget):
         fw=0
         fh=0
         if(self.box):
+            box_type='focus'
+            if self.invert:
+                box_type='inverted'
             fw=self.box.frame['w']*2
             fh=self.box.frame['h']*2
-            self.box.draw(0, 0, self.w, self.h, screen=self.screen)
+            self.box.draw(0, 0, self.w, self.h, screen=self.screen,
+                          box_type=box_type)
         cap_x=int(self.w/2-len(self.caption)/2)
         cap_y=int((self.h-fh)/2+fh/2)
         self.screen.cursor_goto(cap_x, cap_y)
