@@ -328,7 +328,7 @@ class Widget():
             for  e, m in self.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
-                if self.focus or persist:
+                if self.focus==True or persist:
                     if e==event or e=='' or (type(event)==dict and e==event['action']):
                         if f'{type(func)}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
                             self.action=func

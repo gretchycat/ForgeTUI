@@ -66,7 +66,7 @@ class frameDraw(boxDraw):
             screen.set_cell(2+sh,h-1,t['scroll.handle'])
         if self.title:
             sp=max(0,5)
-            title=f" {self.title[0:w-sp-2]} "
+            title=f"{self.title[0:w-sp-2]} "
             t_x=max(int(screen.width/2-len(title)/2),0)
             for x in range(sp, w-sp):
                 screen.set_cell(x,0,t['title.bar'])
