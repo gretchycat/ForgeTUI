@@ -9,12 +9,15 @@ class frameDraw(boxDraw):
                 bg0=0, fg0=7,
                 chars="",
                 frameColors=[],
-                mode='auto', charset='utf8',
-                style='inside',
+                mode='auto',
+                charset='utf8',
+                style=None,
                 scrollbar_bg=7,
                 scrollbar_fg=0,
                 widget=None,
+                title='',
                 ):
+        self.title=title
         super().__init__(bgColor=bgColor,bg0=bg0,fg0=fg0,
                          chars=chars,frameColors=frameColors,
                          mode=mode,charset=charset,style=style)
@@ -29,37 +32,48 @@ class frameDraw(boxDraw):
              show_hsb=False,
              sx=0,sx_max=0,
              sy=0,sy_max=0,
+             focus=True
              ):
-        p=create_ansi_256_palette().get_colors()
+        box_type='focus'
+        if not focus:
+            box_type='off'
+        else:
+            if type(focus)!=bool:
+                box_type=focus
         frame=super().draw(x=x, y=y, w=w, h=h,
-                           fill=fill, invert=invert, screen=screen)
+                        fill=fill, invert=invert,
+                        screen=screen, box_type=box_type)
+        t=self.theme.get(box_type)
+        if not t:
+            t=self.theme.get('focus')
         sh,sv=0,0
         if self.widget.x_max>0:
             sh=int((w-5)*(self.widget.sx/self.widget.x_max))
         if self.widget.y_max>0:
             sv=int((h-5)*(self.widget.sy/self.widget.y_max))
-        if(screen):
-            if show_vsb:
-                screen.put_cell(w-1,1,char=self.chars[9],
-                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
-                for y in range(2,h-2):
-                    screen.put_cell(w-1,y,char=self.chars[13],
-                            fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
-                screen.put_cell(w-1,2+sv,char=self.chars[15],
-                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
-                screen.put_cell(w-1,h-2,char=self.chars[10],
-                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
-            if show_hsb:
-                pass
-                screen.put_cell(1,h-1,char=self.chars[11],
-                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
-                for x in range(2,w-2):
-                    screen.put_cell(x,h-1,char=self.chars[14],
-                            fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
-                screen.put_cell(w-2,h-1,char=self.chars[12],
-                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
-                screen.put_cell(2+sh,h-1,char=self.chars[15],
-                        fg=p[self.scrollbar_fg], bg=p[self.scrollbar_bg])
+        if show_vsb:
+            screen.set_cell(w-1,1,t['scroll.up'])
+            for y in range(2,h-2):
+                screen.set_cell(w-1,y,t['scroll.v'])
+            screen.set_cell(w-1,2+sv,t['scroll.handle'])
+            screen.set_cell(w-1,h-2,t['scroll.down'])
+        if show_hsb:
+            pass
+            screen.set_cell(1,h-1,t['scroll.left'])
+            for x in range(2,w-2):
+                screen.set_cell(x,h-1,t['scroll.h'])
+            screen.set_cell(w-2,h-1,t['scroll.right'])
+            screen.set_cell(2+sh,h-1,t['scroll.handle'])
+        if self.title:
+            sp=max(0,5)
+            title=f" {self.title[0:w-sp-2]} "
+            t_x=max(int(screen.width/2-len(title)/2),0)
+            for x in range(sp, w-sp):
+                screen.set_cell(x,0,t['title.bar'])
+            screen.cursor_goto(t_x, 0)
+            screen.set_foreground(t['title.text'].fg)
+            screen.set_background(t['title.text'].bg)
+            screen.print(title)
         return frame
 
 class widgetProgressBar(Widget):
@@ -77,8 +91,7 @@ class widgetButton(Widget):
         self.box=None
         self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
         self.screen.print(self.t.clear())
-        if style:
-            self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0)
+        self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0)
         self.tint=None
         self.style=style
         self.caption=caption
@@ -111,9 +124,8 @@ class widgetScreen(Widget):
         self.style=style
         self.reorder=True
         self.frame=None
-        if style:
-            self.frame=frameDraw(style=style, bgColor=self.bg,
-                                 bg0=self.bg0, widget=self)
+        self.frame=frameDraw(style=style, bgColor=self.bg,
+                                 bg0=self.bg0, widget=self, title=title)
         fw=0
         fh=0
         if(self.frame):
@@ -164,7 +176,7 @@ class widgetScreen(Widget):
             fh=self.frame.frame['h']*2
             self.frame.draw(0, 0, self.w, self.h, screen=self.screen,
                             show_vsb=self.show_y_scrollbar,
-                            show_hsb=self.show_x_scrollbar)
+                            show_hsb=self.show_x_scrollbar, focus=self.focus)
         scrolled=self.content
         if self.scroll_x==0 and self.scroll_y==0:
             self.screen.paste(self.content,
@@ -176,10 +188,6 @@ class widgetScreen(Widget):
             self.screen.paste(scrolled,
                 box=(fw//2, fh//2, self.screen.width-fw,
                      self.screen.height-fh-1))
-        t_x=int(self.w/2-len(self.title)/2)
-        self.screen.cursor_goto(t_x, 0)
-        self.screen.print(self.title)
-
 
         self.drawChildren(self.screen)
         return self.screen

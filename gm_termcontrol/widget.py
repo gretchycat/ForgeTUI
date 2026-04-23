@@ -5,15 +5,16 @@ from libansiscreen.screen import Screen
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
-from .box_glyphs import grchr, theme
+from .box_glyphs import grchr, theme, make_theme
 import signal
 
 class boxDraw:
-    def __init__(self, bgColor=24,
+    def __init__(self, bgColor=0, fgColor=7,
                 bg0=0, fg0=7,
                 frameColors=[],
                 chars='',
-                mode='auto', charset='utf8',
+                mode='auto', 
+                charset='utf8',
                 style='plot',
                 ):
         self.screen=None
@@ -22,56 +23,8 @@ class boxDraw:
         self.fg0, self.bg0=fg0, bg0
         self.bgColor=bgColor
         self.frame={'w':2, 'h':1}
-        if len(chars)!=17:
-            if style in theme.keys():
-                cd=grchr['utf8']
-                if charset.lower() in ['utf8', 'utf-8']:
-                    cd=grchr['utf8']
-                else:
-                    cd=grchr['ascii']
-                self.chars= f'{cd[theme[style]["TL"]]}{cd[theme[style]["TC"]]}{cd[theme[style]["TR"]]}'\
-                            f'{cd[theme[style]["ML"]]}{cd[theme[style]["MC"]]}{cd[theme[style]["MR"]]}'\
-                            f'{cd[theme[style]["BL"]]}{cd[theme[style]["BC"]]}{cd[theme[style]["BR"]]}'\
-                            f'{cd[theme[style]["SU"]]}{cd[theme[style]["SD"]]}{cd[theme[style]["SL"]]}{cd[theme[style]["SR"]]}'\
-                            f'{cd[theme[style]["SVR"]]}{cd[theme[style]["SHR"]]}{cd[theme[style]["SH"]]}'
-            else:
-                self.chars="         ^v<>:-O*"
-        else:
-            self.chars=chars
-        fr=False
-        if len(frameColors)!=9:
-            fr=True
-        if mode in ['sixel', 'kitty', '24bit', '24-bit', 'auto']:
-            if fr:
-                self.frameColors=['#FFF', '#AAA','#777','#AAA', 0, '#555', '#777','#555','#333']
-                self.frameColors=[255, 245, 240, 245, 0, 237, 240, 237, 235]
-            if type(bgColor)==int and bgColor>255:
-                self.bgColor=0
-            else:
-                self.bgColor=bgColor
-        elif mode in ['8bit', '8-bit', '256color', '8bitgrey', 'grey', '8bitbright']:
-            if fr:
-                self.frameColors=[255, 245, 240, 245, 0, 237, 240, 237, 235]
-            if type(bgColor)!=int or bgColor>255:
-                self.bgColor=0
-            else:
-                self.bgColor=bgColor
-        elif mode in ['4bit', '4-bit', '16color', '4bitgrey']:
-            if fr:
-                self.frameColors=[15, 7, 8, 7, 0, 8, 7, 8, 0]
-            if type(bgColor)!=int or bgColor>15:
-                self.bgColor=0
-            else:
-                self.bgColor=bgColor
-        else:
-            if fr:
-                self.frameColors=[7, 7, 7, 7, 0, 7, 7, 7, 7]
-            self.bgColor=0
         self.tinted=None
-
-    def setColors(self, bgcolor, frameColors):
-        self.bgColor=bgColor
-        self.frameColors=frameColors
+        self.theme=make_theme(style, bg=bgColor, fg=fgColor)
 
     def tintFrame(self, color):
         if color==None:
@@ -103,48 +56,46 @@ class boxDraw:
             c[i]=cl[8-i]
         return c
 
-    def draw(self, x=0, y=0, w=0, h=0, fill=True, invert=False, screen=None):
+    def draw(self, x=0, y=0, w=0, h=0, fill=True, invert=False, screen=None, box_type=''):
         if screen is None:
-            if(w<3): w=3
-            if(h<3): h=3
+            return
+        t=self.theme.get(box_type)
+        if not t:
+            t=self.theme.get('focus')
         p=create_ansi_256_palette().get_colors()
-        colors=self.frameColors
-        if(self.tinted):
-            colors=self.tinted
-        if invert:
-            colors=self.invert(colors)
-            pass
-        if self.style in ['', 'plot']:
+        if self.style in ['plot']:
             if fill:
                 for y in range(1, screen.height-2):
                     for x in range(1, screen.width-1):
-                        screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
-            screen.plot(0,0,p[colors[0]])
-            screen.plot(screen.width-1,0,p[colors[2]])
+                        screen.set_cell(x,y,t['box.middle_center'])
+            screen.plot(0,0,t['box.top_left'].fg)
+            screen.plot(screen.width-1,0,t['box.top_right'].fg)
             for x in range(1,screen.width-1):
-                screen.plot(x,0,p[colors[1]])
-                screen.plot(x,1,p[self.bgColor])
-                screen.plot(x,screen.height*2-4,p[self.bgColor])
-                screen.plot(x,screen.height*2-3,p[colors[7]])
+                screen.plot(x,0,t['box.top_center'].fg)
+                screen.plot(x,1,t['box.middle_center'].bg)
+                screen.plot(x,screen.height*2-4,t['box.middle_center'].bg)
+                screen.plot(x,screen.height*2-3,t['box.bottom_center'].fg)
             for y in range(1, screen.height*2-3):
-                screen.plot(0,y,p[colors[3]])
-                screen.plot(screen.width-1,y,p[colors[5]])
-            screen.plot(0,screen.height*2-3,p[colors[6]])
-            screen.plot(screen.width-1,screen.height*2-3,p[colors[8]])
+                screen.plot(0,y,t['box.middle_left'].fg)
+                screen.plot(1,y,t['box.middle_center'].bg)
+                screen.plot(screen.width-2,y,t['box.middle_center'].bg)
+                screen.plot(screen.width-1,y,t['box.middle_right'].fg)
+            screen.plot(0,screen.height*2-3,t['box.bottom_left'].fg)
+            screen.plot(screen.width-1,screen.height*2-3,t['box.bottom_right'].fg)
         else:
-            screen.put_cell(0,0,char=self.chars[0], fg=p[colors[0]], bg=p[self.bgColor])
-            screen.put_cell(screen.width-1,0,char=self.chars[2], fg=p[colors[2]], bg=p[self.bgColor])
+            screen.set_cell(0,0,t['box.top_left'])
+            screen.set_cell(screen.width-1,0,t['box.top_right'])
             for x in range(1, screen.width-1):
-                screen.put_cell(x,0,char=self.chars[1], fg=p[colors[1]], bg=p[self.bgColor])
-                screen.put_cell(x,screen.height-2,char=self.chars[7], fg=p[colors[7]], bg=p[self.bgColor])
+                screen.set_cell(x,0,t['box.top_center'])
+                screen.set_cell(x,screen.height-2,t['box.bottom_center'])
             for y in range(1, screen.height-2):
-                screen.put_cell(0,y,char=self.chars[3], fg=p[colors[3]], bg=p[self.bgColor])
-                screen.put_cell(screen.width-1,y,char=self.chars[5], fg=p[colors[5]], bg=p[self.bgColor])
+                screen.set_cell(0,y,t['box.middle_left'])
+                screen.set_cell(screen.width-1,y,t['box.middle_right'])
                 if fill:
                     for x in range(1, screen.width-1):
-                        screen.put_cell(x,y,char=self.chars[4], fg=p[colors[4]], bg=p[self.bgColor])
-            screen.put_cell(0,screen.height-2,char=self.chars[6], fg=p[colors[6]], bg=p[self.bgColor])
-            screen.put_cell(screen.width-1,screen.height-2,char=self.chars[8], fg=p[colors[8]], bg=p[self.bgColor])
+                        screen.set_cell(x,y,t['box.middle_center'])
+            screen.set_cell(0,screen.height-2,t['box.bottom_left'])
+            screen.set_cell(screen.width-1,screen.height-2,t['box.bottom_right'])
         return screen
 
 class Widget():
@@ -154,7 +105,6 @@ class Widget():
         self.screen=None
         self.focus=False
         self.reorder=False
-        self.child_focus=False
         self.hidden=False
         self.fg0=7
         self.bg0=0
@@ -277,7 +227,7 @@ class Widget():
         root=self
         while root.parent:
             root=root.parent
-        #deactivate all widgets and clear child focus
+        #deactivate all focus
         defocused=None
         stack=[ root ]
         while stack:
@@ -285,16 +235,15 @@ class Widget():
             if node.focus:
                 defocused=node
             node.focus=False
-            node.child_focus=False
             for n in node.widgetList:
                 stack.append(n)
-        #activate self and set child_focus on all parents
+        #activate self and set parent focus on all parents
         node=self
         self.focus=True
         self.hidden=False
         while node.parent:
             node=node.parent
-            node.child_focus=True
+            node.focus='parent'
         if self.reorder:
             stack=[ root ]
             while stack:
@@ -302,7 +251,7 @@ class Widget():
                 move=None
                 for n in node.widgetList:
                     stack.append(n)
-                    if n.focus or n.child_focus:
+                    if n.focus:
                         move=n
                 if move:
                     node.widgetList.remove(move)
@@ -499,7 +448,7 @@ class Widget():
         for w in self.widgetList:
             if not w.hidden:
                 w.draw()
-                if w.focus or w.child_focus:
+                if w.focus:
                     last=w
                 else:
                     screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))

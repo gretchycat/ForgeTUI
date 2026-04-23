@@ -20,17 +20,14 @@ def eventout(self, event=None):
     if type(event)==str:
         self.feed(repr(str(event))+"\n")
 
-style='line'
-style3='curve'
-style2='2line'
-s=widgetScreen(0,0,0,0, style=style, bg=233, title='root')
+s=widgetScreen(0,0,0,0, style=2, bg=8, fg=15, title='root')
 s.scroll(0,0)
 s.show_x_scrollbar=False
 s.show_y_scrollbar=False
 draw_ruler(s)
-box=s.addWidget(widgetScreen(10, 5, 40, 10, style=style2, bg=65,fg=16,title='green'))
-box2=s.addWidget(widgetScreen(-0.75, 0.5, 0.5, 0.5, style=style, bg=75,fg=0,title='blue'))
-btn=s.addWidget(widgetButton(-20,2,20,3, style='curve', bg=85,fg=0,caption='Hello'))
+box=s.addWidget(widgetScreen(10, 5, 40, 10, style='c', bg=65,fg=16,title='green'))
+box2=s.addWidget(widgetScreen(-0.75, 0.5, 0.5, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor'))
+btn=s.addWidget(widgetButton(-20,2,18,3, style='plot', bg=85,fg=0,caption='Hello'))
 box2.show_x_scrollbar=False
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")
@@ -48,4 +45,3 @@ box.addEvent('Ctrl L', clear)
 box2.addEvent('Ctrl L', clear)
 s.guiLoop()
 
-print(make_theme(style='2', fg="#aaa", bg="#000", inactive='darken 50', parent='desaturate 50'))

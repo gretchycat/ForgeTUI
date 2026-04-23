@@ -1,6 +1,7 @@
 
 from libansiscreen.cell import Cell
 from libansiscreen.color.rgb import Color
+from libansiscreen.color.palette import Palette, create_ansi_256_palette
 """
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
 U+250x   ─   ━   │   ┃   ┄   ┅   ┆   ┇   ┈   ┉   ┊   ┋   ┌   ┍   ┎   ┏
@@ -137,42 +138,37 @@ theme['2line']={
         }
 
 theme_template={
-        'box.top_left': ( 'RD', '#fff', '#bg', 0),
-        'box.top_center': ( 'LR', '#ddd', '#bg', 0),
-        'box.top_right': ( 'LD', '#aaa', '#bg', 0),
-        'box.middle_left': ( 'UD', '#ddd', '#bg', 0),
-        'box.middle_center': ( 'B0', '#fg', '#bg', 0),
-        'box.middle_right': ( 'UD', '#888', '#000', 0),
-        'box.bottom_left': ( 'UR', '#aaa', '#bg', 0),
-        'box.bottom_center': ( 'LR', '#888', '#bg', 0),
-        'box.bottom_right': ( 'UL', '#555', '#bg', 0),
-        'scroll.up': ( 'UP', '#000', '#aaa', 0),
-        'scroll.down': ('DOWN', '#000', '#aaa', 0),
-        'scroll.left': ('LEFT', '#000', '#aaa', 0),
-        'scroll.right': ('RIGHT', '#000', '#aaa', 0),
-        'scroll.h': ('B25', '#000', '#aaa', 0),
-        'scroll.v': ('B25', '#000', '#aaa', 0),
-        'scroll.handle': ('B100', '#000', '#aaa', 0),
-        'title.bar': ('3BAR', '#008', '#00a', 0),
-        'title.text': (' ', '#fff', '#00A', 1),
+        'box.top_left': ( 'RD', '#fff', '#bg', 0, None),
+        'box.top_center': ( 'LR', '#ddd', '#bg', 0, None),
+        'box.top_right': ( 'LD', '#aaa', '#bg', 0, None),
+        'box.middle_left': ( 'UD', '#ddd', '#bg', 0, None),
+        'box.middle_center': ( 'B0', '#fg', '#bg', 0, None),
+        'box.middle_right': ( 'UD', '#888', '#bg', 0, None),
+        'box.bottom_left': ( 'UR', '#aaa', '#bg', 0, None),
+        'box.bottom_center': ( 'LR', '#888', '#bg', 0, None),
+        'box.bottom_right': ( 'UL', '#555', '#bg', 0, None),
+        'scroll.up': ( 'UP', '#000', '#aaa', 0, None),
+        'scroll.down': ('DOWN', '#000', '#aaa', 0, None),
+        'scroll.left': ('LEFT', '#000', '#aaa', 0, None),
+        'scroll.right': ('RIGHT', '#000', '#aaa', 0, None),
+        'scroll.h': ('B25', '#000', '#aaa', 0, None),
+        'scroll.v': ('B25', '#000', '#aaa', 0, None),
+        'scroll.handle': ('B100', '#000', '#aaa', 0, None),
+        'title.bar': ('LR', '#44f', '#00a', 0, None),
+        'title.text': (' ', '#fff', '#00A', 1, { 'align':'center' }),
         }
 
 def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000", inactive='darken 50', parent='desaturate 50'):
     fcs_thm=template.copy()
     for k,v in template.items():
-        c, tfg, tbg, attr=v
-        if style:
-            c=c+'.'+style
-        cchr=None
-        while c and cchr==None:
-            print(c)
-            cchr=grchr['utf8'].get(c)
+        c, tfg, tbg, attr, properties=v
+        if style is not None:
+            c=f"{c}.{style}"
+        t=None
+        while '.' in c and not grchr['utf8'].get(c):
             spc=c.split('.')
             spc.pop()
-            if spc:
-                c='.'.join(spc)
-            else:
-                c=None
+            c='.'.join(spc)
         if tfg=='#fg':
             tfg=fg
         if tbg=='#bg':
