@@ -345,6 +345,7 @@ class Widget():
         signal.signal(signal.SIGQUIT, self.stop)
         signal.signal(signal.SIGTSTP, self.suspend)
         signal.signal(signal.SIGCONT, self.resume)
+        input_cache=[]
         with open("self.t.output.log", "w") as self.log_file:
             while self.go:
                 #resize to full screen
@@ -361,10 +362,16 @@ class Widget():
                 else:
                     self.t.output(s_start+home+buffer.emit_diff(self.screen, raw=True)+s_end)
                 self.screen=buffer.copy()
-                for inp in self.input.read_input():
+                for inp in self.input.read_input():  #TODO cache input, one per loop
                     if inp != '':
-                        self.check_mouse_focus_change(inp)
-                        self.checkWidgetEvents(inp)
+                        input_cache.append(inp)
+                i_go=True
+                while len(input_cache) and i_go:
+                    inp=input_cache.pop(0)
+                    self.check_mouse_focus_change(inp)
+                    self.checkWidgetEvents(inp)
+                    #if type(inp)==dict and len(input_cache) and type(input_cache)==dict:
+                    #    if input_cache[0]['action']!=inp['action']:i_go=False
         self.t.output(self.t.clear())
         self.t.output(self.t.enable_cursor())
         self.t.output(self.t.disable_mouse())

@@ -94,6 +94,7 @@ class widgetButton(Widget):
         self.bg0=0
         self.fg0=7
         self.invert=False
+        self.inv_disp=False
         self.box=None
         self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
         self.screen.print(self.t.clear())
@@ -110,6 +111,7 @@ class widgetButton(Widget):
     def b_down(self, event=None):
         if event['button']==0:
             self.invert=True
+            self.inv_disp=True
 
     def b_up(self, event=None):
         if event['button']==0:
@@ -125,8 +127,10 @@ class widgetButton(Widget):
         fh=0
         if(self.box):
             box_type='focus'
-            if self.invert:
+            if self.invert or self.inv_disp:
                 box_type='inverted'
+                if self.inv_disp:
+                    self.inv_disp=False
             fw=self.box.frame['w']*2
             fh=self.box.frame['h']*2
             self.box.draw(0, 0, self.w, self.h, screen=self.screen,
