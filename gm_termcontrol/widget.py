@@ -26,7 +26,6 @@ class boxDraw:
         self.frame={'w':2, 'h':1}
         self.tinted=None
         self.theme=make_theme(style, bg=bgColor, fg=fgColor)
-        self.theme['inverted']=self.make_inverted(self.theme['focus'])
 
     def make_inverted(self, theme):
         inv=copy.deepcopy(theme)
@@ -83,9 +82,11 @@ class boxDraw:
             screen.set_cell(screen.width-1,screen.height-2,t['box.bottom_right'])
         return screen
 
+import uuid
 class Widget():
-    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0):
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, name=uuid.uuid4()):
         self.log_file=None
+        self.name=name
         self.force_refresh=True
         self.screen=None
         self.focus=False

@@ -93,7 +93,7 @@ class widgetButton(Widget):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
         self.bg0=0
         self.fg0=7
-        self.invert=True
+        self.invert=False
         self.box=None
         self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
         self.screen.print(self.t.clear())
@@ -102,6 +102,7 @@ class widgetButton(Widget):
         self.style=style
         self.caption=caption
         self.title=caption
+        self.box.theme['inverted']=self.box.make_inverted(self.box.theme['focus'])
         self.resize()
 
     def draw(self):
