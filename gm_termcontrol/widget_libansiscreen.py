@@ -93,7 +93,7 @@ class widgetButton(Widget):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
         self.bg0=0
         self.fg0=7
-        self.invert=False
+        self.invert=True
         self.box=None
         self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
         self.screen.print(self.t.clear())

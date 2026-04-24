@@ -7,13 +7,14 @@ from .termcontrol import termcontrol
 from .terminput import termInput
 from .box_glyphs import grchr, theme, make_theme
 import signal
+import copy
 
 class boxDraw:
     def __init__(self, bgColor=0, fgColor=7,
                 bg0=0, fg0=7,
                 frameColors=[],
                 chars='',
-                mode='auto', 
+                mode='auto',
                 charset='utf8',
                 style='plot',
                 ):
@@ -25,36 +26,21 @@ class boxDraw:
         self.frame={'w':2, 'h':1}
         self.tinted=None
         self.theme=make_theme(style, bg=bgColor, fg=fgColor)
+        self.theme['inverted']=self.make_inverted(self.theme['focus'])
 
-    def tintFrame(self, color):
-        if color==None:
-            self.tinted=None
-            return
-        c=self.term.getRGB(color)
-        r, g, b=c['red'], c['green'], c['blue']
-        r=r/255.0
-        g=g/255.0
-        b=b/255.0
-        self.tinted=[]
-        for i in range(0, len(self.frameColors)):
-            c=self.term.getRGB(i)
-            fr,fg,fb=c['red'], c['green'], c['blue']
-            fr=int(fr/16*r)
-            fg=int(fg/16*g)
-            fb=int(fb/16*b)
-            self.tinted.append(F"#{fr:X}{fg:X}{fb:X}")
-
-    def unTintFrame(self):
-        self.tinted=None
-
-    def setCharacters(self):
-        self.chars=chars
-
-    def invert(self, cl):
-        c=cl.copy()
-        for i in range(0, len(cl)):
-            c[i]=cl[8-i]
-        return c
+    def make_inverted(self, theme):
+        inv=copy.deepcopy(theme)
+        swaps=[
+               ("box.top_left", 'box.bottom_right'),
+               ("box.top_right", 'box.bottom_left'),
+               ("box.top_center", 'box.bottom_center'),
+               ("box.middle_left", 'box.middle_right'),
+              ]
+        for sw in swaps:
+            s1,s2=sw
+            inv[s2].fg=theme[s1].fg
+            inv[s1].fg=theme[s2].fg
+        return inv
 
     def draw(self, x=0, y=0, w=0, h=0, fill=True, invert=False, screen=None, box_type=''):
         if screen is None:
@@ -62,7 +48,6 @@ class boxDraw:
         t=self.theme.get(box_type)
         if not t:
             t=self.theme.get('focus')
-        p=create_ansi_256_palette().get_colors()
         if self.style in ['plot']:
             if fill:
                 for y in range(1, screen.height-2):

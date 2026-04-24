@@ -2,6 +2,7 @@
 from libansiscreen.cell import Cell
 from libansiscreen.color.rgb import Color
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
+import copy
 """
          0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
 U+250x   ─   ━   │   ┃   ┄   ┅   ┆   ┇   ┈   ┉   ┊   ┋   ┌   ┍   ┎   ┏
@@ -184,8 +185,8 @@ def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000", inacti
                         Color.set(tfg),
                         Color.set(tbg), attr)
         fcs_thm[f"{k}.properties"]=properties
-    off_thm=fcs_thm.copy()
-    prnt_thm=fcs_thm.copy()
+    off_thm=copy.deepcopy(fcs_thm)
+    prnt_thm=copy.deepcopy(fcs_thm)
     return {'focus':fcs_thm, 'off':off_thm, 'parent':prnt_thm}
 
 
