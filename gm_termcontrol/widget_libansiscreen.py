@@ -30,8 +30,8 @@ class frameDraw(boxDraw):
              screen=None,
              show_vsb=False,
              show_hsb=False,
-             sx=0,sx_max=0,
-             sy=0,sy_max=0,
+             sx=0,sx_max=0,sx_lock=False,
+             sy=0,sy_max=0,sy_lock=False,
              focus=True
              ):
         box_type='focus'
@@ -55,7 +55,10 @@ class frameDraw(boxDraw):
             screen.set_cell(w-1,1,t['scroll.up'])
             for y in range(2,h-2):
                 screen.set_cell(w-1,y,t['scroll.v'])
-            screen.set_cell(w-1,2+sv,t['scroll.handle'])
+            if sy_lock:
+                screen.set_cell(w-1,2+sv,t['scroll.handle_lock'])
+            else:
+                screen.set_cell(w-1,2+sv,t['scroll.handle'])
             screen.set_cell(w-1,h-2,t['scroll.down'])
         if show_hsb:
             pass
@@ -63,7 +66,10 @@ class frameDraw(boxDraw):
             for x in range(2,w-2):
                 screen.set_cell(x,h-1,t['scroll.h'])
             screen.set_cell(w-2,h-1,t['scroll.right'])
-            screen.set_cell(2+sh,h-1,t['scroll.handle'])
+            if sx_lock:
+                screen.set_cell(2+sh,h-1,t['scroll.handle_lock'])
+            else:
+                screen.set_cell(2+sh,h-1,t['scroll.handle'])
         if self.title:
             sp=max(0,5)
             title=f" {self.title[0:w-sp-2]} "
@@ -179,8 +185,11 @@ class widgetScreen(Widget):
             fw=self.frame.frame['w']*2
             fh=self.frame.frame['h']*2
             self.frame.draw(0, 0, self.w, self.h, screen=self.screen,
+                            sx_lock=self.scroll_x!=-1,
+                            sy_lock=self.scroll_y!=-1,
                             show_vsb=self.show_y_scrollbar,
-                            show_hsb=self.show_x_scrollbar, focus=self.focus)
+                            show_hsb=self.show_x_scrollbar,
+                            focus=self.focus)
         scrolled=self.content
         if self.scroll_x==0 and self.scroll_y==0:
             self.screen.paste(self.content,

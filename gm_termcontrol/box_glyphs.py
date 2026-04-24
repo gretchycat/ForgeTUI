@@ -61,6 +61,12 @@ grchr['utf8']={ 'hline':'\u2500', 'vline':'\u2502', #1 line
                 'B0':' ', 'B25':'\u2591', 'B50':'\u2593',
                 'B75':'\u2593', 'B100':'\u2588',
                 '3BAR':'\u2630',
+                'LOCK':'\u26bf',
+                'DAGGER':'\u2020',
+                'DOT':'\u25c9',
+                'CIRCLED DOT':'\u29bf',
+                'CIRCLE':'\u25ef',
+                'CIRCLED X':'\u2a02',
                 'U':'\u2575', 'D':'\u2577', 'L':'\u2574', 'R':'\u2576',
                 'UD': '\u2502', 'LR':'\u2500',
                 'UL': '\u2518', 'UR':'\u2514',
@@ -153,7 +159,8 @@ theme_template={
         'scroll.right': ('RIGHT', '#000', '#aaa', 0, None),
         'scroll.h': ('B25', '#000', '#aaa', 0, None),
         'scroll.v': ('B25', '#000', '#aaa', 0, None),
-        'scroll.handle': ('B100', '#000', '#aaa', 0, None),
+        'scroll.handle': ('CIRCLE', '#aaa', '#000', 0, None),
+        'scroll.handle_lock': ('CIRCLED X', '#aaa', '#000', 0, None),
         'title.bar': ('LR', '#44f', '#00a', 0, None),
         'title.text': (' ', '#fff', '#00A', 1, { 'align':'center' }),
         }
@@ -176,6 +183,7 @@ def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000", inacti
         fcs_thm[k]=Cell(grchr['utf8'].get(c),
                         Color.set(tfg),
                         Color.set(tbg), attr)
+        fcs_thm[f"{k}.properties"]=properties
     off_thm=fcs_thm.copy()
     prnt_thm=fcs_thm.copy()
     return {'focus':fcs_thm, 'off':off_thm, 'parent':prnt_thm}
