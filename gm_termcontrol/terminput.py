@@ -66,7 +66,7 @@ class termInput:
             return int.from_bytes(d)
         return int(d)
 
-    def split_codes(self, buffer):
+    def split_codes(self, buffer): #TODO split by all of the key map values and then every character individually
         inputlist=buffer.split('\x1b')
         for k,i in enumerate(inputlist[1:], start=1):
             inputlist[k]='\x1b'+i

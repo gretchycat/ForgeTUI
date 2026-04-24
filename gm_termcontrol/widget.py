@@ -105,7 +105,6 @@ class Widget():
         self.setColors(fg, bg)
         self.widgetList=[]
         self.eventList={}
-        self.focus=None
         self.parent=None
         self.last_action=None
         self.last_action_count=0
@@ -365,8 +364,8 @@ class Widget():
                 for inp in self.input.read_input():  #TODO cache input, one per loop
                     if inp != '':
                         input_cache.append(inp)
-                i_go=True
-                while len(input_cache) and i_go:
+                #i_go=True
+                while len(input_cache):
                     inp=input_cache.pop(0)
                     self.check_mouse_focus_change(inp)
                     self.checkWidgetEvents(inp)
@@ -436,7 +435,7 @@ class Widget():
     def move(self, x,y):
         pass
 
-    def drawChildren(self, screen=None):
+    def drawChildren(self, screen=None): 
         last=None
         for w in self.widgetList:
             if not w.hidden:
@@ -450,7 +449,13 @@ class Widget():
         return
 
     def draw(self):
-        return self.drawChildren(screen=self.screen)
+        #TODO colorize on focus
+        colored=self.screen
+        if self.focus==False:
+            pass
+        if self.focus=='parent':
+            pass
+        return self.drawChildren(screen=colored)
 
     def on_focus(self):
         pass

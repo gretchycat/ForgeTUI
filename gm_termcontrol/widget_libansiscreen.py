@@ -139,6 +139,7 @@ class widgetButton(Widget):
         cap_y=int((self.h-fh)/2+fh/2)
         self.screen.cursor_goto(cap_x, cap_y)
         self.screen.print(self.caption)
+        super().draw()
 
 class widgetScreen(Widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None, title=''):
@@ -216,8 +217,7 @@ class widgetScreen(Widget):
             self.screen.paste(scrolled,
                 box=(fw//2, fh//2, self.screen.width-fw,
                      self.screen.height-fh-1))
-
-        self.drawChildren(self.screen)
+        super().draw()
         return self.screen
 
     def scroll(self, x=0, y=-1):
