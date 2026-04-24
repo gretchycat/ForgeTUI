@@ -104,6 +104,16 @@ class widgetButton(Widget):
         self.title=caption
         self.box.theme['inverted']=self.box.make_inverted(self.box.theme['focus'])
         self.resize()
+        self.addEvent('button down', self.b_down)
+        self.addEvent('button up', self.b_up)
+
+    def b_down(self, event=None):
+        if event['button']==0:
+            self.invert=True
+
+    def b_up(self, event=None):
+        if event['button']==0:
+            self.invert=False
 
     def draw(self):
         self.fg0=7

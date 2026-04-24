@@ -17,7 +17,7 @@ def draw_ruler(self, event=None):
     self.feed(self.t.drawRuler(self.content.width, self.content.height))
 
 def eventout(self, event=None):
-    if type(event)==str:
+    if type(event)==str or  True:
         self.feed(repr(str(event))+"\n")
 
 s=widgetScreen(0,0,0,0, style=2, bg=8, fg=15, title='root')
