@@ -71,10 +71,18 @@ class frameDraw(boxDraw):
             else:
                 screen.set_cell(2+sh,h-1,t['scroll.handle'])
         if self.title:
-            sp=max(0,5)
-            title=f" {self.title[0:w-sp-2]} "
-            t_x=max(int(screen.width/2-len(title)/2),0)
-            for x in range(sp, w-sp):
+            left_gap=t['title.bar.properties']['left_gap']
+            right_gap=t['title.bar.properties']['right_gap']
+            text_align=t['title.text.properties']['align']
+            title=f" {self.title[0:w-left_gap-right_gap-1]} "
+            t_x=left_gap
+            if text_align=='left':
+                t_x=left_gap
+            if text_align=='center':
+                t_x=max(int((w-left_gap-right_gap-1)/2-len(title)/2)+left_gap,0)
+            if text_align=='right':
+                t_x=w-len(title)-right_gap
+            for x in range(left_gap, w-right_gap):
                 screen.set_cell(x,0,t['title.bar'])
             screen.cursor_goto(t_x, 0)
             screen.set_foreground(t['title.text'].fg)

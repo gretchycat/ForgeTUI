@@ -162,11 +162,12 @@ theme_template={
         'scroll.v': ('B25', '#000', '#aaa', 0, None),
         'scroll.handle': ('CIRCLE', '#aaa', '#000', 0, None),
         'scroll.handle_lock': ('CIRCLED X', '#aaa', '#000', 0, None),
-        'title.bar': ('LR', '#44f', '#00a', 0, None),
+        'title.bar': ('LR', '#44f', '#00a', 0, { 'left_gap': 4, 'right_gap': 4}),
         'title.text': (' ', '#fff', '#00A', 1, { 'align':'center' }),
         }
 
-def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000", inactive='darken 50', parent='desaturate 50'):
+def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000",
+               inactive='darken 50', parent='desaturate 50'):
     fcs_thm=template.copy()
     for k,v in template.items():
         c, tfg, tbg, attr, properties=v
