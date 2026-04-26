@@ -452,9 +452,9 @@ class Widget():
         #TODO colorize on focus
         colored=self.screen
         if self.focus==False:
-            pass
+            self.screen.shift_hsv(0.0,-1.0,-1.0/84)
         if self.focus=='parent':
-            pass
+            self.screen.shift_hsv(0.0,-1.0,0.0)
         return self.drawChildren(screen=colored)
 
     def on_focus(self):

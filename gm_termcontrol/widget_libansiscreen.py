@@ -90,65 +90,6 @@ class frameDraw(boxDraw):
             screen.print(title)
         return frame
 
-class widgetProgressBar(Widget):
-    pass
-
-class widgetSlider(Widget):
-    pass
-
-class widgetButton(Widget):
-    def __init__(self, x, y, w, h, fg=7, bg=None, style='curve', caption='Button', toggle=None):
-        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
-        self.bg0=0
-        self.fg0=7
-        self.invert=False
-        self.inv_disp=False
-        self.box=None
-        self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
-        self.screen.print(self.t.clear())
-        self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0)
-        self.tint=None
-        self.style=style
-        self.caption=caption
-        self.title=caption
-        self.box.theme['inverted']=self.box.make_inverted(self.box.theme['focus'])
-        self.resize()
-        self.addEvent('button down', self.b_down)
-        self.addEvent('button up', self.b_up)
-
-    def b_down(self, event=None):
-        if event['button']==0:
-            self.invert=True
-            self.inv_disp=True
-
-    def b_up(self, event=None):
-        if event['button']==0:
-            self.invert=False
-
-    def draw(self):
-        self.fg0=7
-        self.bg0=0
-        if self.parent:
-            self.fg0=self.parent.fg
-            self.bg0=self.parent.bg
-        fw=0
-        fh=0
-        if(self.box):
-            box_type='focus'
-            if self.invert or self.inv_disp:
-                box_type='inverted'
-                if self.inv_disp:
-                    self.inv_disp=False
-            fw=self.box.frame['w']*2
-            fh=self.box.frame['h']*2
-            self.box.draw(0, 0, self.w, self.h, screen=self.screen,
-                          box_type=box_type)
-        cap_x=int(self.w/2-len(self.caption)/2)
-        cap_y=int((self.h-fh)/2+fh/2)
-        self.screen.cursor_goto(cap_x, cap_y)
-        self.screen.print(self.caption)
-        super().draw()
-
 class widgetScreen(Widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None, title=''):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
@@ -314,4 +255,85 @@ class widgetScreen(Widget):
                         self.scroll_x_bar(event=event)
                     if event['x']==self.w-2:
                         self.scroll_right(event=event)
+
+class widgetButton(Widget):
+    def __init__(self, x, y, w, h, fg=7, bg=None, style='curve', caption='Button', toggle=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
+        self.bg0=0
+        self.fg0=7
+        self.invert=False
+        self.inv_disp=False
+        self.box=None
+        self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
+        self.screen.print(self.t.clear())
+        self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0)
+        self.tint=None
+        self.style=style
+        self.caption=caption
+        self.title=caption
+        self.box.theme['inverted']=self.box.make_inverted(self.box.theme['focus'])
+        self.resize()
+        self.addEvent('button down', self.b_down)
+        self.addEvent('button up', self.b_up)
+
+    def b_down(self, event=None):
+        if event['button']==0:
+            self.invert=True
+            self.inv_disp=True
+
+    def b_up(self, event=None):
+        if event['button']==0:
+            self.invert=False
+
+    def draw(self):
+        self.fg0=7
+        self.bg0=0
+        if self.parent:
+            self.fg0=self.parent.fg
+            self.bg0=self.parent.bg
+        fw=0
+        fh=0
+        if(self.box):
+            box_type='focus'
+            if self.invert or self.inv_disp:
+                box_type='inverted'
+                if self.inv_disp:
+                    self.inv_disp=False
+            fw=self.box.frame['w']*2
+            fh=self.box.frame['h']*2
+            self.box.draw(0, 0, self.w, self.h, screen=self.screen,
+                          box_type=box_type)
+        cap_x=int(self.w/2-len(self.caption)/2)
+        cap_y=int((self.h-fh)/2+fh/2)
+        self.screen.cursor_goto(cap_x, cap_y)
+        self.screen.print(self.caption)
+        super().draw()
+
+class widgetProgressBar(Widget):
+    pass
+
+class widgetSlider(Widget):
+    pass
+
+class widgetTextinput(Widget):
+    pass
+
+class widgetTextarea(Widget):
+    pass
+
+class widgetLabel(Widget):
+    pass
+
+class widgetCheckbox(Widget):
+    pass
+
+class widgetRadiobox(Widget):
+    pass
+
+class widgetSpinner(Widget):
+    pass
+
+class widgetMenu(Widget):
+    pass
+
 
