@@ -85,8 +85,9 @@ class frameDraw(boxDraw):
             for x in range(left_gap, w-right_gap):
                 screen.set_cell(x,0,t['title.bar'])
             screen.cursor_goto(t_x, 0)
-            screen.set_foreground(t['title.text'].fg)
-            screen.set_background(t['title.text'].bg)
+            if t['title.text']:
+                screen.set_foreground(t['title.text'].fg)
+                screen.set_background(t['title.text'].bg)
             screen.print(title)
         return frame
 
@@ -278,12 +279,14 @@ class widgetButton(Widget):
 
     def b_down(self, event=None):
         if event['button']==0:
-            self.invert=True
-            self.inv_disp=True
+            if 0<=event['x']<self.w and 0<=event['y']<self.h:
+                self.invert=True
+                self.inv_disp=True
 
     def b_up(self, event=None):
         if event['button']==0:
-            self.invert=False
+            if 0<=event['x']<self.w and 0<=event['y']<self.h:
+                self.invert=False
 
     def draw(self):
         self.fg0=7

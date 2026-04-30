@@ -2,7 +2,7 @@
 from gm_termcontrol.widget import Widget
 from gm_termcontrol.widget_libansiscreen import widgetScreen, widgetButton
 from gm_termcontrol.termcontrol import termcontrol
-from gm_termcontrol.box_glyphs import make_theme
+from gm_termcontrol.theme import make_theme
 import sys
 
 def clear(self, event=None):
@@ -17,7 +17,7 @@ def draw_ruler(self, event=None):
     self.feed(self.t.drawRuler(self.content.width, self.content.height))
 
 def eventout(self, event=None):
-    if type(event)==str:
+    if type(event)==str or  True:
         self.feed(repr(str(event))+"\n")
 
 s=widgetScreen(0,0,0,0, style=2, bg=8, fg=15, title='root')

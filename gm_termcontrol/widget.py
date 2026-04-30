@@ -5,7 +5,7 @@ from libansiscreen.screen import Screen
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
-from .box_glyphs import grchr, theme, make_theme
+from .theme import grchr, theme, make_theme
 import signal
 import copy
 
@@ -109,6 +109,7 @@ class Widget():
         self.last_action=None
         self.last_action_count=0
         self.addEvent('', self.set_last_action)
+        self.captured_widget=None
 
     def suspend(self, signum, frame):
         self.t.output(self.t.disable_mouse())
@@ -203,12 +204,23 @@ class Widget():
             revent=event.copy()
             revent['x']=event['x']-ox
             revent['y']=event['y']-oy
-            if  0<=revent['x']<self.w and 0<=revent['y']<self.h:
-                return revent
-            return ''
+            return revent
         return event
 
+    def get_focused(self):
+        root=self
+        while root.parent:
+            root=root.parent
+        stack=[ root ]
+        while stack:
+            node=stack.pop()
+            if node.focus:
+                return node
+            for n in node.widgetList:
+                stack.append(n)
+
     def set_focus(self):
+        self.captured_widget=None
         root=self
         while root.parent:
             root=root.parent
@@ -300,13 +312,25 @@ class Widget():
     def addEvent(self, trigger, func, persist=False):
         self.eventList[trigger]={ 'func':func, 'persist':persist }
 
+    def check_captured(self, event):
+        if type(event)==dict:
+            if event['action'] in [ 'button downno', 'drag' ]:
+                if self.captured_widget==None:
+                    self.captured_widget=self.get_focused()
+            else:
+                self.captured_widget=None
+        else:
+            self.captured_widget=None
+
     def check_mouse_focus_change(self, event):
         if type(event)==dict:
-            x=event.get('x')
-            y=event.get('y')
-            focused=self.widget_at_coordinate(x,y)
-            if focused:
-                focused.set_focus()
+            if event['action'] not in ['button up']:
+                if not self.captured_widget:
+                    x=event.get('x')
+                    y=event.get('y')
+                    focused=self.widget_at_coordinate(x,y)
+                    if focused:
+                        focused.set_focus()
 
     def checkWidgetEvents(self, event):
         if event!='':
@@ -361,16 +385,15 @@ class Widget():
                 else:
                     self.t.output(s_start+home+buffer.emit_diff(self.screen, raw=True)+s_end)
                 self.screen=buffer.copy()
-                for inp in self.input.read_input():  #TODO cache input, one per loop
+                for inp in self.input.read_input():
                     if inp != '':
                         input_cache.append(inp)
                 #i_go=True
                 while len(input_cache):
                     inp=input_cache.pop(0)
+                    self.check_captured(inp)
                     self.check_mouse_focus_change(inp)
                     self.checkWidgetEvents(inp)
-                    #if type(inp)==dict and len(input_cache) and type(input_cache)==dict:
-                    #    if input_cache[0]['action']!=inp['action']:i_go=False
         self.t.output(self.t.clear())
         self.t.output(self.t.enable_cursor())
         self.t.output(self.t.disable_mouse())
@@ -426,6 +449,7 @@ class Widget():
         self.h=h
         if self.screen:
             self.screen.resize(w, h)
+        return(w,h)
 
     def resize(self, event=None):
         self.setSize(self.x,self.y,self.w,self.h)
@@ -433,9 +457,12 @@ class Widget():
             w.resize(event)
 
     def move(self, x,y):
+        if self.parent:
+            self.x=max(0, min(parent.w-1-self.w,x))
+            self.y=max(0, min(parent.h-1-self.h,y))
         pass
 
-    def drawChildren(self, screen=None): 
+    def drawChildren(self, screen=None):
         last=None
         for w in self.widgetList:
             if not w.hidden:
@@ -449,12 +476,11 @@ class Widget():
         return
 
     def draw(self):
-        colored=self.screen
-        if self.focus==False:
-            self.screen.shift_hsv(0.0,-1.0,-1.0/4)
-        if self.focus=='parent':
-            self.screen.shift_hsv(0.0,-1.0,0.0)
-        return self.drawChildren(screen=colored)
+        #if self.focus==False: #too slow
+        #    self.screen.shift_hsv(0.0,-1.0,-1.0/4)
+        #if self.focus=='parent':
+        #    self.screen.shift_hsv(0.0,-1.0,0.0)
+        return self.drawChildren(screen=self.screen)
 
     def on_focus(self):
         pass

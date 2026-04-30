@@ -8,7 +8,7 @@ except:
     Screen=None
 from .widget import widget, boxDraw
 from .termcontrol import termcontrol
-from .box_glyphs import grchr, theme
+from .theme import grchr, theme
 
 class widgetProgressBar(widget):
     def __init__(self, x, y, w, h, fg=7, bg=0, p0='\u2591', p1='\u2588', note=''):
