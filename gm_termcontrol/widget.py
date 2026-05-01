@@ -344,11 +344,8 @@ class Widget():
         if event!='':
             if type(event)==dict:
                 if event['action']=='drag':
-                    root=self
-                    while root.parent:
-                        root=root.parent
-                    if self==root:
-                        event['drag start']=root.drag_start
+                    if not self.parent:
+                        event['drag start']=self.drag_start
             for  e, m in self.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
