@@ -11,7 +11,7 @@ class frameDraw(boxDraw):
                 frameColors=[],
                 mode='auto',
                 charset='utf8',
-                style=None,
+                style='',
                 scrollbar_bg=7,
                 scrollbar_fg=0,
                 widget=None,
@@ -147,7 +147,7 @@ class widgetScreen(Widget):
         x,y=self.scroll(self.scroll_x, self.scroll_y)
         fw=0
         fh=0
-        if(self.frame):
+        if(self.frame and self.style is not None):
             fw=self.frame.frame['w']*2
             fh=self.frame.frame['h']*2
             self.frame.draw(0, 0, self.w, self.h, screen=self.screen,

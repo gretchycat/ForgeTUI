@@ -110,6 +110,7 @@ class Widget():
         self.last_action_count=0
         self.addEvent('', self.set_last_action)
         self.captured_widget=None
+        self.drag_start=None
 
     def suspend(self, signum, frame):
         self.t.output(self.t.disable_mouse())
@@ -202,6 +203,12 @@ class Widget():
         if type(event)==dict:
             ox,oy=self.offset()
             revent=event.copy()
+            if event['action']=='drag':
+                root=self
+                while root.parent:
+                    root=root.parent
+                revent['drag start']=root.drag_start
+            revent['abs']={'x':event['x'],'y':event['y']}
             revent['x']=event['x']-ox
             revent['y']=event['y']-oy
             return revent
@@ -313,14 +320,20 @@ class Widget():
         self.eventList[trigger]={ 'func':func, 'persist':persist }
 
     def check_captured(self, event):
+        if event=='':
+            return
         if type(event)==dict:
-            if event['action'] in [ 'button downno', 'drag' ]:
+            if event['action'] in [ 'drag' ]:
                 if self.captured_widget==None:
+                    self.log(f'saving drag stsrt: {event}')
                     self.captured_widget=self.get_focused()
-            else:
-                self.captured_widget=None
-        else:
-            self.captured_widget=None
+                    self.drag_start=event
+                #run is dragging callback
+                return
+        #run did drag scrollback
+        self.log(f'clearing drag stsrt: {event}')
+        self.captured_widget=None
+        self.drag_start=None
 
     def check_mouse_focus_change(self, event):
         if type(event)==dict:

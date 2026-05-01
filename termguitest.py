@@ -20,7 +20,7 @@ def eventout(self, event=None):
     if type(event)==str or  True:
         self.feed(repr(str(event))+"\n")
 
-s=widgetScreen(0,0,0,0, style=2, bg=8, fg=15, title='root')
+s=widgetScreen(0,0,0,0, style=None, bg=8, fg=15, title='root')
 s.scroll(0,0)
 s.show_x_scrollbar=False
 s.show_y_scrollbar=False
