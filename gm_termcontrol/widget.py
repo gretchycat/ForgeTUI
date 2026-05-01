@@ -347,7 +347,8 @@ class Widget():
                     root=self
                     while root.parent:
                         root=root.parent
-                    event['drag start']=root.drag_start
+                    if event==root:
+                        event['drag start']=root.drag_start
             for  e, m in self.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
