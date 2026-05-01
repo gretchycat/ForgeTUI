@@ -322,7 +322,7 @@ class Widget():
                 if self.captured_widget==None:
                     self.log(f'saving drag stsrt: {event}')
                     self.captured_widget=self.get_focused()
-                    self.drag_start=event
+                    self.drag_start=event.copy()
                 #run is dragging callback
                 return
         #run did drag scrollback
