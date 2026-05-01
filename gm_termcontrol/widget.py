@@ -111,6 +111,7 @@ class Widget():
         self.addEvent('', self.set_last_action)
         self.captured_widget=None
         self.drag_start=None
+        self.drag_previous=None
 
     def suspend(self, signum, frame):
         self.t.output(self.t.disable_mouse())
@@ -322,13 +323,13 @@ class Widget():
                 if self.captured_widget==None:
                     self.log(f'saving drag stsrt: {event}')
                     self.captured_widget=self.get_focused()
+                    event.pop('drag start',None)
                     self.drag_start=event.copy()
-                #run is dragging callback
                 return
-        #run did drag scrollback
         self.log(f'clearing drag stsrt: {event}')
         self.captured_widget=None
         self.drag_start=None
+        self.drag_previous=None
 
     def check_mouse_focus_change(self, event):
         if type(event)==dict:
@@ -344,8 +345,10 @@ class Widget():
         if event!='':
             if type(event)==dict:
                 if event['action']=='drag':
-                    if not self.parent:
+                    if self.drag_start:
                         event['drag start']=self.drag_start
+                    if self.drag_previous:
+                        event['drag previous']=self.drag_previous
             for  e, m in self.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
@@ -361,6 +364,12 @@ class Widget():
                             self.log(f'invalid action for "{e}" type: {type(func)}')
         for cw in self.widgetList:
             cw.checkWidgetEvents(cw.rel_event(event))
+        if self.drag_start:
+            event.pop('drag previous',None)
+            event.pop('drag start',None)
+            self.drag_previous=event.copy()
+        else:
+            self.drag_previous=None
 
     def guiLoop(self, outputmode=[]):
         self.go=True
@@ -375,7 +384,6 @@ class Widget():
         s_start=self.t.start_sync()
         s_end=self.t.end_sync()
         origin=self.t.gotoxy(1, 1)
-        buffercache=""
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGQUIT, self.stop)
         signal.signal(signal.SIGTSTP, self.suspend)
@@ -400,7 +408,6 @@ class Widget():
                 for inp in self.input.read_input():
                     if inp != '':
                         input_cache.append(inp)
-                #i_go=True
                 while len(input_cache):
                     inp=input_cache.pop(0)
                     self.check_captured(inp)
@@ -410,10 +417,8 @@ class Widget():
         self.t.output(self.t.enable_cursor())
         self.t.output(self.t.disable_mouse())
         self.t.output(self.t.normal_screen())
-        try:
-            sys.stdout.flush()
-        except:
-            pass
+        try: sys.stdout.flush()
+        except: pass
 
     def quit(self, event=None):
         self.go=False
