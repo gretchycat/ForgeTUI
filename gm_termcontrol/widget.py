@@ -203,11 +203,6 @@ class Widget():
         if type(event)==dict:
             ox,oy=self.offset()
             revent=event.copy()
-            if event['action']=='drag':
-                root=self
-                while root.parent:
-                    root=root.parent
-                revent['drag start']=root.drag_start
             revent['abs']={'x':event['x'],'y':event['y']}
             revent['x']=event['x']-ox
             revent['y']=event['y']-oy
@@ -347,6 +342,12 @@ class Widget():
 
     def checkWidgetEvents(self, event):
         if event!='':
+            if type(event)==dict:
+                if event['action']=='drag':
+                    root=self
+                    while root.parent:
+                        root=root.parent
+                    event['drag start']=root.drag_start
             for  e, m in self.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
