@@ -120,6 +120,8 @@ class widgetScreen(Widget):
         self.addEvent('scroll up', self.scroll_up)
         self.addEvent('scroll right', self.scroll_right)
         self.addEvent('scroll left', self.scroll_left)
+        self.addEvent('drag', self.drag_move)
+        self.addEvent('drag', self.drag_resize)
         #TODO add mouse drag move, resize
 
     def __repr__(self):
@@ -256,6 +258,26 @@ class widgetScreen(Widget):
                         self.scroll_x_bar(event=event)
                     if event['x']==self.w-2:
                         self.scroll_right(event=event)
+
+    def drag_move(self, event=None):
+        if type(event)==dict and \
+                event['action']=='drag' and \
+                event.get('drag start') and \
+                event.get('drag move'):
+            if event['button']==0 and event['drag start']['y']==0:
+                m= event['drag move']
+                self.move(self.x+m['x'], self.y+m['y'])
+
+    def drag_resize(self, event=None):
+        if type(event)==dict and \
+                event['action']=='drag' and \
+                event.get('drag start') and \
+                event.get('drag move'):
+            if event['button']==0 and \
+                    event['drag start']['y']==self.h-1 and \
+                    event['drag start']['x']==self.w-1:
+                m= event['drag move']
+                self.resize(self.w+m['x'], self.h+m['y'])
 
 class widgetButton(Widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style='curve', caption='Button', toggle=None):

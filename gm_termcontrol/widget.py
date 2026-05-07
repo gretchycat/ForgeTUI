@@ -192,10 +192,10 @@ class Widget():
         for w in full_stack:
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
-        for w in widgets:
-            if w != root:
-                if w.focus:
-                    return w
+        #for w in widgets:
+        #    if w != root:
+        #        if w.focus:
+        #            return w
         if widgets:
             return widgets[-1]
         return None
@@ -217,7 +217,7 @@ class Widget():
         stack=[ root ]
         while stack:
             node=stack.pop()
-            if node.focus:
+            if node.focus==True:
                 return node
             for n in node.widgetList:
                 stack.append(n)
@@ -321,12 +321,11 @@ class Widget():
         if type(event)==dict:
             if event['action'] in [ 'drag' ]:
                 if self.captured_widget==None:
-                    self.log(f'saving drag stsrt: {event}')
                     self.captured_widget=self.get_focused()
                     event.pop('drag start',None)
-                    self.drag_start=event.copy()
+                    self.drag_start=self.captured_widget.rel_event(event)
+                    self.captured_widget.log(f'saving drag start: {self.drag_start}')
                 return
-        self.log(f'clearing drag stsrt: {event}')
         self.captured_widget=None
         self.drag_start=None
         self.drag_previous=None
@@ -349,6 +348,12 @@ class Widget():
                         event['drag start']=self.drag_start
                     if self.drag_previous:
                         event['drag previous']=self.drag_previous
+                        event['drag move']={
+                            'x': event['x']-self.drag_previous['x'],
+                            'y': event['y']-self.drag_previous['y'],
+                            'button': event['button'],
+                            'action': event['action']
+                            }
             for  e, m in self.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
@@ -410,8 +415,8 @@ class Widget():
                         input_cache.append(inp)
                 while len(input_cache):
                     inp=input_cache.pop(0)
-                    self.check_captured(inp)
                     self.check_mouse_focus_change(inp)
+                    self.check_captured(inp)
                     self.checkWidgetEvents(inp)
         self.t.output(self.t.clear())
         self.t.output(self.t.enable_cursor())
@@ -469,14 +474,16 @@ class Widget():
         return(w,h)
 
     def resize(self, event=None):
+        self._w, self._h=None, None
         self.setSize(self.x,self.y,self.w,self.h)
         for w in self.widgetList:
             w.resize(event)
 
     def move(self, x,y):
         if self.parent:
-            self.x=max(0, min(parent.w-1-self.w,x))
-            self.y=max(0, min(parent.h-1-self.h,y))
+            self.x=max(0, min(self.parent.w-1-self.w,x))
+            self.y=max(0, min(self.parent.h-1-self.h,y))
+            self._x, self._y=None, None
         pass
 
     def drawChildren(self, screen=None):
