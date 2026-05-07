@@ -120,15 +120,14 @@ class widgetScreen(Widget):
         self.addEvent('scroll up', self.scroll_up)
         self.addEvent('scroll right', self.scroll_right)
         self.addEvent('scroll left', self.scroll_left)
-        self.addEvent('drag', self.drag_move)
-        self.addEvent('drag', self.drag_resize)
+        self.addEvent('drag', self.drag_handler)
         #TODO add mouse drag move, resize
 
     def __repr__(self):
         return f"{self.__class__.__name__}(title={self.title})"
 
-    def resize(self, event=None):
-        super().resize()
+    def resize(self, w=None, h=None):
+        super().resize(w,h)
         fw=0
         fh=0
         if(self.frame):
@@ -240,7 +239,7 @@ class widgetScreen(Widget):
             self.scroll(self.scroll_x, s)
 
     def scrollbar_mouse(self, event=None):
-        self.log(f"Mouse: {event}")
+        #self.log(f"Mouse: {event}")
         if type(event)==dict:
             if event['x']==self.w-1:
                 if self.show_y_scrollbar:
@@ -259,12 +258,17 @@ class widgetScreen(Widget):
                     if event['x']==self.w-2:
                         self.scroll_right(event=event)
 
+    def drag_handler(self, event=None):
+        self.drag_move(event)
+        self.drag_resize(event)
+
     def drag_move(self, event=None):
         if type(event)==dict and \
                 event['action']=='drag' and \
                 event.get('drag start') and \
                 event.get('drag move'):
             if event['button']==0 and event['drag start']['y']==0:
+                self.log('move 3')
                 m= event['drag move']
                 self.move(self.x+m['x'], self.y+m['y'])
 
@@ -276,6 +280,7 @@ class widgetScreen(Widget):
             if event['button']==0 and \
                     event['drag start']['y']==self.h-1 and \
                     event['drag start']['x']==self.w-1:
+                self.log('resize 3')
                 m= event['drag move']
                 self.resize(self.w+m['x'], self.h+m['y'])
 

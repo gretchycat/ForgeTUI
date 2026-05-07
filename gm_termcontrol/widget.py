@@ -324,7 +324,7 @@ class Widget():
                     self.captured_widget=self.get_focused()
                     event.pop('drag start',None)
                     self.drag_start=self.captured_widget.rel_event(event)
-                    self.captured_widget.log(f'saving drag start: {self.drag_start}')
+                    #self.captured_widget.log(f'saving drag start: {self.drag_start}')
                 return
         self.captured_widget=None
         self.drag_start=None
@@ -394,7 +394,7 @@ class Widget():
         signal.signal(signal.SIGTSTP, self.suspend)
         signal.signal(signal.SIGCONT, self.resume)
         input_cache=[]
-        with open("self.t.output.log", "w") as self.log_file:
+        with open("output.log", "w") as self.log_file:
             while self.go:
                 #resize to full screen
                 sz=self.t.get_terminal_size()
@@ -473,11 +473,11 @@ class Widget():
             self.screen.resize(w, h)
         return(w,h)
 
-    def resize(self, event=None):
-        self._w, self._h=None, None
+    def resize(self, w=None, h=None):
+        self._w, self._h=w,h
         self.setSize(self.x,self.y,self.w,self.h)
-        for w in self.widgetList:
-            w.resize(event)
+        for wd in self.widgetList:
+            wd.resize(w,h)
 
     def move(self, x,y):
         if self.parent:
