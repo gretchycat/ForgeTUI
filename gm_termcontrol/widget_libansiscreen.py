@@ -277,6 +277,9 @@ class widgetScreen(Widget):
                 event['action']=='drag' and \
                 event.get('drag start') and \
                 event.get('drag move'):
+            self.log(f"{event['button']}")
+            self.log(f"({event['drag start']['x']},{self.w-1})")
+            self.log(f"({event['drag start']['y']},{self.h-1})")
             if event['button']==0 and \
                     event['drag start']['y']==self.h-1 and \
                     event['drag start']['x']==self.w-1:

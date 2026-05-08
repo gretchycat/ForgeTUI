@@ -319,12 +319,11 @@ class Widget():
         if event=='':
             return
         if type(event)==dict:
-            if event['action'] in [ 'drag' ]:
+            if event['action'] in [ 'button down', 'drag' ]:
                 if self.captured_widget==None:
                     self.captured_widget=self.get_focused()
                     event.pop('drag start',None)
                     self.drag_start=self.captured_widget.rel_event(event)
-                    #self.captured_widget.log(f'saving drag start: {self.drag_start}')
                 return
         self.captured_widget=None
         self.drag_start=None
