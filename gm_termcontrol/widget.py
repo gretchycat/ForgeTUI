@@ -112,6 +112,7 @@ class Widget():
         self.captured_widget=None
         self.drag_start=None
         self.drag_previous=None
+        self.drag_handle=None
 
     def suspend(self, signum, frame):
         self.t.output(self.t.disable_mouse())
@@ -328,6 +329,7 @@ class Widget():
         self.captured_widget=None
         self.drag_start=None
         self.drag_previous=None
+        self.drag_handle=None
 
     def check_mouse_focus_change(self, event):
         if type(event)==dict:
@@ -345,6 +347,8 @@ class Widget():
                 if event['action']=='drag':
                     if self.drag_start:
                         event['drag start']=self.drag_start
+                    if self.drag_handle is not None:
+                        event['drag handle']=self.drag_handle
                     if self.drag_previous:
                         event['drag previous']=self.drag_previous
                         event['drag move']={
@@ -371,6 +375,7 @@ class Widget():
         if self.drag_start:
             event.pop('drag previous',None)
             event.pop('drag start',None)
+            event.pop('drag handle',None)
             self.drag_previous=event.copy()
         else:
             self.drag_previous=None

@@ -267,7 +267,12 @@ class widgetScreen(Widget):
                 event['action']=='drag' and \
                 event.get('drag start') and \
                 event.get('drag move'):
-            if event['button']==0 and event['drag start']['y']==0:
+            pos=event['drag start']['y']==0
+            if event['button']==0 and \
+                    ( pos or \
+                    event.get('drag handle')=='move'):
+                if pos:
+                    self.drag_handle='move'
                 self.log('move 3')
                 m= event['drag move']
                 self.move(self.x+m['x'], self.y+m['y'])
@@ -280,9 +285,12 @@ class widgetScreen(Widget):
             self.log(f"{event['button']}")
             self.log(f"({event['drag start']['x']},{self.w-1})")
             self.log(f"({event['drag start']['y']},{self.h-1})")
+            pos=event['drag start']['y']==self.h-1 and \
+                    event['drag start']['x']==self.w-1
             if event['button']==0 and \
-                    event['drag start']['y']==self.h-1 and \
-                    event['drag start']['x']==self.w-1:
+                    (pos or event.get('drag handle')=='resize' ):
+                if pos:
+                    self.drag_handle='resize'
                 self.log('resize 3')
                 m= event['drag move']
                 self.resize(self.w+m['x'], self.h+m['y'])
