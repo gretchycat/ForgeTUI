@@ -197,14 +197,16 @@ class widgetScreen(Widget):
     def scroll_down(self, event=None):
         if self.scroll_y==-1:
             return
-        ac=min(max(1,self.last_action_count),5)
+        #ac=min(max(1,self.last_action_count),5)
+        ac=1
         self.scroll(self.scroll_x, self.scroll_y+ac)
 
     def scroll_up(self, event=None):
         if self.scroll_y==-1:
             self.scroll(self.scroll_x, self.y_max)
             return
-        ac=min(max(1,self.last_action_count),5)
+        #ac=min(max(1,self.last_action_count),5)
+        ac=1
         if self.scroll_y-ac<0:
             ac=1
         if self.scroll_y>0:
@@ -213,14 +215,16 @@ class widgetScreen(Widget):
     def scroll_right(self, event=None):
         if self.scroll_x==-1:
             return
-        ac=min(max(1,self.last_action_count),5)
+        #ac=min(max(1,self.last_action_count),5)
+        ac=1
         self.scroll(self.scroll_x+1, self.scroll_y)
 
     def scroll_left(self, event=None):
         if self.scroll_x==-1:
             self.scroll(self.x_max, self.scroll_y)
             return
-        ac=min(max(1,self.last_action_count),5)
+        #ac=min(max(1,self.last_action_count),5)
+        ac=1
         if self.scroll_x-ac<0:
             ac=1
         if self.scroll_x>0:

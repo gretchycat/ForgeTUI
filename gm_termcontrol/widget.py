@@ -23,7 +23,9 @@ class boxDraw:
         self.term=termcontrol()
         self.fg0, self.bg0=fg0, bg0
         self.bgColor=bgColor
-        self.frame={'w':2, 'h':1}
+        self.frame={'w':0, 'h':0}
+        if style is not None:
+            self.frame={'w':2, 'h':1}
         self.tinted=None
         self.theme=make_theme(style, bg=bgColor, fg=fgColor)
 
@@ -106,9 +108,8 @@ class Widget():
         self.widgetList=[]
         self.eventList={}
         self.parent=None
-        self.last_action=None
-        self.last_action_count=0
-        self.addEvent('', self.set_last_action)
+        #self.last_action=None
+        #self.last_action_count=0
         self.captured_widget=None
         self.drag_start=None
         self.drag_previous=None
@@ -133,19 +134,19 @@ class Widget():
         self.t.output(self.t.alt_screen())
         self.quit()
 
-    def set_last_action(self, event=None):
-        if type(event)==dict:
-            if event['action']==self.last_action:
-                self.last_action_count=self.last_action_count+1
-            else:
-                self.last_action_count=0
-                self.last_action=event['action']
-        else:
-            if event==self.last_action:
-                self.last_action_count=self.last_action_count+1
-            else:
-                self.last_action_count=self.last_action_count+1
-                self.last_action=event
+    #def set_last_action(self, event=None):
+    #    if type(event)==dict:
+    #        if event['action']==self.last_action:
+    #            self.last_action_count=self.last_action_count+1
+    #        else:
+    #            self.last_action_count=0
+    #            self.last_action=event['action']
+    #    else:
+    #        if event==self.last_action:
+    #            self.last_action_count=self.last_action_count+1
+    #        else:
+    #            self.last_action_count=self.last_action_count+1
+    #            self.last_action=event
 
     def __del__(self):
         pass
