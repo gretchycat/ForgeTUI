@@ -59,6 +59,7 @@ grchr['utf8']={ 'hline':'\u2500', 'vline':'\u2502', #1 line
                 'UP': '\u25b2', 'DOWN': '\u25bc',
                 'LEFT': '\u25c0', 'RIGHT': '\u25b6',
                 'TH':'\u2580', 'BH':'\u2584',
+                'LH':'\u258C', 'RH':'\u2590',
                 'B0':' ', 'B25':'\u2591', 'B50':'\u2593',
                 'B75':'\u2593', 'B100':'\u2588',
                 '3BAR':'\u2630',
@@ -68,6 +69,7 @@ grchr['utf8']={ 'hline':'\u2500', 'vline':'\u2502', #1 line
                 'CIRCLED DOT':'\u29bf',
                 'CIRCLE':'\u25ef',
                 'CIRCLED X':'\u2a02',
+                'None':None,
                 'U':'\u2575', 'D':'\u2577', 'L':'\u2574', 'R':'\u2576',
                 'UD': '\u2502', 'LR':'\u2500',
                 'UL': '\u2518', 'UR':'\u2514',
@@ -154,6 +156,15 @@ theme_template={
         'box.bottom_left': ( 'UR', '#aaa', '#bg', 0, None),
         'box.bottom_center': ( 'LR', '#888', '#bg', 0, None),
         'box.bottom_right': ( 'UL', '#555', '#bg', 0, None),
+        'button.top_left':  None,
+        'button.top_center': None,
+        'button.top_right': None,
+        'button.middle_left': ( 'LH', '#888', '#bg', 0, None),
+        'button.middle_center': ( 'B0', '#fg', '#bg', 0, None),
+        'button.middle_right': ( 'RH', '#333', '#bg', 0, None),
+        'button.bottom_left': None,
+        'button.bottom_center': None,
+        'button.bottom_right': None, 
         'scroll.up': ( 'UP', '#000', '#aaa', 0, None),
         'scroll.down': ('DOWN', '#000', '#aaa', 0, None),
         'scroll.left': ('LEFT', '#000', '#aaa', 0, None),
@@ -162,8 +173,10 @@ theme_template={
         'scroll.v': ('B25', '#000', '#aaa', 0, None),
         'scroll.handle': ('CIRCLE', '#aaa', '#000', 0, None),
         'scroll.handle_lock': ('CIRCLED X', '#aaa', '#000', 0, None),
-        'title.bar': ('LR', '#44f', '#00a', 0, { 'left_gap': 4, 'right_gap': 4}),
+        'title.bar': ('LR', '#44f', '#00a', 0, {'left_gap':4,'right_gap':4}),
         'title.text': (' ', '#fff', '#00A', 1, { 'align':'center' }),
+        'shadow':( 'None', 8, 0, 0, None ),
+        'transparent':( 'None', None, None, 0, None ),
         }
 
 def shift_theme(theme, change=None):
@@ -184,25 +197,31 @@ def shift_theme(theme, change=None):
     return theme
 
 def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000",
-               inactive={'h':0,'s':0.0,'v':-0.25}, parent=None):
+               inactive={'h':0,'s':0.0,'v':-0.25}, parent=None,
+               active={'h':0,'s':0.0,'v':0.25}):
     fcs_thm={}
     for k,v in template.items():
-        c, tfg, tbg, attr, properties=v
-        if style is not None:
-            c=f"{c}.{style}"
-        while '.' in c and not grchr['utf8'].get(c):
-            spc=c.split('.')
-            spc.pop()
-            c='.'.join(spc)
-        if tfg=='#fg':
-            tfg=fg
-        if tbg=='#bg':
-            tbg=bg
-        fcs_thm[k]=Cell(grchr['utf8'].get(c),
-                        Color.set(tfg),
-                        Color.set(tbg), attr)
-        fcs_thm[f"{k}.properties"]=properties
+        if type(v)==tuple:
+            c, tfg, tbg, attr, properties=v
+            if style is not None:
+                c=f"{c}.{style}"
+            while '.' in c and not grchr['utf8'].get(c):
+                spc=c.split('.')
+                spc.pop()
+                c='.'.join(spc)
+            if tfg=='#fg':
+                tfg=fg
+            if tbg=='#bg':
+                tbg=bg
+            fcs_thm[k]=Cell(grchr['utf8'].get(c),
+                            Color.set(tfg),
+                            Color.set(tbg), attr)
+            fcs_thm[f"{k}.properties"]=properties
+        else:
+            fcs_thm[k]=v
     off_thm=shift_theme(fcs_thm, change=inactive)
     prnt_thm=shift_theme(fcs_thm, change=parent)
-    return {'focus':fcs_thm, 'off':off_thm, 'parent':prnt_thm}
+    active_thm=shift_theme(fcs_thm, change=active)
+
+    return {'focus':fcs_thm, 'off':off_thm, 'parent':prnt_thm, 'active':active_thm}
 

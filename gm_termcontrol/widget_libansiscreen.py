@@ -7,26 +7,23 @@ from .widget import Widget, boxDraw
 class frameDraw(boxDraw):
     def __init__(self, bgColor=0,
                 bg0=0, fg0=7,
-                chars="",
-                frameColors=[],
-                mode='auto',
                 charset='utf8',
                 style='',
                 scrollbar_bg=7,
                 scrollbar_fg=0,
                 widget=None,
                 title='',
+                box_name='box'
                 ):
         self.title=title
         super().__init__(bgColor=bgColor,bg0=bg0,fg0=fg0,
-                         chars=chars,frameColors=frameColors,
-                         mode=mode,charset=charset,style=style)
+                         charset=charset,style=style, box_name=box_name)
         self.widget=widget
         self.scrollbar_bg=scrollbar_bg
         self.scrollbar_fg=scrollbar_fg
 
     def draw(self, x=0, y=0, w=0, h=0,
-             fill=True,  invert=False,
+             fill=True,
              screen=None,
              show_vsb=False,
              show_hsb=False,
@@ -41,7 +38,7 @@ class frameDraw(boxDraw):
             if type(focus)!=bool:
                 box_type=focus
         frame=super().draw(x=x, y=y, w=w, h=h,
-                        fill=fill, invert=invert,
+                        fill=fill,
                         screen=screen, box_type=box_type)
         t=self.theme.get(box_type)
         if not t:
@@ -300,21 +297,23 @@ class widgetScreen(Widget):
                 self.resize(self.w+m['x'], self.h+m['y'])
 
 class widgetButton(Widget):
-    def __init__(self, x, y, w, h, fg=7, bg=None, style='curve', caption='Button', toggle=None):
+    def __init__(self, x, y, w=0, h=1, fg=7, bg=None, style='curve', caption='Button', toggle=False):
+        minw=len(caption)+4
+        if w<minw:
+            w=minw
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
         self.bg0=0
         self.fg0=7
-        self.invert=False
-        self.inv_disp=False
+        self.active=False
+        self.active_disp=False
         self.box=None
         self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
         self.screen.print(self.t.clear())
-        self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0)
+        self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0, box_name='button')
         self.tint=None
         self.style=style
         self.caption=caption
         self.title=caption
-        self.box.theme['inverted']=self.box.make_inverted(self.box.theme['focus'])
         self.resize()
         self.addEvent('button down', self.b_down)
         self.addEvent('button up', self.b_up)
@@ -322,13 +321,13 @@ class widgetButton(Widget):
     def b_down(self, event=None):
         if event['button']==0:
             if 0<=event['x']<self.w and 0<=event['y']<self.h:
-                self.invert=True
-                self.inv_disp=True
+                self.active=True
+                self.active_disp=True
 
     def b_up(self, event=None):
         if event['button']==0:
             if 0<=event['x']<self.w and 0<=event['y']<self.h:
-                self.invert=False
+                self.active=False
 
     def draw(self):
         self.fg0=7
@@ -340,10 +339,10 @@ class widgetButton(Widget):
         fh=0
         if(self.box):
             box_type='focus'
-            if self.invert or self.inv_disp:
-                box_type='inverted'
-                if self.inv_disp:
-                    self.inv_disp=False
+            if self.active or self.active_disp:
+                box_type='active'
+                if self.active_disp:
+                    self.active_disp=False
             fw=self.box.frame['w']*2
             fh=self.box.frame['h']*2
             self.box.draw(0, 0, self.w, self.h, screen=self.screen,
@@ -351,6 +350,10 @@ class widgetButton(Widget):
         cap_x=int(self.w/2-len(self.caption)/2)
         cap_y=int((self.h-fh)/2+fh/2)
         self.screen.cursor_goto(cap_x, cap_y)
+        c=self.box.theme[box_type][f'{self.box.box_name}.middle_center']
+        if c:
+            #self.screen.set_foreground(c.fg)
+            self.screen.set_background(c.bg)
         self.screen.print(self.caption)
         super().draw()
 

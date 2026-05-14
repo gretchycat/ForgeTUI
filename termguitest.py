@@ -27,7 +27,7 @@ s.show_y_scrollbar=False
 draw_ruler(s)
 box=s.addWidget(widgetScreen(10, 5, 40, 10, style='c', bg=65,fg=16,title='green'))
 box2=s.addWidget(widgetScreen(-0.75, 0.5, 0.5, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor'))
-btn=s.addWidget(widgetButton(-20,2,18,3, style='plot', bg=85,fg=0,caption='Hello'))
+btn=s.addWidget(widgetButton(-20,2, style='',h=3, bg=248,fg=0,caption='Hello'))
 box2.show_x_scrollbar=False
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")

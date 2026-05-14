@@ -9,81 +9,6 @@ from .theme import grchr, theme, make_theme
 import signal
 import copy
 
-class boxDraw:
-    def __init__(self, bgColor=0, fgColor=7,
-                bg0=0, fg0=7,
-                frameColors=[],
-                chars='',
-                mode='auto',
-                charset='utf8',
-                style='plot',
-                ):
-        self.screen=None
-        self.style=style
-        self.term=termcontrol()
-        self.fg0, self.bg0=fg0, bg0
-        self.bgColor=bgColor
-        self.frame={'w':0, 'h':0}
-        if style is not None:
-            self.frame={'w':2, 'h':1}
-        self.tinted=None
-        self.theme=make_theme(style, bg=bgColor, fg=fgColor)
-
-    def make_inverted(self, theme):
-        inv=copy.deepcopy(theme)
-        swaps=[
-               ("box.top_left", 'box.bottom_right'),
-               ("box.top_right", 'box.bottom_left'),
-               ("box.top_center", 'box.bottom_center'),
-               ("box.middle_left", 'box.middle_right'),
-              ]
-        for sw in swaps:
-            s1,s2=sw
-            inv[s2].fg=theme[s1].fg
-            inv[s1].fg=theme[s2].fg
-        return inv
-
-    def draw(self, x=0, y=0, w=0, h=0, fill=True, invert=False, screen=None, box_type=''):
-        if screen is None:
-            return
-        t=self.theme.get(box_type)
-        if not t:
-            t=self.theme.get('focus')
-        if self.style in ['plot']:
-            if fill:
-                for y in range(1, screen.height-2):
-                    for x in range(1, screen.width-1):
-                        screen.set_cell(x,y,t['box.middle_center'])
-            screen.plot(0,0,t['box.top_left'].fg)
-            screen.plot(screen.width-1,0,t['box.top_right'].fg)
-            for x in range(1,screen.width-1):
-                screen.plot(x,0,t['box.top_center'].fg)
-                screen.plot(x,1,t['box.middle_center'].bg)
-                screen.plot(x,screen.height*2-4,t['box.middle_center'].bg)
-                screen.plot(x,screen.height*2-3,t['box.bottom_center'].fg)
-            for y in range(1, screen.height*2-3):
-                screen.plot(0,y,t['box.middle_left'].fg)
-                screen.plot(1,y,t['box.middle_center'].bg)
-                screen.plot(screen.width-2,y,t['box.middle_center'].bg)
-                screen.plot(screen.width-1,y,t['box.middle_right'].fg)
-            screen.plot(0,screen.height*2-3,t['box.bottom_left'].fg)
-            screen.plot(screen.width-1,screen.height*2-3,t['box.bottom_right'].fg)
-        else:
-            screen.set_cell(0,0,t['box.top_left'])
-            screen.set_cell(screen.width-1,0,t['box.top_right'])
-            for x in range(1, screen.width-1):
-                screen.set_cell(x,0,t['box.top_center'])
-                screen.set_cell(x,screen.height-2,t['box.bottom_center'])
-            for y in range(1, screen.height-2):
-                screen.set_cell(0,y,t['box.middle_left'])
-                screen.set_cell(screen.width-1,y,t['box.middle_right'])
-                if fill:
-                    for x in range(1, screen.width-1):
-                        screen.set_cell(x,y,t['box.middle_center'])
-            screen.set_cell(0,screen.height-2,t['box.bottom_left'])
-            screen.set_cell(screen.width-1,screen.height-2,t['box.bottom_right'])
-        return screen
-
 import uuid
 class Widget():
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, name=uuid.uuid4()):
@@ -516,4 +441,83 @@ class Widget():
 
     def on_defocus(self):
         pass
+
+class boxDraw(Widget):
+    def __init__(self, bgColor=0, fgColor=7,
+                bg0=0, fg0=7,
+                charset='utf8',
+                style='plot',
+                box_name='box',
+                ):
+        self.box_name=box_name
+        self.screen=None
+        self.style=style
+        self.term=termcontrol()
+        self.fg0, self.bg0=fg0, bg0
+        self.bgColor=bgColor
+        self.frame={'w':0, 'h':0}
+        if style is not None:
+            self.frame={'w':2, 'h':1}
+        self.tinted=None
+        self.theme=make_theme(style, bg=bgColor, fg=fgColor)
+
+    def make_inverted(self, theme):
+        inv=copy.deepcopy(theme)
+        bn=self.box_name
+        swaps=[
+               (f'{bn}.top_left', f'{bn}.bottom_right'),
+               (f'{bn}.top_right', f'{bn}.bottom_left'),
+               (f'{bn}.top_center', f'{bn}.bottom_center'),
+               (f'{bn}.middle_left', f'{bn}.middle_right'),
+              ]
+        for sw in swaps:
+            s1,s2=sw
+            if theme.get(s1):
+                inv[s2].fg=theme[s1].fg
+            if theme.get(s2):
+                inv[s1].fg=theme[s2].fg
+        return inv
+
+    def draw(self, x=0, y=0, w=0, h=0, fill=True, invert=False, screen=None, box_type=''):
+        bn=self.box_name
+        if screen is None:
+            return
+        t=self.theme.get(box_type)
+        if not t:
+            t=self.theme.get('focus')
+        if self.style in ['plot']:
+            if fill:
+                for y in range(1, screen.height-2):
+                    for x in range(1, screen.width-1):
+                        screen.set_cell(x,y,t[f'{bn}.middle_center'])
+            screen.plot(0,0,t[f'{bn}.top_left'].fg)
+            screen.plot(screen.width-1,0,t[f'{bn}.top_right'].fg)
+            for x in range(1,screen.width-1):
+                screen.plot(x,0,t[f'{bn}.top_center'].fg)
+                screen.plot(x,1,t[f'{bn}.middle_center'].bg)
+                screen.plot(x,screen.height*2-4,t[f'{bn}.middle_center'].bg)
+                screen.plot(x,screen.height*2-3,t[f'{bn}.bottom_center'].fg)
+            for y in range(1, screen.height*2-3):
+                screen.plot(0,y,t[f'{bn}.middle_left'].fg)
+                screen.plot(1,y,t[f'{bn}.middle_center'].bg)
+                screen.plot(screen.width-2,y,t[f'{bn}.middle_center'].bg)
+                screen.plot(screen.width-1,y,t[f'{bn}.middle_right'].fg)
+            screen.plot(0,screen.height*2-3,t[f'{bn}.bottom_left'].fg)
+            screen.plot(screen.width-1,screen.height*2-3,t[f'{bn}.bottom_right'].fg)
+        else:
+            screen.set_cell(0,0,t[f'{bn}.top_left'])
+            screen.set_cell(screen.width-1,0,t[f'{bn}.top_right'])
+            for x in range(1, screen.width-1):
+                screen.set_cell(x,0,t[f'{bn}.top_center'])
+                screen.set_cell(x,screen.height-2,t[f'{bn}.bottom_center'])
+            for y in range(1, screen.height-2):
+                screen.set_cell(0,y,t[f'{bn}.middle_left'])
+                screen.set_cell(screen.width-1,y,t[f'{bn}.middle_right'])
+                if fill:
+                    for x in range(1, screen.width-1):
+                        screen.set_cell(x,y,t[f'{bn}.middle_center'])
+            screen.set_cell(0,screen.height-2,t[f'{bn}.bottom_left'])
+            screen.set_cell(screen.width-1,screen.height-2,t[f'{bn}.bottom_right'])
+        return screen
+
 
