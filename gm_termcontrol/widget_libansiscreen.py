@@ -360,25 +360,44 @@ class widgetProgressBar(Widget):
 class widgetSlider(Widget):
     pass
 
-class widgetTextinput(Widget):
+class widgetTextInput(Widget):
     pass
 
-class widgetTextarea(Widget):
+class widgetTextArea(Widget):
     pass
 
 class widgetLabel(Widget):
     pass
 
-class widgetCheckbox(Widget):
+class widgetCheckBox(Widget):
     pass
 
-class widgetRadiobox(Widget):
+class widgetListBox(Widget):
+    pass
+
+class widgetRadioBox(Widget):
+    pass
+
+class widgetDropDown(Widget):
     pass
 
 class widgetSpinner(Widget):
     pass
 
+class widgetTitleBar(Widget):
+    pass
+
+class widgetStatusBar(Widget):
+    pass
+
 class widgetMenu(Widget):
     pass
 
+class widgetLabel(Widget):
+    pass
 
+class widgetVBox(Widget):
+    pass
+
+class widgetHBox(Widget):
+    pass
