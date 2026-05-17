@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from gm_termcontrol.widget import Widget
-from gm_termcontrol.widget_libansiscreen import widgetScreen, widgetButton
+from gm_termcontrol.widget import Widget, WidgetBox
+from gm_termcontrol.widget_libansiscreen import WidgetScreen, WidgetButton
 from gm_termcontrol.termcontrol import termcontrol
 from gm_termcontrol.theme import make_theme
 import sys
@@ -20,14 +20,15 @@ def eventout(self, event=None):
     if type(event)==str:
         self.feed(repr(str(event))+"\n")
 
-s=widgetScreen(0,0,0,0, style=None, bg=8, fg=15, title='root')
+s=WidgetScreen(0,0,0,0, style=None, bg=8, fg=15, title='root')
 s.scroll(0,0)
 s.show_x_scrollbar=False
 s.show_y_scrollbar=False
 draw_ruler(s)
-box=s.addWidget(widgetScreen(10, 5, 40, 10, style='c', bg=65,fg=16,title='green'))
-box2=s.addWidget(widgetScreen(-0.75, 0.5, 0.5, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor'))
-btn=s.addWidget(widgetButton(-20,2, style='',h=3, bg=248,fg=0,caption='Hello'))
+box=s.addWidget(WidgetScreen(10, 5, 40, 10, style='c', bg=65,fg=16,title='green'))
+box2=s.addWidget(WidgetScreen(-0.75, 0.5, 0.5, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor'))
+box3=s.addWidget(WidgetBox(-0.3, 0.25, 0.25, 0.25, style='plot', bg=196,fg=0,title='red'))
+btn=s.addWidget(WidgetButton(-20,2, style='',h=3, bg=248,fg=0,caption='Hello'))
 box2.show_x_scrollbar=False
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")

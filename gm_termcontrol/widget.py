@@ -21,7 +21,6 @@ class Widget():
         self.hidden=False
         self.fg0=7
         self.bg0=0
-        self.invert=False
         self.minW=1
         self.minH=1
         self.t=termcontrol()
@@ -442,6 +441,72 @@ class Widget():
     def on_defocus(self):
         pass
 
+class WidgetBox(Widget):
+    def __init__(self, x, y, w, h, fg=7, bg=0, style='plot', title='', box_name='box'):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
+        self.title=title
+        self.style=style
+        self.box_name=box_name
+        self.fg0, self.bg0=fg, bg
+        self.style=style
+        self.box_type='focus'
+        self.frame={'w':0, 'h':0}
+        if style is not None:
+            self.frame={'w':2, 'h':1}
+        self.theme=make_theme(style, bg=bg, fg=fg)
+
+    def draw(self):
+        screen=self.screen
+        x=self.x
+        y=self.y
+        fill=True
+        box_name=self.box_name
+        w=self.w
+        h=self.h
+        bn=self.box_name
+        if screen is None:
+            return
+        t=self.theme.get(self.box_type)
+        if not t:
+            t=self.theme.get('focus')
+        if self.style in ['plot']:
+            if fill:
+                for y in range(1, screen.height-2):
+                    for x in range(1, screen.width-1):
+                        screen.set_cell(x,y,t[f'{bn}.middle_center'])
+            screen.plot(0,0,t[f'{bn}.top_left'].fg)
+            screen.plot(screen.width-1,0,t[f'{bn}.top_right'].fg)
+            for x in range(1,screen.width-1):
+                screen.plot(x,0,t[f'{bn}.top_center'].fg)
+                screen.plot(x,1,t[f'{bn}.middle_center'].bg)
+                screen.plot(x,screen.height*2-4,t[f'{bn}.middle_center'].bg)
+                screen.plot(x,screen.height*2-3,t[f'{bn}.bottom_center'].fg)
+            for y in range(1, screen.height*2-3):
+                screen.plot(0,y,t[f'{bn}.middle_left'].fg)
+                screen.plot(1,y,t[f'{bn}.middle_center'].bg)
+                screen.plot(screen.width-2,y,t[f'{bn}.middle_center'].bg)
+                screen.plot(screen.width-1,y,t[f'{bn}.middle_right'].fg)
+            screen.plot(0,screen.height*2-3,t[f'{bn}.bottom_left'].fg)
+            screen.plot(screen.width-1,screen.height*2-3,t[f'{bn}.bottom_right'].fg)
+        else:
+            screen.set_cell(0,0,t[f'{bn}.top_left'])
+            screen.set_cell(screen.width-1,0,t[f'{bn}.top_right'])
+            for x in range(1, screen.width-1):
+                screen.set_cell(x,0,t[f'{bn}.top_center'])
+                screen.set_cell(x,screen.height-2,t[f'{bn}.bottom_center'])
+            for y in range(1, screen.height-2):
+                screen.set_cell(0,y,t[f'{bn}.middle_left'])
+                screen.set_cell(screen.width-1,y,t[f'{bn}.middle_right'])
+                if fill:
+                    for x in range(1, screen.width-1):
+                        screen.set_cell(x,y,t[f'{bn}.middle_center'])
+            screen.set_cell(0,screen.height-2,t[f'{bn}.bottom_left'])
+            screen.set_cell(screen.width-1,screen.height-2,t[f'{bn}.bottom_right'])
+        return screen
+
+class WidgetFrame(WidgetBox):
+    pass
+
 class boxDraw(Widget):
     def __init__(self, bgColor=0, fgColor=7,
                 bg0=0, fg0=7,
@@ -458,27 +523,9 @@ class boxDraw(Widget):
         self.frame={'w':0, 'h':0}
         if style is not None:
             self.frame={'w':2, 'h':1}
-        self.tinted=None
         self.theme=make_theme(style, bg=bgColor, fg=fgColor)
 
-    def make_inverted(self, theme):
-        inv=copy.deepcopy(theme)
-        bn=self.box_name
-        swaps=[
-               (f'{bn}.top_left', f'{bn}.bottom_right'),
-               (f'{bn}.top_right', f'{bn}.bottom_left'),
-               (f'{bn}.top_center', f'{bn}.bottom_center'),
-               (f'{bn}.middle_left', f'{bn}.middle_right'),
-              ]
-        for sw in swaps:
-            s1,s2=sw
-            if theme.get(s1):
-                inv[s2].fg=theme[s1].fg
-            if theme.get(s2):
-                inv[s1].fg=theme[s2].fg
-        return inv
-
-    def draw(self, x=0, y=0, w=0, h=0, fill=True, invert=False, screen=None, box_type=''):
+    def draw(self, x=0, y=0, w=0, h=0, fill=True, screen=None, box_type=''):
         bn=self.box_name
         if screen is None:
             return

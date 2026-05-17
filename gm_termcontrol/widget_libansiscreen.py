@@ -2,7 +2,7 @@
 from __future__ import annotations
 from libansiscreen.screen import Screen
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
-from .widget import Widget, boxDraw
+from .widget import Widget, WidgetBox, boxDraw
 
 class frameDraw(boxDraw):
     def __init__(self, bgColor=0,
@@ -88,7 +88,7 @@ class frameDraw(boxDraw):
             screen.print(title)
         return frame
 
-class widgetScreen(Widget):
+class WidgetScreen(Widget):
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None, title=''):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
         self.show_x_scrollbar=True
@@ -118,7 +118,6 @@ class widgetScreen(Widget):
         self.addEvent('scroll right', self.scroll_right)
         self.addEvent('scroll left', self.scroll_left)
         self.addEvent('drag', self.drag_handler)
-        #TODO add mouse drag move, resize
 
     def __repr__(self):
         return f"{self.__class__.__name__}(title={self.title})"
@@ -296,21 +295,14 @@ class widgetScreen(Widget):
                 m= event['drag move']
                 self.resize(self.w+m['x'], self.h+m['y'])
 
-class widgetButton(Widget):
-    def __init__(self, x, y, w=0, h=1, fg=7, bg=None, style='curve', caption='Button', toggle=False):
+class WidgetButton(WidgetBox):
+    def __init__(self, x, y, w=0, h=1, fg=7, bg=None, style='curve', box_name='button', caption='Button', toggle=False):
         minw=len(caption)+4
         if w<minw:
             w=minw
-        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg)
-        self.bg0=0
-        self.fg0=7
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, box_name=box_name)
         self.active=False
         self.active_disp=False
-        self.box=None
-        self.screen.print(self.t.ansicolor(fg=fg,bg=bg))
-        self.screen.print(self.t.clear())
-        self.box=boxDraw(style=style, bgColor=self.bg, bg0=self.bg0, box_name='button')
-        self.tint=None
         self.style=style
         self.caption=caption
         self.title=caption
@@ -337,70 +329,68 @@ class widgetButton(Widget):
             self.bg0=self.parent.bg
         fw=0
         fh=0
-        if(self.box):
-            box_type='focus'
-            if self.active or self.active_disp:
-                box_type='active'
-                if self.active_disp:
-                    self.active_disp=False
-            fw=self.box.frame['w']*2
-            fh=self.box.frame['h']*2
-            self.box.draw(0, 0, self.w, self.h, screen=self.screen,
-                          box_type=box_type)
+        box_type='focus'
+        if self.active or self.active_disp:
+            box_type='active'
+            if self.active_disp:
+                self.active_disp=False
+        self.box_type=box_type
+        fw=self.frame['w']*2
+        fh=self.frame['h']*2
         cap_x=int(self.w/2-len(self.caption)/2)
         cap_y=int((self.h-fh)/2+fh/2)
+        super().draw()
         self.screen.cursor_goto(cap_x, cap_y)
-        c=self.box.theme[box_type][f'{self.box.box_name}.middle_center']
+        c=self.theme[box_type][f'{self.box_name}.middle_center']
         if c:
-            #self.screen.set_foreground(c.fg)
+            self.screen.set_foreground(c.fg)
             self.screen.set_background(c.bg)
         self.screen.print(self.caption)
-        super().draw()
 
-class widgetProgressBar(Widget):
+class WidgetProgressBar(Widget):
     pass
 
-class widgetSlider(Widget):
+class WidgetSlider(Widget):
     pass
 
-class widgetTextInput(Widget):
+class WidgetTextInput(Widget):
     pass
 
-class widgetTextArea(Widget):
+class WidgetTextArea(Widget):
     pass
 
-class widgetLabel(Widget):
+class WidgetLabel(Widget):
     pass
 
-class widgetCheckBox(Widget):
+class WidgetCheckBox(Widget):
     pass
 
-class widgetListBox(Widget):
+class WidgetListBox(Widget):
     pass
 
-class widgetRadioBox(Widget):
+class WidgetRadioBox(Widget):
     pass
 
-class widgetDropDown(Widget):
+class WidgetDropDown(Widget):
     pass
 
-class widgetSpinner(Widget):
+class WidgetSpinner(Widget):
     pass
 
-class widgetTitleBar(Widget):
+class WidgetTitleBar(Widget):
     pass
 
-class widgetStatusBar(Widget):
+class WidgetStatusBar(Widget):
     pass
 
-class widgetMenu(Widget):
+class WidgetMenu(Widget):
     pass
 
-class widgetLabel(Widget):
+class WidgetLabel(Widget):
     pass
 
-class widgetVBox(Widget):
+class WidgetVBox(Widget):
     pass
 
-class widgetHBox(Widget):
+class WidgetHBox(Widget):
     pass
