@@ -2,10 +2,11 @@
 from __future__ import annotations
 from libansiscreen.screen import Screen
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
-from .widget import Widget, WidgetContainer, WidgetBox, frameDraw
+from .widget import Widget, WidgetBox, frameDraw
+import uuid
 
 class WidgetButton(WidgetBox):
-    def __init__(self, x, y, w=0, h=1, fg=7, bg=None, style='curve', box_name='button', caption='Button', toggle=False):
+    def __init__(self, x, y, w=0, h=1, fg=7, bg=None, style='curve', box_name='button', caption='Button', toggle=False,name='Button'+str(uuid.uuid4())):
         minw=len(caption)+4
         if w<minw:
             w=minw
