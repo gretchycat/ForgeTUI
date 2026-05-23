@@ -89,11 +89,14 @@ class Widget():
 
     def offset(self):
         pox, poy=0,0
+        ox,oy=0,0
         w=self
         while w.parent:
             pox,poy=w.parent.offset()
+            ox+=pox
+            oy+=poy
             w=w.parent
-        return pox+self.x, poy+self.y
+        return ox+self.x, oy+self.y
 
     def coordinate_in_widget(self, x, y):
         if self.hidden:
@@ -103,7 +106,7 @@ class Widget():
         ry=y-oy
         return  0<=rx<self.w and 0<=ry<self.h
 
-    def widget_at_coordinate(self, x,y):
+    def widget_at_coordinate(self, x, y):
         root=self
         while root.parent:
             root=root.parent
@@ -118,10 +121,6 @@ class Widget():
         for w in full_stack:
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
-        #for w in widgets:
-        #    if w != root:
-        #        if w.focus:
-        #            return w
         if widgets:
             return widgets[-1]
         return None

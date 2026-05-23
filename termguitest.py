@@ -27,7 +27,7 @@ s.show_y_scrollbar=False
 draw_ruler(s)
 box=s.addWidget(WidgetScreen(10, 5, 40, 10, style='c', bg=65,fg=16,title='green'))
 box2=s.addWidget(WidgetScreen(-0.75, 0.5, 0.5, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor'))
-box3=s.addWidget(WidgetVBox(-0.3, 0.25, 0.25, 0.25, style='plot', bg=196,fg=0,title='red'))
+box3=s.addWidget(WidgetVBox(-0.3, 0.25, 0.25, 0.5, style='plot', bg=196,fg=0,title='red'))
 s.addWidget(WidgetButton(5,3, style='plot',box_name='box',h=3, bg=248,fg=0,caption=f'Button'))
 for n in range(4):
     box3.addWidget(WidgetButton(0,0, style='plot',box_name='box',h=3, bg=248+n,fg=0,caption=f'Button {n}'))
