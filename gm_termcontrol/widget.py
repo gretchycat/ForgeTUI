@@ -409,10 +409,9 @@ class Widget():
     def resize(self, w=None, h=None):
         if w==None: w=self.w
         if h==None: h=self.h
-        self._w, self._h=w,h
-        self.set_geometry(self.x,self.y,w,h)
+        self.set_geometry(self.x,self.y,self.w,self.h)
         for wd in self.widgetList:
-            wd.resize(w,h)
+            wd.resize(wd.w,wd.h)
 
     def move(self, x,y):
         if self.parent:
@@ -422,6 +421,7 @@ class Widget():
         pass
 
     def drawChildren(self, screen=None):
+        if screen is None: screen=self.screen
         last=None
         for w in self.widgetList:
             if not w.hidden:
@@ -431,13 +431,11 @@ class Widget():
                 else:
                     screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
         if last:
-            screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
+            screen.paste(last.screen, box=(last.x,last.y,last.w,last.h))
         return
 
     def draw(self):
-        if isinstance(super(), Widget):
-            super().draw()
-        return self.drawChildren(screen=self.screen)
+        return self.drawChildren()
 
     def on_focus(self):
         pass
@@ -512,40 +510,43 @@ class WidgetBox(Widget):
 class WidgetVBox(WidgetBox):
     def addWidget(self, widget):
         widget=super().addWidget(widget)
-        self.resize(self.w, self.h)
+        self.resize()
+        self.log(f'add {widget}')
         return widget
 
     def resize(self, w=None, h=None):
         if w==None: w=self.w
         if h==None: h=self.h
-        self.set_geometry(self.x,self.y,w,h)
-        max_w=self.w-frame['w']*2
-        max_h=self.w-frame['h']*2
+        self.set_geometry(self.x,self.y,self.w,self.h)
+        max_w=self.w-self.frame['w']*2
+        max_h=self.w-self.frame['h']*2
         wc=len(self.widgetList)
         total_h=0
-        for key,wd in self.widgetList.items():
-            wd.x=frame['w']
-            wd.y=total_h+frame['h']
+        for wd in self.widgetList:
+            wd.x=self.frame['w']
+            wd.y=total_h+self.frame['h']
             total_h+=wd.h
+            self.log(wd)
 
 class WidgetHBox(WidgetBox):
     def addWidget(self, widget):
         widget=super().addWidget(widget)
-        self.resize(self.w, self.h)
+        self.resize()
         return widget
 
     def resize(self, w=None, h=None):
         if w==None: w=self.w
         if h==None: h=self.h
-        self.set_geometry(self.x,self.y,w,h)
-        max_w=self.w-frame['w']*2
-        max_h=self.w-frame['h']*2
+        self.set_geometry(self.x,self.y,self.w,self.h)
+        max_w=self.w-self.frame['w']*2
+        max_h=self.w-self.frame['h']*2
         wc=len(self.widgetList)
         total_w=0
-        for key,wd in self.widgetList.items():
-            wd.x=total_w+frame['w']
-            wd.y=frame['h']
+        for wd in self.widgetList:
+            wd.x=total_w+self.frame['w']
+            wd.y=self.frame['h']
             total_h+=wd.h
+            self.log(wd)
 
 class WidgetWindow(WidgetBox):
     pass

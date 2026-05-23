@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from gm_termcontrol.widget import Widget, WidgetBox, WidgetScreen 
+from gm_termcontrol.widget import Widget, WidgetBox, WidgetVBox, WidgetHBox, WidgetScreen 
 from gm_termcontrol.widget_libansiscreen import WidgetButton
 from gm_termcontrol.termcontrol import termcontrol
 from gm_termcontrol.theme import make_theme
@@ -27,8 +27,10 @@ s.show_y_scrollbar=False
 draw_ruler(s)
 box=s.addWidget(WidgetScreen(10, 5, 40, 10, style='c', bg=65,fg=16,title='green'))
 box2=s.addWidget(WidgetScreen(-0.75, 0.5, 0.5, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor'))
-box3=s.addWidget(WidgetBox(-0.3, 0.25, 0.25, 0.25, style='plot', bg=196,fg=0,title='red'))
-btn=s.addWidget(WidgetButton(-20,2, style='',h=3, bg=248,fg=0,caption='Hello'))
+box3=s.addWidget(WidgetVBox(-0.3, 0.25, 0.25, 0.25, style='plot', bg=196,fg=0,title='red'))
+s.addWidget(WidgetButton(5,3, style='plot',box_name='box',h=3, bg=248,fg=0,caption=f'Button'))
+for n in range(4):
+    box3.addWidget(WidgetButton(0,0, style='plot',box_name='box',h=3, bg=248+n,fg=0,caption=f'Button {n}'))
 box2.show_x_scrollbar=False
 box.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Line1\nLine2\nLine3\nLine4\n")

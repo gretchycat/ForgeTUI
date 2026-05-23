@@ -20,6 +20,9 @@ class WidgetButton(WidgetBox):
         self.addEvent('button down', self.b_down)
         self.addEvent('button up', self.b_up)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(caption={self.caption})({self.x}, {self.y})"
+
     def b_down(self, event=None):
         if event['button']==0:
             if 0<=event['x']<self.w and 0<=event['y']<self.h:
