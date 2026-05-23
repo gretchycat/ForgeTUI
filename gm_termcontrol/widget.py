@@ -431,7 +431,7 @@ class Widget():
                 else:
                     screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
         if last:
-            screen.paste(last.screen, box=(last.x,last.y,last.w,last.h))
+            screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
         return
 
     def draw(self):
@@ -458,7 +458,6 @@ class WidgetBox(Widget):
         self.theme=make_theme(style, bg=bg, fg=fg)
 
     def draw(self):
-        super().draw()
         screen=self.screen
         x=self.x
         y=self.y
@@ -505,6 +504,7 @@ class WidgetBox(Widget):
                         screen.set_cell(x,y,t[f'{bn}.middle_center'])
             screen.set_cell(0,screen.height-2,t[f'{bn}.bottom_left'])
             screen.set_cell(screen.width-1,screen.height-2,t[f'{bn}.bottom_right'])
+        super().draw()
         return screen
 
 class WidgetVBox(WidgetBox):
