@@ -58,20 +58,6 @@ class Widget():
         self.t.output(self.t.alt_screen())
         self.quit()
 
-    #def set_last_action(self, event=None):
-    #    if type(event)==dict:
-    #        if event['action']==self.last_action:
-    #            self.last_action_count=self.last_action_count+1
-    #        else:
-    #            self.last_action_count=0
-    #            self.last_action=event['action']
-    #    else:
-    #        if event==self.last_action:
-    #            self.last_action_count=self.last_action_count+1
-    #        else:
-    #            self.last_action_count=self.last_action_count+1
-    #            self.last_action=event
-
     def __del__(self):
         pass
 
@@ -87,16 +73,30 @@ class Widget():
             root.log_file.write(f"{winfo}: {string}\n")
             root.log_file.flush()
 
+    def get_widget_by_name(self, name:str):
+        root=self
+        while root.parent:
+            root=root.parent
+        stack=[ root ] #traversal/find widgets.
+        full_stack=[]  #all widgets/flattened
+        while stack:
+            node=stack.pop()
+            full_stack.append(node)
+            for n in reversed(node.widgetList):
+                stack.append(n)
+        for w in full_stack:
+            if w.name==name:
+                return w
+        return None
+
     def offset(self):
         pox, poy=0,0
-        ox,oy=0,0
         w=self
         while w.parent:
-            pox,poy=w.parent.offset()
-            ox+=pox
-            oy+=poy
+            pox+=w.parent.x
+            poy+=w.parent.y
             w=w.parent
-        return ox+self.x, oy+self.y
+        return pox+self.x, poy+self.y
 
     def coordinate_in_widget(self, x, y):
         if self.hidden:
@@ -110,19 +110,19 @@ class Widget():
         root=self
         while root.parent:
             root=root.parent
-        stack=[ root ]
-        full_stack=[]
+        stack=[ root ] #traversal/find widgets.
+        full_stack=[]  #all widgets/flattened
         while stack:
             node=stack.pop()
             full_stack.append(node)
             for n in reversed(node.widgetList):
                 stack.append(n)
-        widgets=[]
+        widgets=[]     #widgets at coord.
         for w in full_stack:
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
         if widgets:
-            return widgets[-1]
+            return widgets[-1]  #return on top 
         return None
 
     def rel_event(self, event=None):
@@ -266,43 +266,55 @@ class Widget():
                         focused.set_focus()
 
     def checkWidgetEvents(self, event):
-        if event!='':
-            if type(event)==dict:
-                if event['action']=='drag':
-                    if self.drag_start:
-                        event['drag start']=self.drag_start
-                    if self.drag_handle is not None:
-                        event['drag handle']=self.drag_handle
-                    if self.drag_previous:
-                        event['drag previous']=self.drag_previous
-                        event['drag move']={
-                            'x': event['x']-self.drag_previous['x'],
-                            'y': event['y']-self.drag_previous['y'],
-                            'button': event['button'],
-                            'action': event['action']
-                            }
-            for  e, m in self.eventList.items():
+        if event=='' or not event:
+            return
+        root=self
+        while root.parent:
+            root=root.parent
+        if type(event)==dict:
+            if event['action']=='drag':
+                if root.drag_start:
+                    event['drag start']=root.drag_start
+                if root.drag_handle is not None:
+                    event['drag handle']=root.drag_handle
+                if root.drag_previous:
+                    event['drag previous']=root.drag_previous
+                    event['drag move']={
+                        'x': event['x']-root.drag_previous['x'],
+                        'y': event['y']-root.drag_previous['y'],
+                        'button': event['button'],
+                        'action': event['action']
+                        }
+                    #HERE
+        stack=[ root ] #traversal/find widgets.
+        full_stack=[]  #all widgets/flattened
+        while stack:
+            node=stack.pop()
+            full_stack.append(node)
+            for n in reversed(node.widgetList):
+                stack.append(n)
+        for w in full_stack:
+            for  e, m in w.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
-                if self.focus==True or persist:
-                    if e==event or e=='' or (type(event)==dict and e==event['action']):
+                if w.focus==True or persist:
+                    rel_event=w.rel_event(event)
+                    if e==rel_event or e=='' or (type(rel_event)==dict and e==rel_event['action']):
                         if f'{type(func)}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
-                            self.action=func
+                            w.action=func
                             if 'method' in f'{type(func)}':
-                                self.action(event=event)
+                                w.action(event=rel_event)
                             elif 'function' in f'{type(func)}':
-                                self.action(self, event=event)
+                                w.action(w, event=rel_event)
                         else:
-                            self.log(f'invalid action for "{e}" type: {type(func)}')
-        for cw in self.widgetList:
-            cw.checkWidgetEvents(cw.rel_event(event))
-        if self.drag_start:
+                            w.log(f'invalid action for "{e}" type: {type(func)}')
+        if root.drag_start:
             event.pop('drag previous',None)
             event.pop('drag start',None)
             event.pop('drag handle',None)
-            self.drag_previous=event.copy()
+            root.drag_previous=event.copy()
         else:
-            self.drag_previous=None
+            root.drag_previous=None
 
     def guiLoop(self, outputmode=[]):
         self.go=True

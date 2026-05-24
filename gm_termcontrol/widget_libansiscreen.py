@@ -2,7 +2,7 @@
 from __future__ import annotations
 from libansiscreen.screen import Screen
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
-from .widget import Widget, WidgetBox, frameDraw
+from .widget import Widget, WidgetBox
 import uuid
 
 class WidgetButton(WidgetBox):
