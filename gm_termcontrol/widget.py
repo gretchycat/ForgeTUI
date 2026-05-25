@@ -115,7 +115,7 @@ class Widget():
         while stack:
             node=stack.pop()
             full_stack.append(node)
-            for n in reversed(node.widgetList):
+            for n in node.widgetList:
                 stack.append(n)
         widgets=[]     #widgets at coord.
         for w in full_stack:
@@ -285,7 +285,6 @@ class Widget():
                         'button': event['button'],
                         'action': event['action']
                         }
-                    #HERE
         stack=[ root ] #traversal/find widgets.
         full_stack=[]  #all widgets/flattened
         while stack:
