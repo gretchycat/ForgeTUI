@@ -1,13 +1,7 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, select, re
-from libansiscreen.screen import Screen
-from libansiscreen.color.palette import Palette, create_ansi_256_palette
-from .theme import grchr, theme, make_theme
-import signal
-import copy
+from .theme import make_theme
 import uuid
-
 from gm_termcontrol.widget import Widget
 #output widgets
 class WidgetBox(Widget): #Draws a box the size of the widget
