@@ -10,3 +10,4 @@ class WidgetLog(WidgetScrollArea):
 
 class WidgetTerminal(WidgetScrollArea):
     pass
+
