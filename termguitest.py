@@ -1,7 +1,6 @@
 #!/usr/bin/python3
-from gm_termcontrol.widget import Widget, WidgetBox, WidgetVBox, WidgetHBox, WidgetScreen 
-from gm_termcontrol.widget_libansiscreen import WidgetButton
-from gm_termcontrol.termcontrol import termcontrol
+from gm_termcontrol.widget import Widget, WidgetBox, WidgetScreen
+from gm_termcontrol.widget import WidgetHBox, WidgetVBox, WidgetButton
 from gm_termcontrol.theme import make_theme
 import sys
 
