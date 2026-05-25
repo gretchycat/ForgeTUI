@@ -670,8 +670,6 @@ class WidgetDropDown(Widget):
 class WidgetSpinner(Widget):
     pass
 
-
-
 class WidgetScreen(Widget): #will be deprecated
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None, title='', name='Screen'+str(uuid.uuid4())):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, name=name)
