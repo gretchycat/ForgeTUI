@@ -3,7 +3,8 @@ from __future__ import annotations
 import sys, os, select, re
 import signal
 import uuid
-from gm_termcontrol.widget_container import WidgetScrollArea
+from .widget_container import WidgetScrollArea
+
 #terminal widgets
 class WidgetLog(WidgetScrollArea):
     pass

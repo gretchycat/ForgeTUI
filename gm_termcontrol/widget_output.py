@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 from __future__ import annotations
-from .theme import make_theme
 import uuid
-from gm_termcontrol.widget import Widget
+from .theme import make_theme
+from .widget import Widget
+
 #output widgets
 class WidgetBox(Widget): #Draws a box the size of the widget
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, style=None, title='', box_name='box', name='Box'+str(uuid.uuid4())):

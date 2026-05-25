@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import uuid
-from gm_termcontrol.widget import Widget
-from gm_termcontrol.widget_output import WidgetBox
+from .widget import Widget
+from .widget_output import WidgetBox
+
 #input widgets
 class WidgetButton(WidgetBox): #a button for interaction
     def __init__(self, x, y, w=0, h=1, fg=7, bg=None, style='curve', box_name='button', caption='Button', toggle=False,name='Button'+str(uuid.uuid4())):

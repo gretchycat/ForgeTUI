@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 from __future__ import annotations
-from libansiscreen.screen import Screen
 import uuid
-from gm_termcontrol.widget import Widget
-from gm_termcontrol.widget_output import WidgetBox
+from libansiscreen.screen import Screen
+from .widget import Widget
+from .widget_output import WidgetBox, WidgetLabel
+from .widget_input import WidgetButton
+
 #container widgets
 class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a vertical sequence
     def addWidget(self, widget):
@@ -46,11 +48,12 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
             total_h+=wd.h
             self.log(wd)
 
-class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
+class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
     pass
 
 class WidgetTabController(Widget): #Houses multiple Screens in a tab Interface
     pass
 
-class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
+class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
     pass
+

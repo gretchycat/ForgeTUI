@@ -1,16 +1,15 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import sys, os, select, re
+import signal
+import copy
+import uuid
 from libansiscreen.screen import Screen
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
 from .theme import grchr, theme, make_theme
-import signal
-import copy
-import uuid
-
-from gm_termcontrol.widget import Widget
+from .widget import Widget
 #to be deprecated
 class WidgetScreen(Widget): #will be deprecated
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None, title='', name='Screen'+str(uuid.uuid4())):
