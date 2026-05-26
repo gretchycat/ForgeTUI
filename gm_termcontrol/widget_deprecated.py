@@ -10,6 +10,7 @@ from .termcontrol import termcontrol
 from .terminput import termInput
 from .theme import grchr, theme, make_theme
 from .widget import Widget
+
 #to be deprecated
 class WidgetScreen(Widget): #will be deprecated
     def __init__(self, x, y, w, h, fg=7, bg=None, style=None, title='', name='Screen'+str(uuid.uuid4())):

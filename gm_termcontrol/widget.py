@@ -11,7 +11,7 @@ import copy
 import uuid
 
 class Widget():
-    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, name=str(uuid.uuid4())):
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, parent=None, name=str(uuid.uuid4())):
         self.log_file=None
         self.name=name
         self.force_refresh=True
@@ -19,6 +19,7 @@ class Widget():
         self.focus=False
         self.hidden=False
         self.reorder=False
+        self.parent=parent
         self.fg0=7
         self.bg0=0
         self.minW=1
@@ -64,20 +65,21 @@ class Widget():
     def __repr__(self):
         return f"{self.__class__.__name__}(id={id(self):x})"
 
-    def log(self, string):
-        winfo = repr(self)
+    def root(self):
         root = self
         while root.parent:
             root = root.parent
+        return root
+
+    def log(self, string):
+        winfo = repr(self)
+        root = self.root()
         if root.log_file:
             root.log_file.write(f"{winfo}: {string}\n")
             root.log_file.flush()
 
     def get_widget_by_name(self, name:str):
-        root=self
-        while root.parent:
-            root=root.parent
-        stack=[ root ] #traversal/find widgets.
+        stack=[ self.root() ] #traversal/find widgets.
         full_stack=[]  #all widgets/flattened
         while stack:
             node=stack.pop()
@@ -107,10 +109,7 @@ class Widget():
         return  0<=rx<self.w and 0<=ry<self.h
 
     def widget_at_coordinate(self, x, y):
-        root=self
-        while root.parent:
-            root=root.parent
-        stack=[ root ] #traversal/find widgets.
+        stack=[ self.root() ] #traversal/find widgets.
         full_stack=[]  #all widgets/flattened
         while stack:
             node=stack.pop()
@@ -136,10 +135,7 @@ class Widget():
         return event
 
     def get_focused(self):
-        root=self
-        while root.parent:
-            root=root.parent
-        stack=[ root ]
+        stack=[ self.root() ]
         while stack:
             node=stack.pop()
             if node.focus==True:
@@ -149,9 +145,7 @@ class Widget():
 
     def set_focus(self):
         self.captured_widget=None
-        root=self
-        while root.parent:
-            root=root.parent
+        root = self.root()
         #deactivate all focus
         defocused=None
         stack=[ root ]
@@ -268,9 +262,7 @@ class Widget():
     def checkWidgetEvents(self, event):
         if event=='' or not event:
             return
-        root=self
-        while root.parent:
-            root=root.parent
+        root = self.root()
         if type(event)==dict:
             if event['action']=='drag':
                 if root.drag_start:
@@ -372,6 +364,7 @@ class Widget():
 
     def addWidget(self, widget):
         widget.parent=self
+        widget.set_geometry(widget._x,widget._y,widget._w,widget._h)
         widget.fg0=self.fg
         widget.bg0=self.bg
         self.widgetList.append(widget)
@@ -379,15 +372,26 @@ class Widget():
         return self.widgetList[-1]
 
     def set_geometry(self, x, y, w, h): #should always be okay
-        if type(x)==float or x<0 or type(x)==str: self._x=x
-        if type(y)==float or y<0 or type(y)==str: self._y=y
-        if type(w)==float or w<=0 or type(w)==str: self._w=w
-        if type(h)==float or h<=0 or type(h)==str: self._h=h
+        if type(x) in [ float, str ] or (type(x)==int and x<0): self._x=x
+        if type(y) in [ float, str ] or (type(y)==int and y<0): self._y=y
+        if type(w) in [ float, str ] or (type(w)==int and w<=0): self._w=w
+        if type(h) in [ float, str ] or (type(h)==int and h<=0): self._h=h
         if self._x is not None: x=self._x
         if self._y is not None: y=self._y
         if self._w is not None: w=self._w
         if self._h is not None: h=self._h
+        if self._x=='min':
+            x=0 
+        if self._y=='min':
+            y=0 
+        if self._w=='min':
+            w=self.minW
+        if self._h=='min':
+            h=self.minH
         scr=self.t.get_terminal_size()
+        if self.parent:
+            scr['columns']=self.parent.w
+            scr['rows']=self.parent.h
         if type(x)==float: x=int(x*scr['columns'])
         if type(y)==float: y=int(y*scr['rows'])
         if type(w)==float: w=int(w*scr['columns'])
