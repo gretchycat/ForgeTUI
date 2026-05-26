@@ -8,7 +8,7 @@ from .widget_input import WidgetButton, WidgetSlider
 
 #container widgets
 class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a vertical sequence
-    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=0, style=None, title='', box_name='box', name='VBox'+str(uuid.uuid4())):
+    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None, style=None, title='', box_name='box', name='VBox'+str(uuid.uuid4())):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, title=title, box_name=box_name, name=name)
 
     def addWidget(self, widget):
@@ -33,7 +33,7 @@ class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a
         super().resize()
 
 class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a horizontal sequence
-    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=0, style=None, title='', box_name='box', name='HBox'+str(uuid.uuid4())):
+    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None, style=None, title='', box_name='box', name='HBox'+str(uuid.uuid4())):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, title=title, box_name=box_name, name=name)
 
     def addWidget(self, widget):

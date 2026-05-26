@@ -20,7 +20,7 @@ def draw_ruler(self, event=None):
 
 def eventout(self, event=None):
     w=self.get_widget_by_name('bluebox')
-    if type(event)==str or True:
+    if type(event)==str:
         w.feed(f'{repr(self)}: {repr(event)}\n')
 
 s=WidgetScreen(0,0,0,0, style=None, bg=8, fg=15, title='root')
@@ -32,9 +32,9 @@ box=s.addWidget(WidgetScreen(10, 5, 40, 10, style='c', bg=65,fg=16,title='green'
 box2=s.addWidget(WidgetScreen(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor', name='bluebox'))
 w=s.addWidget(WidgetButton(5,3, style='plot',box_name='box',h=3, bg=248,fg=0,caption=f'Button'))
 w.addEvent('', eventout)
-box3=s.addWidget(WidgetVBox(-0.3, 0.25, style='plot', title='red'))
+box3=s.addWidget(WidgetVBox(-0.3, 0.25, title='red'))
 for n in range(4):
-    w=box3.addWidget(WidgetButton(0,0, style='plot',box_name='box',h=3, bg=248+n,fg=0,caption=f'Button {n}'))
+    w=box3.addWidget(WidgetButton(0,0, style='plot',box_name='box',h=3, bg=248+n,fg=0,caption=f'Button {n+7}'))
     w.addEvent('', eventout)
 box2.show_x_scrollbar=False
 box.feed("Line1\nLine2\nLine3\nLine4\n")
