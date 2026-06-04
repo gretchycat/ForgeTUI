@@ -2,6 +2,7 @@
 from __future__ import annotations
 import sys, os, select, re
 from libansiscreen.screen import Screen
+from libansiscreen.color.rgb import Color
 from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
@@ -30,6 +31,7 @@ class Widget():
         self.set_geometry(x, y, w, h)
         self.screen=Screen(width=self.w, height=self.h)
         self.setColors(fg, bg)
+        self.screen.cls()
         self.widgetList=[]
         self.eventList={}
         self.parent=None
@@ -361,6 +363,8 @@ class Widget():
 
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
+        self.screen.set_foreground(Color.set(fg))
+        self.screen.set_background(Color.set(bg))
 
     def feed(self, s):
         self.screen.print(s)
