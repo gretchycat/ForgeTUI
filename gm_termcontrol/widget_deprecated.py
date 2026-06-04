@@ -19,7 +19,6 @@ class WidgetScreen(Widget): #will be deprecated
         self.show_y_scrollbar=True
         self.title=title
         self.style=style
-        self.reorder=True
         self.frame=None
         self.frame=frameDraw(style=style, bgColor=self.bg,
                                  bg0=self.bg0, widget=self, title=title)
@@ -316,6 +315,7 @@ class frameDraw(boxDraw): #will be deprecated
                         fill=fill,
                         screen=screen, box_type=box_type)
         t=self.theme.get(box_type)
+        bar_type="scroll"
         if not t:
             t=self.theme.get('focus')
         sh,sv=0,0
@@ -324,24 +324,24 @@ class frameDraw(boxDraw): #will be deprecated
         if self.widget.y_max>0:
             sv=int((h-5)*(self.widget.sy/self.widget.y_max))
         if show_vsb:
-            screen.set_cell(w-1,1,t['scroll.up'])
+            screen.set_cell(w-1,1,t[f'{bar_type}.up'])
             for y in range(2,h-2):
-                screen.set_cell(w-1,y,t['scroll.v'])
+                screen.set_cell(w-1,y,t[f'{bar_type}.v'])
             if sy_lock:
-                screen.set_cell(w-1,2+sv,t['scroll.handle_lock'])
+                screen.set_cell(w-1,2+sv,t[f'{bar_type}.handle_lock'])
             else:
-                screen.set_cell(w-1,2+sv,t['scroll.handle'])
-            screen.set_cell(w-1,h-2,t['scroll.down'])
+                screen.set_cell(w-1,2+sv,t[f'{bar_type}.handle'])
+            screen.set_cell(w-1,h-2,t[f'{bar_type}.down'])
         if show_hsb:
             pass
-            screen.set_cell(1,h-1,t['scroll.left'])
+            screen.set_cell(1,h-1,t[f'{bar_type}.left'])
             for x in range(2,w-2):
-                screen.set_cell(x,h-1,t['scroll.h'])
-            screen.set_cell(w-2,h-1,t['scroll.right'])
+                screen.set_cell(x,h-1,t[f'{bar_type}.h'])
+            screen.set_cell(w-2,h-1,t[f'{bar_type}.right'])
             if sx_lock:
-                screen.set_cell(2+sh,h-1,t['scroll.handle_lock'])
+                screen.set_cell(2+sh,h-1,t[f'{bar_type}.handle_lock'])
             else:
-                screen.set_cell(2+sh,h-1,t['scroll.handle'])
+                screen.set_cell(2+sh,h-1,t[f'{bar_type}.handle'])
         if self.title:
             left_gap=t['title.bar.properties']['left_gap']
             right_gap=t['title.bar.properties']['right_gap']

@@ -18,7 +18,7 @@ class Widget():
         self.screen=None
         self.focus=False
         self.hidden=False
-        self.reorder=False
+        self.reorder=True
         self.parent=parent
         self.fg0=7
         self.bg0=0
@@ -108,7 +108,7 @@ class Widget():
         ry=y-oy
         return  0<=rx<self.w and 0<=ry<self.h
 
-    def widget_at_coordinate(self, x, y):
+    def widgets_at_coordinate(self, x, y):
         stack=[ self.root() ] #traversal/find widgets.
         full_stack=[]  #all widgets/flattened
         while stack:
@@ -121,7 +121,7 @@ class Widget():
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
         if widgets:
-            return widgets[-1]  #return on top 
+            return widgets  #return on top 
         return None
 
     def rel_event(self, event=None):
@@ -151,15 +151,15 @@ class Widget():
         stack=[ root ]
         while stack:
             node=stack.pop()
-            if node.focus:
+            if node.focus==True:
                 defocused=node
             node.focus=False
             for n in node.widgetList:
                 stack.append(n)
-        #activate self and set parent focus on all parents
-        node=self
+        #focus self and set parent focus on all parents
         self.focus=True
         self.hidden=False
+        node=self
         while node.parent:
             node=node.parent
             node.focus='parent'
@@ -170,7 +170,7 @@ class Widget():
                 move=None
                 for n in node.widgetList:
                     stack.append(n)
-                    if n.focus:
+                    if n.focus!=False:
                         move=n
                 if move:
                     node.widgetList.remove(move)
@@ -222,9 +222,9 @@ class Widget():
                 return True
         return False
 
-    def unhide(self, activate=True):
+    def unhide(self, focus=True):
         self.hidden=False
-        if activate:
+        if focus:
             self.set_focus()
         return True
 
@@ -255,9 +255,9 @@ class Widget():
                 if not self.captured_widget:
                     x=event.get('x')
                     y=event.get('y')
-                    focused=self.widget_at_coordinate(x,y)
+                    focused=self.widgets_at_coordinate(x,y)
                     if focused:
-                        focused.set_focus()
+                        focused[-1].set_focus()
 
     def checkWidgetEvents(self, event):
         if event=='' or not event:
@@ -362,60 +362,61 @@ class Widget():
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
 
-    def addWidget(self, widget):
+    def feed(self, s):
+        self.screen.print(s)
+
+    def addWidget(self, widget, focus=True):
         widget.parent=self
         widget.set_geometry(widget._x,widget._y,widget._w,widget._h)
         widget.fg0=self.fg
         widget.bg0=self.bg
         self.widgetList.append(widget)
-        widget.set_focus()
+        if focus: widget.set_focus()
         return self.widgetList[-1]
 
     def set_geometry(self, x, y, w, h): #should always be okay
-        if type(x) in [ float, str ] or (type(x)==int and x<0): self._x=x
-        if type(y) in [ float, str ] or (type(y)==int and y<0): self._y=y
-        if type(w) in [ float, str ] or (type(w)==int and w<=0): self._w=w
-        if type(h) in [ float, str ] or (type(h)==int and h<=0): self._h=h
+        if type(x) in [ float, str ]: self._x=x
+        if type(y) in [ float, str ]: self._y=y
+        if type(w) in [ float, str ]: self._w=w
+        if type(h) in [ float, str ]: self._h=h
         if self._x is not None: x=self._x
         if self._y is not None: y=self._y
         if self._w is not None: w=self._w
         if self._h is not None: h=self._h
-        if self._x=='min':
+        if x=='min':
             x=0 
-        if self._y=='min':
+        if y=='min':
             y=0 
-        if self._w=='min':
+        if w=='min':
             w=self.minW
-        if self._h=='min':
+        if h=='min':
             h=self.minH
         scr=self.t.get_terminal_size()
         if self.parent:
             scr['columns']=self.parent.w
             scr['rows']=self.parent.h
-        if type(x)==float: x=int(x*scr['columns'])
-        if type(y)==float: y=int(y*scr['rows'])
-        if type(w)==float: w=int(w*scr['columns'])
-        if type(h)==float: h=int(h*scr['rows'])
-        if type(x)==int:
-            if x<0: x=scr['columns']+x
-            if x>scr['columns']-self.minW:
-                x=scr['columns']-self.minW
-            self.x=x
-        if type(y)==int:
-            if y<0: y=scr['rows']+y
-            if y>scr['rows']-self.minH:
-                y=scr['rows']-self.minH
-            self.y=y
-        if type(w)==int:
-            if w<=0: w=scr['columns']+w
-            if w>scr['columns']-x+1:
-                w=scr['columns']-x+1
-            self.w=w
-        if type(h)==int:
-            if h<=0: h=scr['rows']+h
-            if h>scr['rows']-y+1:
-                h=scr['rows']-y+1
-            self.h=h
+        if type(x)==float:
+            if abs(x)<=1.0:
+                x=int(x*scr['columns'])
+            x=int(x)%scr['columns']
+        if type(y)==float: 
+            if abs(y)<=1.0:
+               y=int(y*scr['rows'])
+            y=int(y)%scr['rows']
+        if type(w)==float: 
+            if abs(w)<=1.0:
+                w=int(w*scr['columns'])
+            w=int(w)%scr['columns']
+        if type(h)==float: 
+            if abs(h)<=1.0:
+                h=int(h*scr['rows'])
+            h=int(h)%scr['rows']
+        if w==0: w=scr['columns']
+        if h==0: h=scr['rows']
+        if type(x)==int: self.x=x
+        if type(y)==int: self.y=y
+        if type(w)==int: self.w=w
+        if type(h)==int: self.h=h
         if self.screen:
             self.screen.resize(self.w, self.h)
         return(w,h)
@@ -423,7 +424,7 @@ class Widget():
     def resize(self, w=None, h=None):
         if w==None: w=self.w
         if h==None: h=self.h
-        self.set_geometry(self.x,self.y,self.w,self.h)
+        self.set_geometry(self.x,self.y,w,h)
         for wd in self.widgetList:
             wd.resize(wd.w,wd.h)
 
@@ -440,12 +441,12 @@ class Widget():
         for w in self.widgetList:
             if not w.hidden:
                 w.draw()
-                if w.focus:
+                if w.focus!=False:
                     last=w
                 else:
                     screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
-        if last:
-            screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
+            if last:
+                screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
         return
 
     def draw(self):

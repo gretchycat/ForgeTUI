@@ -12,7 +12,6 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         self.style=style
         self.box_name=box_name
         self.fg0, self.bg0=fg, bg
-        self.style=style
         self.box_type='focus'
         self.frame={'w':0, 'h':0}
         if style is not None:
