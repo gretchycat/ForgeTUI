@@ -143,7 +143,9 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
             maximum=self.min
             reverse=True
         span=maximum-minimum
-        value=(self.value-minimum)/span # normalized to 0.0 < value < 1.0
+        value=minimum
+        if span!=0:
+            value=(self.value-minimum)/span # normalized to 0.0 < value < 1.0
         bn=self.bar_name
         t=self.theme.get(self.box_type)
         if not t:

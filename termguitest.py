@@ -37,7 +37,8 @@ for n in range(4):
     w=vbox.addWidget(WidgetButton(0,0, style='plot',box_name='box',h=3, bg=248+n,fg=0,caption=f'Button {n+7}'))
     w.addEvent('', eventout)
 box2.show_x_scrollbar=False
-box.feed("Line1\nLine2\nLine3\nLine4\n")
+for i in range(100):
+    box.feed(f'Line {i}\n')
 box2.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Inputs here\n")
 s.addEvent('Ctrl Q', s.quit, persist=True)

@@ -30,6 +30,9 @@ class Widget():
         self._w, self._h=None, None
         self.set_geometry(x, y, w, h)
         self.screen=Screen(width=self.w, height=self.h)
+        self.screen_resize=True
+        self.screen_x_offset=0
+        self.screen_y_offset=0
         self.setColors(fg, bg)
         self.screen.cls()
         self.widgetList=[]
@@ -402,26 +405,26 @@ class Widget():
         if type(x)==float:
             if abs(x)<=1.0:
                 x=int(x*scr['columns'])
-            x=int(x)%scr['columns']
         if type(y)==float: 
             if abs(y)<=1.0:
                y=int(y*scr['rows'])
-            y=int(y)%scr['rows']
         if type(w)==float: 
             if abs(w)<=1.0:
                 w=int(w*scr['columns'])
-            w=int(w)%scr['columns']
         if type(h)==float: 
             if abs(h)<=1.0:
                 h=int(h*scr['rows'])
-            h=int(h)%scr['rows']
+        x=int(x)%scr['columns']
+        y=int(y)%scr['rows']
+        w=int(w)%scr['columns']
+        h=int(h)%scr['rows']
         if w==0: w=scr['columns']
         if h==0: h=scr['rows']
         if type(x)==int: self.x=x
         if type(y)==int: self.y=y
         if type(w)==int: self.w=w
         if type(h)==int: self.h=h
-        if self.screen:
+        if self.screen and self.screen_resize:
             self.screen.resize(self.w, self.h)
         return(w,h)
 
