@@ -414,16 +414,16 @@ class Widget():
         if type(h)==float: 
             if abs(h)<=1.0:
                 h=int(h*scr['rows'])
-        x=int(x)%scr['columns']
-        y=int(y)%scr['rows']
-        w=int(w)%scr['columns']
-        h=int(h)%scr['rows']
-        if w==0: w=scr['columns']
-        if h==0: h=scr['rows']
-        if type(x)==int: self.x=x
-        if type(y)==int: self.y=y
-        if type(w)==int: self.w=w
-        if type(h)==int: self.h=h
+        if x is not None:
+            self.x=int(x)%scr['columns']
+        if y is not None:
+            self.y=int(y)%scr['rows']
+        if w is not None:
+            self.w=int(w)%scr['columns']
+        if h is not None:
+            self.h=int(h)%scr['rows']
+        if self.w==0: self.w=scr['columns']
+        if self.h==0: self.h=scr['rows']
         if self.screen and self.screen_resize:
             self.screen.resize(self.w, self.h)
         return(w,h)
@@ -451,9 +451,15 @@ class Widget():
                 if w.focus!=False:
                     last=w
                 else:
-                    screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
+                    if self.screen_x_offset==0 and self.screen_y_offset==0:
+                        screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
+                    else:
+                        pass #not quite FIXME
             if last:
-                screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
+                if self.screen_x_offset==0 and self.screen_y_offset==0:
+                    screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
+                else:
+                    pass #FIXME
         return
 
     def draw(self):
