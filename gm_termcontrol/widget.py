@@ -337,14 +337,13 @@ class Widget():
                 if sz['columns']!=self.w or sz['rows']!=self.h:
                     self.set_geometry(0,0,0,0)
                     self.resize()
-                if self.screen:
-                    sbuffer=self.screen.copy()
+                sbuffer=self.screen.copy()
                 buffer=self.draw()
                 if self.force_refresh:
                     self.force_refresh=False
                     self.t.output(s_start+home+buffer.emit(raw=True)+s_end)
                 else:
-                    self.t.output(s_start+home+buffer.emit_diff(self.screen, raw=True)+s_end)
+                    self.t.output(s_start+home+buffer.emit_diff(sbuffer, raw=True)+s_end)
                 self.screen=buffer.copy()
                 for inp in self.input.read_input():
                     if inp != '':
