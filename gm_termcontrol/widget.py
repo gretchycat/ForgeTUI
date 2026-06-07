@@ -334,16 +334,18 @@ class Widget():
             while self.go:
                 #resize to full screen
                 sz=self.t.get_terminal_size()
+                pbuffer=None
                 if sz['columns']!=self.w or sz['rows']!=self.h:
                     self.set_geometry(0,0,0,0)
                     self.resize()
-                sbuffer=self.screen.copy()
+                else:
+                    pbuffer=self.screen.copy()
                 buffer=self.draw()
                 if self.force_refresh:
                     self.force_refresh=False
                     self.t.output(s_start+home+buffer.emit(raw=True)+s_end)
                 else:
-                    self.t.output(s_start+home+buffer.emit_diff(sbuffer, raw=True)+s_end)
+                    self.t.output(s_start+home+buffer.emit_diff(pbuffer, raw=True)+s_end)
                 self.screen=buffer.copy()
                 for inp in self.input.read_input():
                     if inp != '':
