@@ -343,7 +343,6 @@ class Widget():
         home=self.t.gotoxy(1, 1)
         s_start=self.t.start_sync()
         s_end=self.t.end_sync()
-        origin=self.t.gotoxy(1, 1)
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGQUIT, self.stop)
         signal.signal(signal.SIGTSTP, self.suspend)
@@ -471,6 +470,7 @@ class Widget():
     def drawChildren(self, screen=None):
         if screen is None: screen=self.screen
         last=None
+        lastbox=None
         for w in self.widgetList:
             inbox=None
             if not w.hidden:
