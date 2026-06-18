@@ -132,6 +132,7 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
             self.value=maximum
         else:
             self.value=value
+        self.on_update()
 
     def draw(self):
         orientation=''

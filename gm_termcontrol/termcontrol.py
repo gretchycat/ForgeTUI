@@ -107,7 +107,6 @@ class termcontrol:
         colors = {}
         if not os.path.isfile(file_path):
             return colors
-        return colors
         with open(file_path, 'r') as file:
             for line in file:
                 if not line.startswith('!'):

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import uuid
+import uuid,types
 from libansiscreen.screen import Screen
 from .widget import Widget
 from .widget_output import WidgetBox, WidgetLabel
@@ -47,7 +47,6 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
         if w==None: w=self.w
         if h==None: h=self.h
         self.set_geometry(self.x,self.y,self.w,self.h)
-        wc=len(self.widgetList)
         total_w=0
         max_h=0
         for wd in self.widgetList:
@@ -74,16 +73,21 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
             self.v_bar=super().addWidget( \
                     WidgetSlider(-1.1,0,h=-1.1, \
                         bar_name='scroll', name=name+'v_bar'))
+            def u(self): self.parent.v_update(val='auto')
+            self.v_bar.on_update=types.MethodType(u,self.v_bar)
         if h_bar:
             c_h=-1.1
             self.h_bar=super().addWidget( \
                     WidgetSlider(0,-1.1,w=-1.1, \
                         bar_name='scroll', name=name+'h_bar'))
+            def u(self): self.parent.h_update(val='auto')
+            self.h_bar.on_update=types.MethodType(u,self.h_bar)
         self.content=super().addWidget( \
                 Widget(0,0,w=c_w, h=c_h, fg=fg, bg=bg, \
                     parent=parent, name=self.name+'.content'))
-        self.scroll_pos_x=0
-        self.scroll_pos_y='auto'
+        self.content.screen_resize=False #'grow'
+        self.pos_x=0
+        self.pos_y='auto'
 
     def addWidget(self, widget, focus=True):
         self.content.addWidget(widget, focus=focus)
@@ -96,51 +100,66 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         super().draw()
 
     def scroll(self):
-        v,h=0,0
-        if self.h_bar is not None: h=1
-        if self.v_bar is not None: v=1
-        #self.content.h=self.content.screen.height
-        #self.content.w=self.content.screen.width
-        if self.scroll_pos_y=='auto':
-            self.content.y=min(0,(self.h-1-h)-self.content.h)
-            if self.v_bar:
-                self.v_bar.max=max(0,self.content.h-self.h)
+        if self.v_bar:
+            if self.pos_y=='auto':
+                self.v_bar.max=max(0,self.content.screen.height-self.content.h)
                 self.v_bar.set_value(self.v_bar.max)
-        else:
-            self.content.y=min(0,(self.h-1-h)-int(self.scroll_pos_y))
-            if self.v_bar:
-                self.v_bar.max=max(0,self.content.h-self.h)
-                self.h_bar.set_value(self.scroll_pos_y)
-        if self.scroll_pos_x=='auto':
-            self.content.x=min(0,(self.w-1-v)-self.content.w)
-            if self.h_bar:
-                self.h_bar.max=max(0,self.content.w-self.w)
+            else:
+                self.v_bar.max=max(0,self.content.screen.height-self.content.h)
+                self.v_bar.set_value(self.pos_y)
+            self.v_update(self.v_bar.value)
+        if self.h_bar:
+            if self.pos_x=='auto':
+                self.h_bar.max=max(0,self.content.screen.width-self.content.w)
                 self.h_bar.set_value(self.h_bar.max)
-        else:
-            self.content.x=min(0,(self.w-1-v)-int(self.scroll_pos_x))
-            if self.h_bar:
-                self.h_bar.max=max(0,self.content.w-self.w)
-                self.h_bar.set_value(self.scroll_pos_x)
+            else:
+                self.h_bar.max=max(0,self.content.screen.width-self.content.w)
+                self.h_bar.set_value(self.pos_x)
+            self.h_update(self.h_bar.value)
 
-    def h_update(self, val):
-        self.scroll_pos_x=val
-        if self.h_bar.max==val:
-            self.scroll_pos_x='auto'
+    def h_update(self, val='auto'):
+        if val=='auto': val=self.h_bar.value
+        val=max(0,min(val,self.content.screen.width-self.content.w))
+        self.pos_x=val
+        if val >= self.content.screen.width-self.content.w:
+            self.pos_x='auto'
+        self.content.screen_x_offset=val
+        #self.on_update()
+        return val
 
-    def v_update(self, val):
-        self.scroll_pos_y=val
-        if self.v_bar.max==val:
-            self.scroll_pos_y='auto'
+    def v_update(self, val='auto'):
+        if val=='auto': val=self.v_bar.value
+        val=max(0,min(val,self.content.screen.height-self.content.h))
+        self.pos_y=val
+        if val >= self.content.screen.height-self.content.h:
+            self.pos_y='auto'
+        self.content.screen_y_offset=val
+        #self.on_update()
+        return val
 
-    def resize(self, w=None, h=None):
-        if w==None: w=self.w
-        if h==None: h=self.h
-        self.set_geometry(self.x,self.y,w,h)
-        for wd in [ self.v_bar, self.h_bar]:
-            if wd:
-                wd.resize(wd.w,wd.h)
-        c=self.content
-        c.resize(max(c.w,w), max(c.h,h))
+    def up(self, lines=1):
+        return self.v_update(self.pos_y-lines)
+
+    def down(self, lines=1):
+        return self.v_update(self.pos_y+lines)
+
+    def left(self, lines=1):
+        return self.h_update(self.pos_x-lines)
+
+    def right(self, lines=1):
+        return self.h_update(self.pos_x+lines)
+
+    def home(self):
+        return self.h_update(0)
+
+    def end(self):
+        return self.h_update(self.content.screen.width-self.content.w)
+
+    def top(self):
+        return self.v_update(0)
+
+    def bottom(self):
+        return self.v_update(self.content.screen.height-self.content.h)
 
 class WidgetTabController(Widget): #Houses multiple containers in a tabs
     pass

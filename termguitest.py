@@ -5,7 +5,7 @@ from gm_termcontrol.widget_output import WidgetBox
 from gm_termcontrol.widget_container import WidgetHBox, WidgetVBox,WidgetScrollArea
 from gm_termcontrol.widget_deprecated import WidgetScreen
 from gm_termcontrol.theme import make_theme
-import sys
+import sys,types
 
 def clear(self, event=None):
     self.feed(self.t.clear())
@@ -47,17 +47,17 @@ box2.feed("Line1\nLine2\nLine3\nLine4\n")
 box2.feed("Inputs here\n")
 s.addEvent('Ctrl Q', s.quit, persist=True)
 s.addEvent('r', s.refresh, persist=True)
-box.addEvent('', eventout)
-box2.addEvent('', eventout)
-box.v_bar.addEvent('', eventout)
-box.h_bar.addEvent('', eventout)
-vbox.addEvent('', eventout)
-s.addEvent('Ctrl D', get_dims)
-box.addEvent('Ctrl D', get_dims)
-box2.addEvent('Ctrl D', get_dims)
-s.addEvent('Ctrl R', draw_ruler)
-s.addEvent('Ctrl L', clear)
-box.addEvent('Ctrl L', clear)
-box2.addEvent('Ctrl L', clear)
+box.addEvent('', types.MethodType(eventout, box))
+box2.addEvent('', types.MethodType(eventout, box2))
+box.v_bar.addEvent('', types.MethodType(eventout,box))
+box.h_bar.addEvent('', types.MethodType(eventout,box))
+vbox.addEvent('', types.MethodType(eventout,vbox))
+s.addEvent('Ctrl D', types.MethodType(get_dims,s))
+box.addEvent('Ctrl D', types.MethodType(get_dims,box))
+box2.addEvent('Ctrl D', types.MethodType(get_dims,box2))
+s.addEvent('Ctrl R', types.MethodType(draw_ruler,s))
+s.addEvent('Ctrl L', types.MethodType(clear, s))
+box.addEvent('Ctrl L', types.MethodType(clear, box))
+box2.addEvent('Ctrl L', types.MethodType(clear, box2))
 s.guiLoop()
 

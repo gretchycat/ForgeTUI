@@ -1,15 +1,26 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, select, re
+import sys, os
 from libansiscreen.screen import Screen
 from libansiscreen.color.rgb import Color
-from libansiscreen.color.palette import Palette, create_ansi_256_palette
 from .termcontrol import termcontrol
 from .terminput import termInput
-from .theme import grchr, theme, make_theme
 import signal
-import copy
 import uuid
+from dataclasses import dataclass
+from enum import Enum, auto
+
+class EventSource(Enum):
+    INPUT = auto()
+    KEYBOARD = auto()
+    MOUSE = auto()
+    SYSTEM = auto()   # Timers, window resizes
+    PROGRAM = auto()  # Programmatic/functional triggers
+
+@dataclass
+class EventTrigger:
+    event: any=None
+    source: EventSource = EventSource.PROGRAM
 
 class Widget():
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, parent=None, name=str(uuid.uuid4())):
@@ -44,6 +55,7 @@ class Widget():
         self.drag_start=None
         self.drag_previous=None
         self.drag_handle=None
+        self.event_buffer=[]    #list of Events
 
     def suspend(self, signum, frame):
         self.t.output(self.t.disable_mouse())
@@ -100,8 +112,8 @@ class Widget():
         pox, poy=0,0
         w=self
         while w.parent:
-            pox+=w.parent.x
-            poy+=w.parent.y
+            pox+=w.parent.x+self.screen_x_offset
+            poy+=w.parent.y+self.screen_y_offset
             w=w.parent
         return pox+self.x, poy+self.y
 
@@ -129,7 +141,7 @@ class Widget():
             return widgets  #return on top 
         return None
 
-    def rel_event(self, event=None):
+    def rel_mouse(self, event=None):
         if type(event)==dict:
             ox,oy=self.offset()
             revent=event.copy()
@@ -236,8 +248,9 @@ class Widget():
     def refresh(self, event=None):
         self.force_refresh=True
 
-    def addEvent(self, trigger, func, persist=False):
-        self.eventList[trigger]={ 'func':func, 'persist':persist }
+    def addEvent(self, trigger, func, persist=False, target='__focus__'):
+        #func=types.MethodType(func, self)
+        self.eventList[trigger]={ 'func':func, 'persist':persist, 'target':target }
 
     def check_captured(self, event):
         if event=='':
@@ -247,7 +260,7 @@ class Widget():
                 if self.captured_widget==None:
                     self.captured_widget=self.get_focused()
                     event.pop('drag start',None)
-                    self.drag_start=self.captured_widget.rel_event(event)
+                    self.drag_start=self.captured_widget.rel_mouse(event)
                 return
         self.captured_widget=None
         self.drag_start=None
@@ -264,7 +277,7 @@ class Widget():
                     if focused:
                         focused[-1].set_focus()
 
-    def checkWidgetEvents(self, event):
+    def runEvent(self, event):
         if event=='' or not event:
             return
         root = self.root()
@@ -293,15 +306,21 @@ class Widget():
             for  e, m in w.eventList.items():
                 func=m.get('func')
                 persist=m.get('persist')
-                if w.focus==True or persist:
-                    rel_event=w.rel_event(event)
-                    if e==rel_event or e=='' or (type(rel_event)==dict and e==rel_event['action']):
+                target=m.get('target')
+                if target=='__focus__':
+                    target=self.get_focused()
+                if type(target)==str:
+                    target=self.get_widget_by_name(target)
+                if w.focus==True or persist or w==target:
+                    rel_mouse=w.rel_mouse(event)
+                    if e==rel_mouse or e=='' or (type(rel_mouse)==dict and e==rel_mouse['action']):
                         if f'{type(func)}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
                             w.action=func
                             if 'method' in f'{type(func)}':
-                                w.action(event=rel_event)
+                                w.action(event=rel_mouse)
                             elif 'function' in f'{type(func)}':
-                                w.action(w, event=rel_event)
+                                w.action(w, event=rel_mouse)
+                            w.action=None
                         else:
                             w.log(f'invalid action for "{e}" type: {type(func)}')
         if root.drag_start:
@@ -329,7 +348,6 @@ class Widget():
         signal.signal(signal.SIGQUIT, self.stop)
         signal.signal(signal.SIGTSTP, self.suspend)
         signal.signal(signal.SIGCONT, self.resume)
-        input_cache=[]
         with open("output.log", "w") as self.log_file:
             while self.go:
                 #resize to full screen
@@ -340,21 +358,24 @@ class Widget():
                     self.resize()
                 else:
                     pbuffer=self.screen.copy()
-                buffer=self.draw()
+                self.screen=self.draw()
                 if self.force_refresh:
                     self.force_refresh=False
-                    self.t.output(s_start+home+buffer.emit(raw=True)+s_end)
+                    self.t.output(s_start+home+self.screen.emit(raw=True)+s_end)
                 else:
-                    self.t.output(s_start+home+buffer.emit_diff(pbuffer, raw=True)+s_end)
-                self.screen=buffer.copy()
+                    self.t.output(s_start+home+self.screen.emit_diff(pbuffer, raw=True)+s_end)
                 for inp in self.input.read_input():
                     if inp != '':
-                        input_cache.append(inp)
-                while len(input_cache):
-                    inp=input_cache.pop(0)
-                    self.check_mouse_focus_change(inp)
-                    self.check_captured(inp)
-                    self.checkWidgetEvents(inp)
+                        if type(inp)==str:
+                            self.event_buffer.append(EventTrigger(inp,EventSource.KEYBOARD))
+                        if type(inp)==dict:
+                            self.event_buffer.append(EventTrigger(inp,EventSource.MOUSE))
+                while len(self.event_buffer):
+                    inp=self.event_buffer.pop(0)
+                    if inp.source==EventSource.MOUSE:
+                        self.check_mouse_focus_change(inp.event)
+                        self.check_captured(inp.event)
+                    self.runEvent(inp.event)
         self.t.output(self.t.clear())
         self.t.output(self.t.enable_cursor())
         self.t.output(self.t.disable_mouse())
@@ -426,7 +447,11 @@ class Widget():
         if self.w==0: self.w=scr['columns']
         if self.h==0: self.h=scr['rows']
         if self.screen and self.screen_resize:
-            self.screen.resize(self.w, self.h)
+            if self.screen_resize=='grow':
+                self.screen.resize(max(self.screen.width,self.w), max(self.screen.height,self.h))
+            else:
+                self.screen.resize(self.w, self.h)
+            self.screen.cls()
         return(w,h)
 
     def resize(self, w=None, h=None):
@@ -447,20 +472,25 @@ class Widget():
         if screen is None: screen=self.screen
         last=None
         for w in self.widgetList:
+            inbox=None
             if not w.hidden:
                 w.draw()
+                if w.screen_x_offset or w.screen_y_offset:
+                    inbox=(w.screen_x_offset,w.screen_y_offset,
+                       min(w.w,w.screen.width),min(w.h,w.screen.height)) 
                 if w.focus!=False:
                     last=w
+                    lastbox=inbox
                 else:
-                    if self.screen_x_offset==0 and self.screen_y_offset==0:
-                        screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
+                    if inbox:
+                        screen.paste(w.screen.copy(inbox), box=(w.x,w.y,w.w,w.h))
                     else:
-                        pass #not quite FIXME
-            if last:
-                if self.screen_x_offset==0 and self.screen_y_offset==0:
-                    screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
-                else:
-                    pass #FIXME
+                        screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
+        if last:
+            if lastbox:
+                screen.paste (last.screen.copy(lastbox), box=(last.x,last.y,last.w,last.h))
+            else:
+                screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
         return
 
     def draw(self):
@@ -472,4 +502,5 @@ class Widget():
     def on_defocus(self):
         pass
 
-    pass
+    def on_update(self):
+        pass
