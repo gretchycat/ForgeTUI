@@ -28,6 +28,7 @@ class Widget():
         self.name=name
         self.force_refresh=True
         self.screen=None
+        self.can_focus=True
         self.focus=False
         self.hidden=False
         self.reorder=True
@@ -49,8 +50,6 @@ class Widget():
         self.widgetList=[]
         self.eventList={}
         self.parent=None
-        #self.last_action=None
-        #self.last_action_count=0
         self.captured_widget=None
         self.drag_start=None
         self.drag_previous=None
@@ -109,13 +108,13 @@ class Widget():
         return None
 
     def offset(self):
-        pox, poy=0,0
+        ox, oy=0,0
         w=self
-        while w.parent:
-            pox+=w.parent.x+self.screen_x_offset
-            poy+=w.parent.y+self.screen_y_offset
+        while w:
+            ox+=w.x+w.screen_x_offset
+            oy+=w.y+w.screen_y_offset
             w=w.parent
-        return pox+self.x, poy+self.y
+        return ox,oy
 
     def coordinate_in_widget(self, x, y):
         if self.hidden:
@@ -138,7 +137,7 @@ class Widget():
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
         if widgets:
-            return widgets  #return on top 
+            return widgets  #return on top
         return None
 
     def rel_mouse(self, event=None):
@@ -159,8 +158,11 @@ class Widget():
                 return node
             for n in node.widgetList:
                 stack.append(n)
+        return None
 
     def set_focus(self):
+        if not self.can_focus:
+            return
         self.captured_widget=None
         root = self.root()
         #deactivate all focus
@@ -273,9 +275,11 @@ class Widget():
                 if not self.captured_widget:
                     x=event.get('x')
                     y=event.get('y')
-                    focused=self.widgets_at_coordinate(x,y)
-                    if focused:
-                        focused[-1].set_focus()
+                    ws=self.widgets_at_coordinate(x,y)
+                    for w in ws:
+                        if w.focus==True:
+                            return
+                    ws[-1].set_focus()
 
     def runEvent(self, event):
         if event=='' or not event:
@@ -403,36 +407,40 @@ class Widget():
         return self.widgetList[-1]
 
     def set_geometry(self, x, y, w, h): #should always be okay
+        scr=self.t.get_terminal_size()
+        if self.parent:
+            scr['columns']=self.parent.w
+            scr['rows']=self.parent.h
         if type(x) in [ float, str ]: self._x=x
         if type(y) in [ float, str ]: self._y=y
         if type(w) in [ float, str ]: self._w=w
         if type(h) in [ float, str ]: self._h=h
+        if type(x)==int and x<0: self._x=x
+        if type(y)==int and y<0: self._y=y
+        if type(w)==int and w<=0: self._w=w
+        if type(h)==int and h<=0: self._h=h
         if self._x is not None: x=self._x
         if self._y is not None: y=self._y
         if self._w is not None: w=self._w
         if self._h is not None: h=self._h
         if x=='min':
-            x=0 
+            x=0
         if y=='min':
-            y=0 
+            y=0
         if w=='min':
             w=self.minW
         if h=='min':
             h=self.minH
-        scr=self.t.get_terminal_size()
-        if self.parent:
-            scr['columns']=self.parent.w
-            scr['rows']=self.parent.h
         if type(x)==float:
             if abs(x)<=1.0:
                 x=int(x*scr['columns'])
-        if type(y)==float: 
+        if type(y)==float:
             if abs(y)<=1.0:
                y=int(y*scr['rows'])
-        if type(w)==float: 
+        if type(w)==float:
             if abs(w)<=1.0:
                 w=int(w*scr['columns'])
-        if type(h)==float: 
+        if type(h)==float:
             if abs(h)<=1.0:
                 h=int(h*scr['rows'])
         if x is not None:
@@ -447,9 +455,10 @@ class Widget():
         if self.h==0: self.h=scr['rows']
         if self.screen and self.screen_resize:
             if self.screen_resize=='grow':
-                self.screen.resize(max(self.screen.width,self.w), max(self.screen.height,self.h))
+                self.screen.resize(max(self.screen.width, self.w),
+                                   max(self.screen.height, self.h)-1) #why -1?
             else:
-                self.screen.resize(self.w, self.h)
+                self.screen.resize(self.w, self.h-1)
             self.screen.cls()
         return(w,h)
 
@@ -476,8 +485,10 @@ class Widget():
             if not w.hidden:
                 w.draw()
                 if w.screen_x_offset or w.screen_y_offset:
-                    inbox=(w.screen_x_offset,w.screen_y_offset,
-                       min(w.w,w.screen.width),min(w.h,w.screen.height)) 
+                    inbox=(max(0,w.screen_x_offset),
+                           max(0,w.screen_y_offset),
+                           max(0,min(w.w,w.screen.width)),
+                           max(0,min(w.h,w.screen.height)))
                 if w.focus!=False:
                     last=w
                     lastbox=inbox
