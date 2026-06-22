@@ -111,8 +111,8 @@ class Widget():
         ox, oy=0,0
         w=self
         while w:
-            ox+=w.x+w.screen_x_offset
-            oy+=w.y+w.screen_y_offset
+            ox+=w.x
+            oy+=w.y
             w=w.parent
         return ox,oy
 
@@ -136,7 +136,7 @@ class Widget():
         for w in full_stack:
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
-        if widgets:
+        if len(widgets):
             return widgets  #return on top
         return None
 
@@ -272,14 +272,21 @@ class Widget():
     def check_mouse_focus_change(self, event):
         if type(event)==dict:
             if event['action'] not in ['button up']:
+                focused=None
                 if not self.captured_widget:
                     x=event.get('x')
                     y=event.get('y')
                     ws=self.widgets_at_coordinate(x,y)
-                    for w in ws:
-                        if w.focus==True:
-                            return
-                    ws[-1].set_focus()
+                    if ws:
+                        for w in ws: #FIXME:
+                            if w.focus==True:
+                                focused=w
+                            if w.parent in ws and w.parent.focus==True:
+                                focused=w
+                        if focused:
+                            focused.set_focus()
+                        else:
+                            ws[-1].set_focus()
 
     def runEvent(self, event):
         if event=='' or not event:
@@ -485,10 +492,10 @@ class Widget():
             if not w.hidden:
                 w.draw()
                 if w.screen_x_offset or w.screen_y_offset:
-                    inbox=(max(0,w.screen_x_offset),
-                           max(0,w.screen_y_offset),
-                           max(0,min(w.w,w.screen.width)),
-                           max(0,min(w.h,w.screen.height)))
+                    inbox=(int(max(0, w.screen_x_offset)),
+                           int(max(0, w.screen_y_offset)),
+                           max(1, min(w.w,w.screen.width)),
+                           max(1, min(w.h,w.screen.height)))
                 if w.focus!=False:
                     last=w
                     lastbox=inbox
