@@ -98,26 +98,18 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.content.feed(s)
 
     def draw(self):
-        self.scroll()
+        self.auto_scroll()
         super().draw()
 
-    def scroll(self):
+    def auto_scroll(self):
         if self.v_bar:
             if self.pos_y=='auto':
                 self.v_bar.max=max(0,self.content.screen.height-self.content.h)
                 self.v_bar.set_value(self.v_bar.max)
-            else:
-                self.v_bar.max=max(0,self.content.screen.height-self.content.h)
-                self.v_bar.set_value(self.pos_y)
-            self.v_update(self.v_bar.value)
         if self.h_bar:
             if self.pos_x=='auto':
                 self.h_bar.max=max(0,self.content.screen.width-self.content.w)
                 self.h_bar.set_value(self.h_bar.max)
-            else:
-                self.h_bar.max=max(0,self.content.screen.width-self.content.w)
-                self.h_bar.set_value(self.pos_x)
-            self.h_update(self.h_bar.value)
 
     def h_update(self, val='auto'):
         if val=='auto': val=self.h_bar.value

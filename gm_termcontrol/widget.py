@@ -496,6 +496,7 @@ class Widget():
                            int(max(0, w.screen_y_offset)),
                            max(1, min(w.w,w.screen.width)),
                            max(1, min(w.h,w.screen.height)))
+                    w.log(str(inbox))
                 if w.focus!=False:
                     last=w
                     lastbox=inbox
