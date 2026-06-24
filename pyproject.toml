@@ -1,5 +1,5 @@
 [build-system]
-include = ["gm_termcontrol"]
+include = ["forgetui"]
 requires = [
     "pyte",
     "setuptools>=42",

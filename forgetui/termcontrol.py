@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys, os, fcntl, select
 from libansiscreen.screen import Screen
 from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
-from gm_termcontrol.termkeymap import gen_keymap
+from forgetui.termkeymap import gen_keymap
 
 rgb_file_path = '/usr/share/X11/rgb.txt'
 

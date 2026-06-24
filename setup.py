@@ -4,10 +4,10 @@ import shutil
 
 with open('README.md') as f:
     long_description = f.read()
-shutil.copyfile('gm_termcontrol/termcontrol.py', 'gm_termcontrol/__init__.py')
+shutil.copyfile('forgetui/termcontrol.py', 'forgetui/__init__.py')
 
 setup(
-    name='gm_termcontrol',
+    name='forgetui',
     version='0.0.3',
     license='GPL3',
     url='https://github.com/gretchycat/termcontrol',

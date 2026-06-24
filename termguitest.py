@@ -1,10 +1,10 @@
 #!/usr/bin/python3
-from gm_termcontrol.widget import Widget
-from gm_termcontrol.widget_input import WidgetButton, WidgetSlider
-from gm_termcontrol.widget_output import WidgetBox
-from gm_termcontrol.widget_container import WidgetHBox, WidgetVBox,WidgetScrollArea
-from gm_termcontrol.widget_deprecated import WidgetScreen
-from gm_termcontrol.theme import make_theme
+from forgetui.widget import Widget
+from forgetui.widget_input import WidgetButton, WidgetSlider
+from forgetui.widget_output import WidgetBox
+from forgetui.widget_container import WidgetHBox, WidgetVBox,WidgetScrollArea
+from forgetui.widget_deprecated import WidgetScreen
+from forgetui.theme import make_theme
 import sys,types
 
 def clear(self, event=None):
