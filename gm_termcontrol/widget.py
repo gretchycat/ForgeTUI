@@ -122,7 +122,7 @@ class Widget():
         ox,oy=self.offset()
         rx=x-ox
         ry=y-oy
-        return  0<=rx<self.w and 0<=ry<self.h
+        return  0<=rx<=self.w and 0<=ry<=self.h 
 
     def widgets_at_coordinate(self, x, y):
         stack=[ self.root() ] #traversal/find widgets.
