@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import uuid,types
-from libansiscreen.screen import Screen
 from .widget import Widget
 from .widget_output import WidgetBox, WidgetLabel
 from .widget_input import WidgetButton, WidgetSlider
