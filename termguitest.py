@@ -1,10 +1,7 @@
 #!/usr/bin/python3
 from forgetui.widget import Widget
-from forgetui.widget_input import WidgetButton, WidgetSlider
-from forgetui.widget_output import WidgetBox
-from forgetui.widget_container import WidgetHBox, WidgetVBox,WidgetScrollArea
-from forgetui.widget_deprecated import WidgetScreen
-from forgetui.theme import make_theme
+from forgetui.widget_input import WidgetButton
+from forgetui.widget_container import WidgetWindow, WidgetVBox,WidgetScrollArea
 import sys,types
 
 def clear(self, event=None):
@@ -16,7 +13,7 @@ def get_dims(self, event=None):
     self.feed("\n")
 
 def draw_ruler(self, event=None):
-    self.feed(self.t.drawRuler(self.content.width, self.content.height))
+    self.feed(self.t.drawRuler(self.w, self.h))
 
 def eventout(self, event=None):
     w=self.get_widget_by_name('bluebox')
@@ -26,17 +23,15 @@ def eventout(self, event=None):
 def corrupt(self, event=None):
     print('\x1b[2J')
 
-s=WidgetScreen(0,0,0,0, style=None, bg=8, fg=15, title='root')
-s.scroll(0,0)
-s.show_x_scrollbar=False
-s.show_y_scrollbar=False
+s=Widget(0,0,0,0, bg=8, fg=15)
+#s=WidgetWindow(0,0,0,0, bg=8, fg=15)
 draw_ruler(s)
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16))
-box2=s.addWidget(WidgetScreen(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor', name='bluebox'))
+box2=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor', name='bluebox'))
 w=s.addWidget(WidgetButton(5,3, style='plot',box_name='box',h=3, bg=248,fg=0,caption=f'Corrupt'))
 w.addEvent('', corrupt)
 w.addEvent('Ctrl T', corrupt, persist=True)
-vbox=s.addWidget(WidgetVBox(-0.3, 0.25, title='red'))
+vbox=s.addWidget(WidgetVBox(-0.3, 0.25))
 for n in range(4):
     w=vbox.addWidget(WidgetButton(0,0, style='plot',box_name='box',h=3, bg=248+n,fg=0,caption=f'Button {n+7}'))
     w.addEvent('', eventout)

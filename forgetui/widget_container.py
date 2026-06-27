@@ -7,8 +7,11 @@ from .widget_input import WidgetButton, WidgetSlider
 
 #container widgets
 class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a vertical sequence
-    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None, style=None, title='', box_name='box', name='VBox'+str(uuid.uuid4())):
-        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, title=title, box_name=box_name, name=name)
+    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None,\
+                 style=None, box_name='box',\
+                 name='VBox'+str(uuid.uuid4())):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style,\
+                         box_name=box_name, name=name)
         self.can_focus=False
 
     def addWidget(self, widget, focus=False):
@@ -34,8 +37,9 @@ class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a
         super().resize()
 
 class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a horizontal sequence
-    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None, style=None, title='', box_name='box', name='HBox'+str(uuid.uuid4())):
-        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, title=title, box_name=box_name, name=name)
+    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None, style=None, box_name='box', name='HBox'+str(uuid.uuid4())):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style,\
+                         box_name=box_name, name=name)
         self.can_focus=False
 
     def addWidget(self, widget, focus=False):
@@ -91,7 +95,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.pos_y='auto'
 
     def addWidget(self, widget, focus=True):
-        self.content.addWidget(widget, focus=focus)
+        return self.content.addWidget(widget, focus=focus)
 
     def feed(self, s):
         self.content.feed(s)
@@ -158,5 +162,70 @@ class WidgetTabController(Widget): #Houses multiple containers in a tabs
     pass
 
 class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
-    pass
+    def __init__(self, x, y, w, h, fg=15, bg=4, style='plot',\
+                 title='Untitled Window', content=None,\
+                 name='Window'+str(uuid.uuid4())):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, style=style)
+        if not content:
+            content=Widget(fg=fg, bg=None)
+        content.set_geometry(self.frame['w'],self.frame['h'],\
+                             self.frame['w']*-2,self.frame['h']*-2)
+        self.content=content
+        self.title=title
+        title_bar_space=4
+        self.title_bar=super().addWidget(\
+            WidgetHBox(x=title_bar_space,w=w-2*title_bar_space, h=1, name='__title_bar__'))
+        self.title_label=self.title_bar.addWidget(\
+            WidgetLabel(text=title, align='center', name='__title_label__', bg=4, fg=15))
+        self.addEvent('drag', self.drag_handler)
+        self.title_label.addEvent('drag', self.drag_handler)
+        super().addWidget(content)
 
+    def __repr__(self):
+        return f"Window: (title={self.title})"
+
+    def addWidget(self, widget, focus=True):
+        return self.content.addWidget(widget, focus=focus)
+
+    def feed(self, s):
+        self.content.feed(s)
+
+    def drag_handler(self, event=None):
+        win=self
+        if self.name=='__title_label__':
+            win=self.parent.parent
+        if self.name=='__title_bar__':
+            win=self.parent
+        win.drag_move(event)
+        win.drag_resize(event)
+
+    def drag_move(self, event=None):
+        if not self.parent: return
+        if type(event)==dict and \
+                event['action']=='drag' and \
+                event.get('drag start') and \
+                event.get('drag move'):
+            pos=event['drag start']['y']==0
+            if event['button']==0 and \
+                    ( pos or \
+                    event.get('drag handle')=='move'):
+                if pos:
+                    self.drag_handle='move'
+                m = event['drag move']
+                self.move(self.x+m['x'], self.y+m['y'])
+
+    def drag_resize(self, event=None):
+        if not self.parent: return
+        if type(event)==dict and \
+                event['action']=='drag' and \
+                event.get('drag start') and \
+                event.get('drag move'):
+            pos=event['drag start']['y']==self.h-1 and \
+                    event['drag start']['x']==self.w-1
+            if event['button']==0 and \
+                    (pos or event.get('drag handle')=='resize' ):
+                if pos:
+                    self.drag_handle='resize'
+                m= event['drag move']
+                self.resize(self.w+m['x'], self.h+m['y'])

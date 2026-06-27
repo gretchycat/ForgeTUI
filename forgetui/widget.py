@@ -481,7 +481,6 @@ class Widget():
             self.x=max(0, min(self.parent.w-1-self.w,x))
             self.y=max(0, min(self.parent.h-1-self.h,y))
             self._x, self._y=None, None
-        pass
 
     def drawChildren(self, screen=None):
         if screen is None: screen=self.screen
@@ -510,7 +509,7 @@ class Widget():
                 screen.paste (last.screen.copy(lastbox), box=(last.x,last.y,last.w,last.h))
             else:
                 screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
-        return
+        return screen
 
     def draw(self):
         return self.drawChildren()

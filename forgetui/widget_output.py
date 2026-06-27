@@ -6,9 +6,10 @@ from .widget import Widget
 
 #output widgets
 class WidgetBox(Widget): #Draws a box the size of the widget
-    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, style=None, title='', box_name='box', name='Box'+str(uuid.uuid4())):
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
+                 style='plot', box_name='box', \
+                 name='Box'+str(uuid.uuid4())):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, name=name)
-        self.title=title
         self.style=style
         self.box_name=box_name
         self.fg0, self.bg0=fg, bg
@@ -64,12 +65,34 @@ class WidgetBox(Widget): #Draws a box the size of the widget
                             screen.set_cell(x,y,t[f'{bn}.middle_center'])
                 screen.set_cell(0,screen.height-2,t[f'{bn}.bottom_left'])
                 screen.set_cell(screen.width-1,screen.height-2,t[f'{bn}.bottom_right'])
-        else: screen.clear()
-        super().draw()
-        return screen
+        #else: screen.cls()
+        return super().draw()
 
 class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justified, have text attributes and colored
-    pass
+
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, style='', \
+                  name='label'+str(uuid.uuid4()), \
+                  text='Label', align='left', valign='top'):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, name=name)
+        self.align=align
+        self.valign=valign
+        self.text=text
+
+    def draw(self):
+        x, y = 0,0
+        text=self.text[:self.w]
+        if self.align in [ 'center' ]:
+            x=int(self.w/2-len(text)/2)
+        if self.align in [ 'right' ]:
+            x=self.w-len(text)
+        if self.valign in [ 'middle', 'center' ]:
+            y=self.h//2
+        if self.valign in [ 'bottom' ]:
+            y=self.h-1
+        self.setColors(self.fg,self.bg)
+        self.screen.cls()
+        self.screen.cursor_goto(x,y)
+        self.feed(self.text)
 
 class WidgetList(Widget): #one dimensional list of data arranged vertically
     pass
