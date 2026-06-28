@@ -111,30 +111,26 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         if self.v_bar:
             if self.pos_y=='auto':
                 self.v_bar.max=max(0,self.content.screen.height-self.content.h)
-                self.v_bar.set_value(self.v_bar.max)
+                self.v_bar.set_value(max(0,self.content.screen.cursor.y-self.content.h))
         if self.h_bar:
             if self.pos_x=='auto':
                 self.h_bar.max=max(0,self.content.screen.width-self.content.w)
-                self.h_bar.set_value(self.h_bar.max)
+                self.h_bar.set_value(max(0,self.content.screen.cursor.x-self.content.w))
 
     def h_update(self, val='auto'):
-        if val=='auto': val=self.h_bar.value
-        val=max(0,min(val,self.content.screen.width-self.content.w))
+        if val=='auto': val=max(0,self.content.screen.cursor.x-self.content.w)
         self.pos_x=val
-        if val >= self.content.screen.width-self.content.w:
+        if val >= max(0,self.content.screen.cursor.x-self.content.w):
             self.pos_x='auto'
         self.content.screen_x_offset=val
-        #self.on_update()
         return val
 
     def v_update(self, val='auto'):
-        if val=='auto': val=self.v_bar.value
-        val=max(0,min(val,self.content.screen.height-self.content.h))
+        if val=='auto': val=max(0,self.content.screen.cursor.y-self.content.h)
         self.pos_y=val
-        if val >= self.content.screen.height-self.content.h:
+        if val >= max(0,self.content.screen.cursor.y-self.content.h):
             self.pos_y='auto'
         self.content.screen_y_offset=val
-        #self.on_update()
         return val
 
     def up(self, lines=1):

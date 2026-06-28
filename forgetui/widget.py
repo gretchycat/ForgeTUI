@@ -410,9 +410,9 @@ class Widget():
         widget.set_geometry(widget._x,widget._y,widget._w,widget._h)
         widget.fg0=self.fg
         widget.bg0=self.bg
-        widget.screen=Screen(width=widget.w)
-        widget.setColors(widget.fg, widget.bg)
-        widget.screen.cls()
+        #widget.screen=Screen(width=widget.w)
+        #widget.setColors(widget.fg, widget.bg)
+        #widget.screen.cls()
         self.widgetList.append(widget)
         if focus: widget.set_focus()
         self.resize()
@@ -521,6 +521,8 @@ class Widget():
             self.bg=0
         if self.fg==None and self.parent:
             self.fg=self.parent.fg
+        if not self.parent:
+            self.screen.cls()
         return self.drawChildren()
 
     def on_focus(self):
