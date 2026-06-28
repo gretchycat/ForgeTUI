@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
+from typing import MutableMapping
 import uuid,types
 from .widget import Widget
 from .widget_output import WidgetBox, WidgetLabel
@@ -9,9 +10,9 @@ from .widget_input import WidgetButton, WidgetSlider
 class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a vertical sequence
     def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None,\
                  style=None, box_name='box',\
-                 name='VBox'+str(uuid.uuid4())):
+                 name='VBox'+str(uuid.uuid4()), parent=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style,\
-                         box_name=box_name, name=name)
+                         box_name=box_name, name=name, parent=parent)
         self.can_focus=False
 
     def addWidget(self, widget, focus=False):
@@ -37,9 +38,11 @@ class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a
         super().resize()
 
 class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a horizontal sequence
-    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None, style=None, box_name='box', name='HBox'+str(uuid.uuid4())):
+    def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None,\
+                 style=None, box_name='box',\
+                 name='HBox'+str(uuid.uuid4()), parent=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style,\
-                         box_name=box_name, name=name)
+                         box_name=box_name, name=name, parent=parent)
         self.can_focus=False
 
     def addWidget(self, widget, focus=False):
@@ -64,7 +67,7 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
         super().resize()
 
 class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
-    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, \
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name='ScrollArea'+str(uuid.uuid4()), \
             v_bar=True, h_bar=True):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, \
@@ -162,22 +165,27 @@ class WidgetTabController(Widget): #Houses multiple containers in a tabs
     pass
 
 class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
-    def __init__(self, x, y, w, h, fg=15, bg=4, style='plot',\
+    def __init__(self, x, y, w, h, fg=None, bg=None, style='plot',\
                  title='Untitled Window', content=None,\
-                 name='Window'+str(uuid.uuid4())):
+                 name='Window'+str(uuid.uuid4()), parent=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
-                         name=name, style=style)
+                         name=name, style=style,parent=parent)
         if not content:
-            content=Widget(fg=fg, bg=None)
-        content.set_geometry(self.frame['w'],self.frame['h'],\
-                             self.frame['w']*-2,self.frame['h']*-2)
+            content=Widget(parent=self)
+        cx=max(0,self.frame['w'])
+        cy=max(1,self.frame['h'])
+        cw=cx*-2
+        ch=-1*(cy+self.frame['h'])
+        content.set_geometry(cx,cy,cw,ch)
         self.content=content
         self.title=title
         title_bar_space=4
         self.title_bar=super().addWidget(\
-            WidgetHBox(x=title_bar_space,w=w-2*title_bar_space, h=1, name='__title_bar__'))
+            WidgetHBox(x=title_bar_space,w=-2*title_bar_space, h=1, \
+                       name='__title_bar__', parent=self))
         self.title_label=self.title_bar.addWidget(\
-            WidgetLabel(text=title, align='center', name='__title_label__', bg=4, fg=15))
+            WidgetLabel(text=title, align='center', name='__title_label__',\
+                        bg=4, fg=15, parent=self.title_bar))
         self.addEvent('drag', self.drag_handler)
         self.title_label.addEvent('drag', self.drag_handler)
         super().addWidget(content)

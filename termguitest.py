@@ -24,10 +24,12 @@ def corrupt(self, event=None):
     print('\x1b[2J')
 
 s=Widget(0,0,0,0, bg=8, fg=15)
-#s=WidgetWindow(0,0,0,0, bg=8, fg=15)
+#s=WidgetWindow(0,0,0,0, bg=8, fg=15, style=None)
 draw_ruler(s)
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16))
-box2=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor', name='bluebox'))
+box2=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
+        title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor',\
+        name='bluebox', content=WidgetScrollArea(fg=15, bg=None)))
 w=s.addWidget(WidgetButton(5,3, style='plot',box_name='box',h=3, bg=248,fg=0,caption=f'Corrupt'))
 w.addEvent('', corrupt)
 w.addEvent('Ctrl T', corrupt, persist=True)

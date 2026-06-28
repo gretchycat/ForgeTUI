@@ -23,7 +23,7 @@ class EventTrigger:
     source: EventSource = EventSource.PROGRAM
 
 class Widget():
-    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=0, parent=None, name=str(uuid.uuid4())):
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=None, bg=None, parent=None, name=str(uuid.uuid4())):
         self.log_file=None
         self.name=name
         self.force_refresh=True
@@ -37,14 +37,15 @@ class Widget():
         self.bg0=0
         self.minW=1
         self.minH=1
+        self.content=None
         self.t=termcontrol()
         self._x, self._y=None, None
         self._w, self._h=None, None
         self.set_geometry(x, y, w, h)
-        self.screen=Screen(width=self.w, height=self.h)
         self.screen_resize=True
         self.screen_x_offset=0
         self.screen_y_offset=0
+        self.screen=Screen(width=self.w, height=self.h)
         self.setColors(fg, bg)
         self.screen.cls()
         self.widgetList=[]
@@ -409,11 +410,15 @@ class Widget():
         widget.set_geometry(widget._x,widget._y,widget._w,widget._h)
         widget.fg0=self.fg
         widget.bg0=self.bg
+        widget.screen=Screen(width=widget.w)
+        widget.setColors(widget.fg, widget.bg)
+        widget.screen.cls()
         self.widgetList.append(widget)
         if focus: widget.set_focus()
+        self.resize()
         return self.widgetList[-1]
 
-    def set_geometry(self, x, y, w, h): #should always be okay
+    def set_geometry(self, x, y, w, h):
         scr=self.t.get_terminal_size()
         if self.parent:
             scr['columns']=self.parent.w
@@ -512,6 +517,10 @@ class Widget():
         return screen
 
     def draw(self):
+        if self.bg==None and not self.parent:
+            self.bg=0
+        if self.fg==None and self.parent:
+            self.fg=self.parent.fg
         return self.drawChildren()
 
     def on_focus(self):

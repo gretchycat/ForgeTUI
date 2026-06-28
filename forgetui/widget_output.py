@@ -8,8 +8,9 @@ from .widget import Widget
 class WidgetBox(Widget): #Draws a box the size of the widget
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
                  style='plot', box_name='box', \
-                 name='Box'+str(uuid.uuid4())):
-        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, name=name)
+                 name='Box'+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
         self.style=style
         self.box_name=box_name
         self.fg0, self.bg0=fg, bg
@@ -71,9 +72,10 @@ class WidgetBox(Widget): #Draws a box the size of the widget
 class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justified, have text attributes and colored
 
     def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, style='', \
-                  name='label'+str(uuid.uuid4()), \
+                  name='label'+str(uuid.uuid4()), parent=None, \
                   text='Label', align='left', valign='top'):
-        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, name=name)
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
         self.align=align
         self.valign=valign
         self.text=text
