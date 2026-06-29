@@ -536,8 +536,8 @@ class Widget():
             self.bg=0
         if self.fg==None and self.parent:
             self.fg=self.parent.fg
-        #if not self.parent:
-        #    self.screen.cls()
+        if not self.parent:
+            self.screen.cls()
         return self.drawChildren()
 
     def on_focus(self):
