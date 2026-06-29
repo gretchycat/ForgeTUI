@@ -21,7 +21,7 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         self.theme=make_theme(style, bg=bg, fg=fg)
 
     def draw(self):
-        screen=self.fb
+        fb=self.fb
         x=self.x
         y=self.y
         fill=True
@@ -35,38 +35,37 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         if self.style is not None:
             if self.style in ['plot']:
                 if fill:
-                    for y in range(1, screen.height-1):
-                        for x in range(1, screen.width-1):
-                            screen.set_cell(x,y,t[f'{bn}.middle_center'])
-                screen.plot(0,0,t[f'{bn}.top_left'].fg)
-                screen.plot(screen.width-1,0,t[f'{bn}.top_right'].fg)
-                for x in range(1,screen.width-1):
-                    screen.plot(x,0,t[f'{bn}.top_center'].fg)
-                    screen.plot(x,1,t[f'{bn}.middle_center'].bg)
-                    screen.plot(x,screen.height*2-2,t[f'{bn}.middle_center'].bg)
-                    screen.plot(x,screen.height*2-1,t[f'{bn}.bottom_center'].fg)
-                for y in range(1, screen.height*2-1):
-                    screen.plot(0,y,t[f'{bn}.middle_left'].fg)
-                    screen.plot(1,y,t[f'{bn}.middle_center'].bg)
-                    screen.plot(screen.width-2,y,t[f'{bn}.middle_center'].bg)
-                    screen.plot(screen.width-1,y,t[f'{bn}.middle_right'].fg)
-                screen.plot(0,screen.height*2-1,t[f'{bn}.bottom_left'].fg)
-                screen.plot(screen.width-1,screen.height*2-1,t[f'{bn}.bottom_right'].fg)
+                    for y in range(1, fb.height-1):
+                        for x in range(1, fb.width-1):
+                            fb.set_cell(x,y,t[f'{bn}.middle_center'])
+                fb.plot(0,0,t[f'{bn}.top_left'].fg)
+                fb.plot(fb.width-1,0,t[f'{bn}.top_right'].fg)
+                for x in range(1,fb.width-1):
+                    fb.plot(x,0,t[f'{bn}.top_center'].fg)
+                    fb.plot(x,1,t[f'{bn}.middle_center'].bg)
+                    fb.plot(x,fb.height*2-3,t[f'{bn}.bottom_center'].fg)
+                for y in range(1, (fb.height-1)*2-1):
+                    fb.plot(0,y,t[f'{bn}.middle_left'].fg)
+                    fb.plot(1,y,t[f'{bn}.middle_center'].bg)
+                    fb.plot(fb.width-2,y,t[f'{bn}.middle_center'].bg)
+                    fb.plot(fb.width-1,y,t[f'{bn}.middle_right'].fg)
+                fb.plot(0,(fb.height-1)*2-1,t[f'{bn}.bottom_left'].fg)
+                fb.plot(fb.width-1,(fb.height-1)*2-1,t[f'{bn}.bottom_right'].fg)
             else:
-                screen.set_cell(0,0,t[f'{bn}.top_left'])
-                screen.set_cell(screen.width-1,0,t[f'{bn}.top_right'])
-                for x in range(1, screen.width-1):
-                    screen.set_cell(x,0,t[f'{bn}.top_center'])
-                    screen.set_cell(x,screen.height-1,t[f'{bn}.bottom_center'])
-                for y in range(1, screen.height-1):
-                    screen.set_cell(0,y,t[f'{bn}.middle_left'])
-                    screen.set_cell(screen.width-1,y,t[f'{bn}.middle_right'])
+                fb.set_cell(0,0,t[f'{bn}.top_left'])
+                fb.set_cell(fb.width-1,0,t[f'{bn}.top_right'])
+                for x in range(1, fb.width-1):
+                    fb.set_cell(x,0,t[f'{bn}.top_center'])
+                    fb.set_cell(x,fb.height-2,t[f'{bn}.bottom_center'])
+                for y in range(1, fb.height-2):
+                    fb.set_cell(0,y,t[f'{bn}.middle_left'])
+                    fb.set_cell(fb.width-1,y,t[f'{bn}.middle_right'])
                     if fill:
-                        for x in range(1, screen.width-1):
-                            screen.set_cell(x,y,t[f'{bn}.middle_center'])
-                screen.set_cell(0,screen.height-2,t[f'{bn}.bottom_left'])
-                screen.set_cell(screen.width-1,screen.height-1,t[f'{bn}.bottom_right'])
-        #else: screen.cls()
+                        for x in range(1, fb.width-1):
+                            fb.set_cell(x,y,t[f'{bn}.middle_center'])
+                fb.set_cell(0,fb.height-2,t[f'{bn}.bottom_left'])
+                fb.set_cell(fb.width-1,fb.height-2,t[f'{bn}.bottom_right'])
+        #else: fb.cls()
         return super().draw()
 
 class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justified, have text attributes and colored

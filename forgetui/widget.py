@@ -482,9 +482,9 @@ class Widget():
         if self.fb and self.fb_resize:
             if self.fb_resize=='grow':
                 self.fb.resize(max(self.fb.width, self.w),
-                                   max(self.fb.height, self.h)-1) #why -1?
+                                   max(self.fb.height, self.h))
             else:
-                self.fb.resize(self.w, self.h-1)
+                self.fb.resize(self.w, self.h)
             self.fb.cls()
         return(w,h)
 
