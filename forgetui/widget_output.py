@@ -21,7 +21,7 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         self.theme=make_theme(style, bg=bg, fg=fg)
 
     def draw(self):
-        screen=self.screen
+        screen=self.fb
         x=self.x
         y=self.y
         fill=True
@@ -35,7 +35,7 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         if self.style is not None:
             if self.style in ['plot']:
                 if fill:
-                    for y in range(1, screen.height-2):
+                    for y in range(1, screen.height-1):
                         for x in range(1, screen.width-1):
                             screen.set_cell(x,y,t[f'{bn}.middle_center'])
                 screen.plot(0,0,t[f'{bn}.top_left'].fg)
@@ -43,29 +43,29 @@ class WidgetBox(Widget): #Draws a box the size of the widget
                 for x in range(1,screen.width-1):
                     screen.plot(x,0,t[f'{bn}.top_center'].fg)
                     screen.plot(x,1,t[f'{bn}.middle_center'].bg)
-                    screen.plot(x,screen.height*2-4,t[f'{bn}.middle_center'].bg)
-                    screen.plot(x,screen.height*2-3,t[f'{bn}.bottom_center'].fg)
-                for y in range(1, screen.height*2-3):
+                    screen.plot(x,screen.height*2-2,t[f'{bn}.middle_center'].bg)
+                    screen.plot(x,screen.height*2-1,t[f'{bn}.bottom_center'].fg)
+                for y in range(1, screen.height*2-1):
                     screen.plot(0,y,t[f'{bn}.middle_left'].fg)
                     screen.plot(1,y,t[f'{bn}.middle_center'].bg)
                     screen.plot(screen.width-2,y,t[f'{bn}.middle_center'].bg)
                     screen.plot(screen.width-1,y,t[f'{bn}.middle_right'].fg)
-                screen.plot(0,screen.height*2-3,t[f'{bn}.bottom_left'].fg)
-                screen.plot(screen.width-1,screen.height*2-3,t[f'{bn}.bottom_right'].fg)
+                screen.plot(0,screen.height*2-1,t[f'{bn}.bottom_left'].fg)
+                screen.plot(screen.width-1,screen.height*2-1,t[f'{bn}.bottom_right'].fg)
             else:
                 screen.set_cell(0,0,t[f'{bn}.top_left'])
                 screen.set_cell(screen.width-1,0,t[f'{bn}.top_right'])
                 for x in range(1, screen.width-1):
                     screen.set_cell(x,0,t[f'{bn}.top_center'])
-                    screen.set_cell(x,screen.height-2,t[f'{bn}.bottom_center'])
-                for y in range(1, screen.height-2):
+                    screen.set_cell(x,screen.height-1,t[f'{bn}.bottom_center'])
+                for y in range(1, screen.height-1):
                     screen.set_cell(0,y,t[f'{bn}.middle_left'])
                     screen.set_cell(screen.width-1,y,t[f'{bn}.middle_right'])
                     if fill:
                         for x in range(1, screen.width-1):
                             screen.set_cell(x,y,t[f'{bn}.middle_center'])
                 screen.set_cell(0,screen.height-2,t[f'{bn}.bottom_left'])
-                screen.set_cell(screen.width-1,screen.height-2,t[f'{bn}.bottom_right'])
+                screen.set_cell(screen.width-1,screen.height-1,t[f'{bn}.bottom_right'])
         #else: screen.cls()
         return super().draw()
 
@@ -92,8 +92,8 @@ class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justifi
         if self.valign in [ 'bottom' ]:
             y=self.h-1
         self.setColors(self.fg,self.bg)
-        self.screen.cls()
-        self.screen.cursor_goto(x,y)
+        self.fb.cls()
+        self.fb.cursor_goto(x,y)
         self.feed(self.text)
 
 class WidgetList(Widget): #one dimensional list of data arranged vertically

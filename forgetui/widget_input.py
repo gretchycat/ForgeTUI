@@ -28,17 +28,16 @@ class WidgetButton(WidgetBox): #a button for interaction
         if event['button']==0:
             if 0<=event['x']<self.w and 0<=event['y']<self.h:
                 self.active=True
-                self.active_disp=True
-            self.makeDirty()
+                self.active_disp=True #make sure that at least one frame has the Pressed button
+                self.pre_click()
 
     def b_up(self, event=None):
         if event['button']==0:
             if 0<=event['x']<self.w and 0<=event['y']<self.h:
                 self.active=False
-            self.makeDirty()
+                self.on_click()
 
     def draw(self):
-        self.makeDirty()
         self.fg0=7
         self.bg0=0
         if self.parent:
@@ -48,22 +47,26 @@ class WidgetButton(WidgetBox): #a button for interaction
         fh=0
         box_type='focus'
         if self.active or self.active_disp:
-            self.makeDirty()
             box_type='active'
-            if self.active_disp:
-                self.active_disp=False
+            self.active_disp=False
         self.box_type=box_type
         fw=self.frame['w']*2
         fh=self.frame['h']*2
         cap_x=int(self.w/2-len(self.caption)/2)
         cap_y=int((self.h-fh)/2+fh/2)
         super().draw()
-        self.screen.cursor_goto(cap_x, cap_y)
+        self.fb.cursor_goto(cap_x, cap_y)
         c=self.theme[box_type][f'{self.box_name}.middle_center']
-        if c:
-            self.screen.set_foreground(c.fg)
-            self.screen.set_background(c.bg)
-        self.screen.print(self.caption)
+        if c: self.setColors(c.fg, c.bg)
+        self.feed(self.caption)
+
+    def pre_click(self):
+        self.makeDirty()
+        pass
+
+    def on_click(self):
+        self.makeDirty()
+        pass
 
 class WidgetSlider(Widget): #a numeric value display or selector widget
     def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=None, style='', \
@@ -160,28 +163,28 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
             handle=t[f'{bn}.handle_lock'] # locked handle cell
         if self.w==1 and self.h>1: # vertical
             # draw verticsl bar
-            self.screen.set_cell(0,0,t[f'{bn}.up'])
-            self.screen.set_cell(0,self.h-1,t[f'{bn}.down'])
+            self.fb.set_cell(0,0,t[f'{bn}.up'])
+            self.fb.set_cell(0,self.h-1,t[f'{bn}.down'])
             for y in range(1,self.h-1):
-                self.screen.set_cell(0,y,t[f'{bn}.v'])
+                self.fb.set_cell(0,y,t[f'{bn}.v'])
             if reverse:
                 # draw handle at 1.0-value
-                self.screen.set_cell(0,int((self.h-3)*(1-value))+1,handle) 
+                self.fb.set_cell(0,int((self.h-3)*(1-value))+1,handle) 
             else:
                 # draw handle at value
-                self.screen.set_cell(0,int((self.h-3)*value)+1,handle) 
+                self.fb.set_cell(0,int((self.h-3)*value)+1,handle) 
         if self.h==1 and self.w>1: # horizontal
             # draw horizontal bar
-            self.screen.set_cell(0,0,t[f'{bn}.left'])
-            self.screen.set_cell(self.w-1,0,t[f'{bn}.right'])
+            self.fb.set_cell(0,0,t[f'{bn}.left'])
+            self.fb.set_cell(self.w-1,0,t[f'{bn}.right'])
             for x in range(1,self.w-1):
-                self.screen.set_cell(x,0,t[f'{bn}.h'])
+                self.fb.set_cell(x,0,t[f'{bn}.h'])
             if reverse:
                 # draw handle at 1.0-value
-                self.screen.set_cell(int((self.w-3)*(1-value))+1,0,handle) 
+                self.fb.set_cell(int((self.w-3)*(1-value))+1,0,handle) 
             else:
                 # draw handle at value
-                self.screen.set_cell(int((self.w-3)*value)+1,0,handle) 
+                self.fb.set_cell(int((self.w-3)*value)+1,0,handle) 
 
     def up(self, event=None):
         step=self.step

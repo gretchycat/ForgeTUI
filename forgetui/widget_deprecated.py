@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import uuid
-from libansiscreen.screen import Screen
+from libansiscreen.fb import Screen
 from .termcontrol import termcontrol
 from .theme import make_theme
 from .widget import Widget
@@ -47,8 +47,8 @@ class WidgetScreen(Widget): #will be deprecated TODO:  FIXME:
         if(self.frame):
             fw=self.frame.frame['w']*2
             fh=self.frame.frame['h']*2
-        self.content.resize(max(self.screen.width-fw, self.content.width),
-                        max(self.screen.height-fh, self.content.height))
+        self.content.resize(max(self.fb.width-fw, self.content.width),
+                        max(self.fb.height-fh, self.content.height))
 
     def feed(self, s):
         self.content.print(s)
@@ -65,7 +65,7 @@ class WidgetScreen(Widget): #will be deprecated TODO:  FIXME:
         if(self.frame and self.style is not None):
             fw=self.frame.frame['w']*2
             fh=self.frame.frame['h']*2
-            self.frame.draw(0, 0, self.w, self.h, screen=self.screen,
+            self.frame.draw(0, 0, self.w, self.h, screen=self.fb,
                             sx_lock=self.scroll_x!=-1,
                             sy_lock=self.scroll_y!=-1,
                             show_vsb=self.show_y_scrollbar,
@@ -73,17 +73,17 @@ class WidgetScreen(Widget): #will be deprecated TODO:  FIXME:
                             focus=self.focus)
         scrolled=self.content
         if self.scroll_x==0 and self.scroll_y==0:
-            self.screen.paste(self.content,
-                box=(fw//2, fh//2, self.screen.width-fw,
-                     self.screen.height-fh-1))
+            self.fb.paste(self.content,
+                box=(fw//2, fh//2, self.fb.width-fw,
+                     self.fb.height-fh-1))
         else:
             scrolled=self.content.copy(box=(x,y,
-                    self.screen.width-fw,self.screen.height-fh))
-            self.screen.paste(scrolled,
-                box=(fw//2, fh//2, self.screen.width-fw,
-                     self.screen.height-fh-1))
+                    self.fb.width-fw,self.fb.height-fh))
+            self.fb.paste(scrolled,
+                box=(fw//2, fh//2, self.fb.width-fw,
+                     self.fb.height-fh-1))
         super().draw()
-        return self.screen
+        return self.fb
 
     def scroll(self, x=0, y=-1):
         fw,fh=0,0
@@ -93,11 +93,11 @@ class WidgetScreen(Widget): #will be deprecated TODO:  FIXME:
         self.scroll_x=int(x)
         self.scroll_y=int(y)
         if self.scroll_type=='cursor':
-            self.x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw))
-            self.y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh))
+            self.x_max=max(0, self.content.cursor.x-(self.fb.width-1-fw))
+            self.y_max=max(0, self.content.cursor.y-(self.fb.height-1-fh))
         if self.scroll_type=='cursor_center':
-            self.x_max=max(0, self.content.cursor.x-(self.screen.width-1-fw)//2)
-            self.y_max=max(0, self.content.cursor.y-(self.screen.height-1-fh)//2)
+            self.x_max=max(0, self.content.cursor.x-(self.fb.width-1-fw)//2)
+            self.y_max=max(0, self.content.cursor.y-(self.fb.height-1-fh)//2)
         if x<0 or x>self.x_max:
             x=self.x_max
             self.scroll_x=-1
@@ -221,7 +221,7 @@ class boxDraw(Widget): #will be deprecated
                 box_name='box',
                 ):
         self.box_name=box_name
-        self.screen=None
+        self.fb=None
         self.style=style
         self.term=termcontrol()
         self.fg0, self.bg0=fg0, bg0

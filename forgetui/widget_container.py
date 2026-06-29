@@ -93,7 +93,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.content=super().addWidget( \
                 Widget(0,0,w=c_w, h=c_h, fg=fg, bg=bg, \
                     parent=parent, name=self.name+'.content'))
-        self.content.screen_resize=False #'grow'
+        self.content.fb_resize=False #'grow'
         self.pos_x=0
         self.pos_y='auto'
 
@@ -110,28 +110,28 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
     def auto_scroll(self):
         if self.v_bar:
             if self.pos_y=='auto':
-                self.v_bar.max=max(0,self.content.screen.height-self.content.h)
-                self.v_bar.set_value(max(0,self.content.screen.cursor.y-self.content.h))
+                self.v_bar.max=max(0,self.content.fb.height-self.content.h)
+                self.v_bar.set_value(max(0,self.content.fb.cursor.y-self.content.h))
         if self.h_bar:
             if self.pos_x=='auto':
-                self.h_bar.max=max(0,self.content.screen.width-self.content.w)
-                self.h_bar.set_value(max(0,self.content.screen.cursor.x-self.content.w))
+                self.h_bar.max=max(0,self.content.fb.width-self.content.w)
+                self.h_bar.set_value(max(0,self.content.fb.cursor.x-self.content.w))
 
     def h_update(self, val='auto'):
-        if val=='auto': val=max(0,self.content.screen.cursor.x-self.content.w)
+        if val=='auto': val=max(0,self.content.fb.cursor.x-self.content.w)
         self.pos_x=val
-        if val >= max(0,self.content.screen.cursor.x-self.content.w):
+        if val >= max(0,self.content.fb.cursor.x-self.content.w):
             self.pos_x='auto'
-        self.content.screen_x_offset=val
+        self.content.fb_x_offset=val
         self.on_update()
         return val
 
     def v_update(self, val='auto'):
-        if val=='auto': val=max(0,self.content.screen.cursor.y-self.content.h)
+        if val=='auto': val=max(0,self.content.fb.cursor.y-self.content.h)
         self.pos_y=val
-        if val >= max(0,self.content.screen.cursor.y-self.content.h):
+        if val >= max(0,self.content.fb.cursor.y-self.content.h):
             self.pos_y='auto'
-        self.content.screen_y_offset=val
+        self.content.fb_y_offset=val
         self.on_update()
         return val
 
@@ -151,13 +151,13 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         return self.h_update(0)
 
     def end(self):
-        return self.h_update(self.content.screen.width-self.content.w)
+        return self.h_update(self.content.fb.width-self.content.w)
 
     def top(self):
         return self.v_update(0)
 
     def bottom(self):
-        return self.v_update(self.content.screen.height-self.content.h)
+        return self.v_update(self.content.fb.height-self.content.h)
 
 class WidgetTabController(Widget): #Houses multiple containers in a tabs
     pass

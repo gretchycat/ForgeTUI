@@ -28,7 +28,7 @@ class Widget():
         self.name=name
         self.force_refresh=True
         self.dirty=True
-        self.screen=None
+        self.fb=None
         self.can_focus=True
         self.focus=False
         self.hidden=False
@@ -43,12 +43,12 @@ class Widget():
         self._x, self._y=None, None
         self._w, self._h=None, None
         self.set_geometry(x, y, w, h)
-        self.screen_resize=True
-        self.screen_x_offset=0
-        self.screen_y_offset=0
-        self.screen=Screen(width=self.w, height=self.h)
+        self.fb_resize=True
+        self.fb_x_offset=0
+        self.fb_y_offset=0
+        self.fb=Screen(width=self.w, height=self.h)
         self.setColors(fg, bg)
-        self.screen.cls()
+        self.fb.cls()
         self.widgetList=[]
         self.eventList={}
         self.parent=None
@@ -371,13 +371,17 @@ class Widget():
                     self.set_geometry(0,0,0,0)
                     self.resize()
                 else:
-                    pbuffer=self.screen.copy()
-                self.screen=self.draw()
+                    pbuffer=self.fb.copy()
+                self.fb=self.draw()
                 if self.force_refresh:
                     self.force_refresh=False
-                    self.t.output(s_start+home+self.screen.emit(raw=True)+s_end)
+                    self.t.output(s_start+home+\
+                        self.fb.emit(raw=True)+s_end)
+                    self.log(f'emit full')
                 else:
-                    self.t.output(s_start+home+self.screen.emit_diff(pbuffer, raw=True)+s_end)
+                    self.log(f'emit diff {pbuffer}')
+                    self.t.output(s_start+home+\
+                        self.fb.emit_diff(pbuffer, raw=True)+s_end)
                 for inp in self.input.read_input():
                     if inp != '':
                         if type(inp)==str:
@@ -408,11 +412,11 @@ class Widget():
 
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
-        self.screen.set_foreground(Color.set(fg))
-        self.screen.set_background(Color.set(bg))
+        self.fb.set_foreground(Color.set(fg))
+        self.fb.set_background(Color.set(bg))
 
     def feed(self, s):
-        self.screen.print(s)
+        self.fb.print(s)
         self.on_update()
 
     def addWidget(self, widget, focus=True):
@@ -420,9 +424,9 @@ class Widget():
         widget.set_geometry(widget._x,widget._y,widget._w,widget._h)
         widget.fg0=self.fg
         widget.bg0=self.bg
-        #widget.screen=Screen(width=widget.w)
+        #widget.fb=Screen(width=widget.w)
         #widget.setColors(widget.fg, widget.bg)
-        #widget.screen.cls()
+        #widget.fb.cls()
         self.widgetList.append(widget)
         if focus: widget.set_focus()
         self.resize()
@@ -475,13 +479,13 @@ class Widget():
             self.h=int(h)%scr['rows']
         if self.w==0: self.w=scr['columns']
         if self.h==0: self.h=scr['rows']
-        if self.screen and self.screen_resize:
-            if self.screen_resize=='grow':
-                self.screen.resize(max(self.screen.width, self.w),
-                                   max(self.screen.height, self.h)-1) #why -1?
+        if self.fb and self.fb_resize:
+            if self.fb_resize=='grow':
+                self.fb.resize(max(self.fb.width, self.w),
+                                   max(self.fb.height, self.h)-1) #why -1?
             else:
-                self.screen.resize(self.w, self.h-1)
-            self.screen.cls()
+                self.fb.resize(self.w, self.h-1)
+            self.fb.cls()
         return(w,h)
 
     def resize(self, w=None, h=None):
@@ -496,12 +500,14 @@ class Widget():
     def move(self, x,y):
         if self.parent:
             self.parent.makeDirty()
+            self.parent.fb.cls()
+            self.root().force_refresh=True
             self.x=max(0, min(self.parent.w-1-self.w,x))
             self.y=max(0, min(self.parent.h-1-self.h,y))
             self._x, self._y=None, None
 
     def drawChildren(self, screen=None):
-        if screen is None: screen=self.screen
+        if screen is None: screen=self.fb
         last=None
         lastbox=None
         for w in self.widgetList:
@@ -510,25 +516,25 @@ class Widget():
                 if w.dirty or True: #FIXME: make sure all widgets are refreshed
                     w.draw()
                     w.dirty=False
-                if w.screen_x_offset or w.screen_y_offset:
-                    inbox=(int(max(0, w.screen_x_offset)),
-                           int(max(0, w.screen_y_offset)),
-                           max(1, min(w.w,w.screen.width)),
-                           max(1, min(w.h,w.screen.height)))
+                if w.fb_x_offset or w.fb_y_offset:
+                    inbox=(int(max(0, w.fb_x_offset)),
+                           int(max(0, w.fb_y_offset)),
+                           max(1, min(w.w,w.fb.width)),
+                           max(1, min(w.h,w.fb.height)))
                     w.log(str(inbox))
                 if w.focus!=False:
                     last=w
                     lastbox=inbox
                 else:
                     if inbox:
-                        screen.paste(w.screen.copy(inbox), box=(w.x,w.y,w.w,w.h))
+                        screen.paste(w.fb.copy(inbox), box=(w.x,w.y,w.w,w.h))
                     else:
-                        screen.paste(w.screen, box=(w.x,w.y,w.w,w.h))
+                        screen.paste(w.fb, box=(w.x,w.y,w.w,w.h))
         if last:
             if lastbox:
-                screen.paste (last.screen.copy(lastbox), box=(last.x,last.y,last.w,last.h))
+                screen.paste (last.fb.copy(lastbox), box=(last.x,last.y,last.w,last.h))
             else:
-                screen.paste (last.screen, box=(last.x,last.y,last.w,last.h))
+                screen.paste (last.fb, box=(last.x,last.y,last.w,last.h))
         return screen
 
     def draw(self):
@@ -536,8 +542,6 @@ class Widget():
             self.bg=0
         if self.fg==None and self.parent:
             self.fg=self.parent.fg
-        if not self.parent:
-            self.screen.cls()
         return self.drawChildren()
 
     def on_focus(self):
