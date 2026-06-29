@@ -123,6 +123,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         if val >= max(0,self.content.screen.cursor.x-self.content.w):
             self.pos_x='auto'
         self.content.screen_x_offset=val
+        self.on_update()
         return val
 
     def v_update(self, val='auto'):
@@ -131,6 +132,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         if val >= max(0,self.content.screen.cursor.y-self.content.h):
             self.pos_y='auto'
         self.content.screen_y_offset=val
+        self.on_update()
         return val
 
     def up(self, lines=1):
@@ -218,6 +220,7 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
                     self.drag_handle='move'
                 m = event['drag move']
                 self.move(self.x+m['x'], self.y+m['y'])
+            self.on_update()
 
     def drag_resize(self, event=None):
         if not self.parent: return
@@ -233,3 +236,5 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
                     self.drag_handle='resize'
                 m= event['drag move']
                 self.resize(self.w+m['x'], self.h+m['y'])
+
+            self.on_update()

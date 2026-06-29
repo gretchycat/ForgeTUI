@@ -27,6 +27,7 @@ class Widget():
         self.log_file=None
         self.name=name
         self.force_refresh=True
+        self.dirty=True
         self.screen=None
         self.can_focus=True
         self.focus=False
@@ -224,6 +225,7 @@ class Widget():
         return None
 
     def hide(self, next='parent'):
+        self.makeDirty()
         if next=='parent':
             if self.parent:
                 self.parent.set_focus()
@@ -243,13 +245,14 @@ class Widget():
         return False
 
     def unhide(self, focus=True):
+        self.makeDirty()
         self.hidden=False
         if focus:
             self.set_focus()
         return True
 
     def refresh(self, event=None):
-        self.force_refresh=True
+        self.root().force_refresh=True
 
     def addEvent(self, trigger, func, persist=False, target='__focus__'):
         #func=types.MethodType(func, self)
@@ -397,6 +400,12 @@ class Widget():
     def quit(self, event=None):
         self.go=False
 
+    def makeDirty(self):
+        w=self
+        while w:
+            w.dirty=True
+            w=w.parent
+
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
         self.screen.set_foreground(Color.set(fg))
@@ -404,6 +413,7 @@ class Widget():
 
     def feed(self, s):
         self.screen.print(s)
+        self.on_update()
 
     def addWidget(self, widget, focus=True):
         widget.parent=self
@@ -478,11 +488,14 @@ class Widget():
         if w==None: w=self.w
         if h==None: h=self.h
         self.set_geometry(self.x,self.y,w,h)
-        for wd in self.widgetList:
-            wd.resize(wd.w,wd.h)
+        if w!=self.w or h!=self.w:
+            self.makeDirty()
+            for wd in self.widgetList:
+                wd.resize(wd.w,wd.h)
 
     def move(self, x,y):
         if self.parent:
+            self.parent.makeDirty()
             self.x=max(0, min(self.parent.w-1-self.w,x))
             self.y=max(0, min(self.parent.h-1-self.h,y))
             self._x, self._y=None, None
@@ -494,7 +507,9 @@ class Widget():
         for w in self.widgetList:
             inbox=None
             if not w.hidden:
-                w.draw()
+                if w.dirty or True: #FIXME: make sure all widgets are refreshed
+                    w.draw()
+                    w.dirty=False
                 if w.screen_x_offset or w.screen_y_offset:
                     inbox=(int(max(0, w.screen_x_offset)),
                            int(max(0, w.screen_y_offset)),
@@ -526,10 +541,10 @@ class Widget():
         return self.drawChildren()
 
     def on_focus(self):
-        pass
+        self.makeDirty()
 
     def on_defocus(self):
-        pass
+        self.makeDirty()
 
     def on_update(self):
-        pass
+        self.makeDirty()

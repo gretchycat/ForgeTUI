@@ -29,13 +29,16 @@ class WidgetButton(WidgetBox): #a button for interaction
             if 0<=event['x']<self.w and 0<=event['y']<self.h:
                 self.active=True
                 self.active_disp=True
+            self.makeDirty()
 
     def b_up(self, event=None):
         if event['button']==0:
             if 0<=event['x']<self.w and 0<=event['y']<self.h:
                 self.active=False
+            self.makeDirty()
 
     def draw(self):
+        self.makeDirty()
         self.fg0=7
         self.bg0=0
         if self.parent:
@@ -45,6 +48,7 @@ class WidgetButton(WidgetBox): #a button for interaction
         fh=0
         box_type='focus'
         if self.active or self.active_disp:
+            self.makeDirty()
             box_type='active'
             if self.active_disp:
                 self.active_disp=False
@@ -268,10 +272,10 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
                 self.set_value(v*span+minimum)
 
     def home(self, event=None):
-        self.value=self.min
+        self.set_value(self.min)
 
     def end(self, event=None):
-        self.value=self.max
+        self.set_value(self.max)
 
 class WidgetMenuBar(Widget):
     pass
