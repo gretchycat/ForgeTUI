@@ -1,12 +1,10 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os
+import sys, os, signal, uuid, termios
 from libansiscreen.screen import Screen
 from libansiscreen.color.rgb import Color
 from .termcontrol import termcontrol
 from .terminput import termInput
-import signal
-import uuid
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -28,7 +26,6 @@ class Widget():
         self.name=name
         self.force_refresh=True
         self.dirty=True
-        self.fb=None
         self.can_focus=True
         self.focus=False
         self.hidden=False
@@ -42,11 +39,12 @@ class Widget():
         self.t=termcontrol()
         self._x, self._y=None, None
         self._w, self._h=None, None
+        self.fb_resize=False
         self.set_geometry(x, y, w, h)
         self.fb_resize=True
         self.fb_x_offset=0
         self.fb_y_offset=0
-        self.fb=Screen(width=self.w, height=self.h)
+        self.fb=Screen(width=self.w)
         self.setColors(fg, bg)
         self.fb.cls()
         self.widgetList=[]
@@ -58,24 +56,40 @@ class Widget():
         self.drag_handle=None
         self.event_buffer=[]    #list of Events
 
-    def suspend(self, signum, frame):
-        self.t.output(self.t.disable_mouse())
-        self.t.output(self.t.enable_cursor())
-        self.t.output(self.t.normal_screen())
-        self.t.output("Preparing for suspend\n")
-        os.kill(os.getpid(), signal.SIGSTOP)
+    def handle_signal(self, signum, frame):
+        match signum:
+            case signal.SIGTSTP:  # Suspend (Ctrl+Z)
+                self.t.output(self.t.disable_mouse())
+                self.t.output(self.t.enable_cursor())
+                self.t.output(self.t.normal_screen())
+                self.t.output("Preparing for suspend\n")
+                sys.stdout.flush()
+                # Restore standard terminal settings for the shell
+                termios.tcsetattr(
+                    sys.stdin.fileno(), termios.TCSADRAIN, self.old_settings)
+                # Put process to sleep
+                os.kill(os.getpid(), signal.SIGSTOP)
 
-    def resume(self, signum, frame):
-        self.t.output(self.t.enable_mouse())
-        self.t.output(self.t.disable_cursor())
-        self.t.output(self.t.alt_screen())
-        self.t.output("Resuming\n")
+            case signal.SIGCONT:  # Resume
+                # Force the terminal back into raw mode immediately
+                termios.tcsetattr(
+                    sys.stdin.fileno(), termios.TCSADRAIN, self.raw_settings)
+                # Redraw ANSI states
+                self.t.output("Resuming\n")
+                self.t.output(self.t.enable_mouse())
+                self.t.output(self.t.disable_cursor())
+                self.t.output(self.t.alt_screen())
+                self.refresh()
+                sys.stdout.flush()
 
-    def stop(self, signum, frame):
-        self.t.output(self.t.normal_screen())
-        self.t.output('Quit requested. Stopping\n')
-        self.t.output(self.t.alt_screen())
-        self.quit()
+            case signal.SIGINT | signal.SIGTERM:  # Stop
+                self.t.output(self.t.normal_screen())
+                self.t.output("Quit requested. Stopping\n")
+                self.t.output(self.t.alt_screen())
+                # Clean up termios back to normal before exiting
+                termios.tcsetattr(
+                    sys.stdin.fileno(), termios.TCSADRAIN, self.old_settings)
+                self.quit()
 
     def __del__(self):
         pass
@@ -255,7 +269,6 @@ class Widget():
         self.root().force_refresh=True
 
     def addEvent(self, trigger, func, persist=False, target='__focus__'):
-        #func=types.MethodType(func, self)
         self.eventList[trigger]={ 'func':func, 'persist':persist, 'target':target }
 
     def check_captured(self, event):
@@ -347,6 +360,7 @@ class Widget():
             root.drag_previous=None
 
     def guiLoop(self, outputmode=[]):
+        self.old_settings = termios.tcgetattr(sys.stdin.fileno())
         self.go=True
         self.input=termInput()
         self.input.raw=True
@@ -358,10 +372,9 @@ class Widget():
         home=self.t.gotoxy(1, 1)
         s_start=self.t.start_sync()
         s_end=self.t.end_sync()
-        signal.signal(signal.SIGINT, self.stop)
-        signal.signal(signal.SIGQUIT, self.stop)
-        signal.signal(signal.SIGTSTP, self.suspend)
-        signal.signal(signal.SIGCONT, self.resume)
+        self.raw_settings = termios.tcgetattr(sys.stdin.fileno())
+        for sig in [signal.SIGINT,signal.SIGQUIT,signal.SIGTSTP,signal.SIGCONT]:
+            signal.signal(sig, self.handle_signal)
         with open("output.log", "w") as self.log_file:
             while self.go:
                 #resize to full screen
@@ -479,7 +492,7 @@ class Widget():
             self.h=int(h)%scr['rows']
         if self.w==0: self.w=scr['columns']
         if self.h==0: self.h=scr['rows']
-        if self.fb and self.fb_resize:
+        if self.fb_resize:
             if self.fb_resize=='grow':
                 self.fb.resize(max(self.fb.width, self.w),
                                    max(self.fb.height, self.h))

@@ -46,7 +46,13 @@ class termInput:
 
     def read(self, bin=False, wait=False):
         self.buffer=''
-        rlist, _, _ = select.select([sys.stdin], [], [], self.timeout)
+        try:
+            rlist, _, _ = select.select([sys.stdin], [], [], self.timeout)
+        except (InterruptedError, OSError) as e:
+            # Catch the signal interruption and return the empty buffer safely
+            if isinstance(e, InterruptedError) or getattr(e, "errno", None) == errno.EINTR:
+                return self.buffer
+            raise
         if rlist:
             if not bin:
                 try:
