@@ -9,7 +9,6 @@ from .widget_input import WidgetButton, WidgetSlider
 #container widgets
 class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a vertical sequence
     def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None,\
-
                  style=None, box_name='box',\
                  name='VBox'+str(uuid.uuid4()), parent=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style,\
@@ -70,7 +69,7 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
 class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name='ScrollArea'+str(uuid.uuid4()), \
-            v_bar=True, h_bar=True):
+            v_bar=True, h_bar=False):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, \
                 parent=parent, name=name)
         c_w=1.0
@@ -82,15 +81,17 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
             self.v_bar=super().addWidget( \
                     WidgetSlider(-1,0,h=-1, \
                         bar_name='scroll', name=name+'v_bar'))
-            def u(self): self.parent.v_update(val='auto')
-            self.v_bar.on_update=types.MethodType(u,self.v_bar)
+            #def u(self): 
+            #    self.parent.v_update(val='auto')
+            #self.v_bar.on_update=types.MethodType(u,self.v_bar)
         if h_bar:
             c_h=-1
             self.h_bar=super().addWidget( \
                     WidgetSlider(0,-1,w=-1, \
                         bar_name='scroll', name=name+'h_bar'))
-            def u(self): self.parent.h_update(val='auto')
-            self.h_bar.on_update=types.MethodType(u,self.h_bar)
+            #def u(self): 
+            #    self.parent.h_update(val='auto')
+            #self.h_bar.on_update=types.MethodType(u,self.h_bar)
         self.content=super().addWidget( \
                 Widget(0,0,w=c_w, h=c_h, fg=fg, bg=bg, \
                     parent=parent, name=self.name+'.content'))
@@ -109,56 +110,76 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         super().draw()
 
     def auto_scroll(self):
+        self.max_y=max(0,self.content.fb.height-self.content.h)
+        self.v_update(self.pos_y)
         if self.v_bar:
+            self.v_bar.max=self.max_y
             if self.pos_y=='auto':
-                self.v_bar.max=max(0,self.content.fb.height-self.content.h)
                 self.v_bar.set_value(max(0,self.content.fb.cursor.y-self.content.h))
+        self.max_x=max(0,self.content.fb.width-self.content.w)
+        self.h_update(self.pos_x)
         if self.h_bar:
+            self.h_bar.max=self.max_x
             if self.pos_x=='auto':
-                self.h_bar.max=max(0,self.content.fb.width-self.content.w)
                 self.h_bar.set_value(max(0,self.content.fb.cursor.x-self.content.w))
 
     def h_update(self, val:int|str='auto'):
-        if val=='auto': val=max(0,self.content.fb.cursor.x-self.content.w)
-        self.pos_x=val
-        if int(val) >= max(0,self.content.fb.cursor.x-self.content.w):
-            self.pos_x='auto'
+        if val=='auto': val=self.max_x
+        self.pos_x=max(0,val)
+        if int(val) >= self.max_x:
+            val=self.max_x
+            if self.h_bar:
+                self.pos_x='auto'
         self.content.fb_x_offset=val
         self.on_update()
         return val
 
     def v_update(self, val:int|str='auto'):
-        if val=='auto': val=max(0,self.content.fb.cursor.y-self.content.h)
-        self.pos_y=val
-        if int(val) >= max(0,self.content.fb.cursor.y-self.content.h):
-            self.pos_y='auto'
+        if val=='auto': val=self.max_y
+        self.pos_y=max(0,val)
+        if int(val) >= self.max_y:
+            val=self.max_y
+            if self.v_bar:
+                self.pos_y='auto'
         self.content.fb_y_offset=val
         self.on_update()
         return val
 
     def up(self, lines=1):
-        return self.v_update(int(self.pos_y)-lines)
+        y=self.pos_y
+        if y=='auto':
+            y=self.max_y
+        return self.v_update(y-lines)
 
     def down(self, lines=1):
-        return self.v_update(int(self.pos_y)+lines)
+        y=self.pos_y
+        if y=='auto':
+            y=self.max_y
+        return self.v_update(y+lines)
 
     def left(self, lines=1):
-        return self.h_update(int(self.pos_x)-lines)
+        x=self.pos_x
+        if x=='auto':
+            x=self.max_x
+        return self.h_update(x-lines)
 
     def right(self, lines=1):
-        return self.h_update(int(self.pos_x)+lines)
+        x=self.pos_x
+        if x=='auto':
+            x=self.max_x
+        return self.h_update(x+lines)
 
     def home(self):
         return self.h_update(0)
 
     def end(self):
-        return self.h_update(self.content.fb.width-self.content.w)
+        return self.h_update(self.max_x)
 
     def top(self):
         return self.v_update(0)
 
     def bottom(self):
-        return self.v_update(self.content.fb.height-self.content.h)
+        return self.v_update(self.max_y)
 
 class WidgetTabController(Widget): #Houses multiple containers in a tabs
     pass
