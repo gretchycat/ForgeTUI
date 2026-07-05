@@ -6,7 +6,8 @@ from .termkeymap import gen_keymap
 
 class termInput:
     def __init__(self):
-        self.timeout=0.25
+        fps=30
+        self.timeout=1/fps
         self.start=0
         self.keymap=gen_keymap()
         self.buffer=''
@@ -44,23 +45,23 @@ class termInput:
         # Apply the modified attributes
         termios.tcsetattr(sys.stdin, termios.TCSANOW, attributes)
 
-    def read(self, bin=False, wait=False):
-        self.buffer=''
+    def read(self, bin=False):
+        self.buffer = ''
         try:
             rlist, _, _ = select.select([sys.stdin], [], [], self.timeout)
         except (InterruptedError, OSError) as e:
-            # Catch the signal interruption and return the empty buffer safely
             if isinstance(e, InterruptedError) or getattr(e, "errno", None) == errno.EINTR:
                 return self.buffer
             raise
         if rlist:
             if not bin:
                 try:
-                    self.buffer += sys.stdin.read()
-                except:
-                    self.buffer+=sys.stdin.buffer.read()
+                    # Read only a chunk of available buffer (e.g., 4096 bytes) instead of EOF
+                    self.buffer += sys.stdin.read(4096)
+                except Exception:
+                    self.buffer += sys.stdin.buffer.read(4096).decode('utf-8', errors='ignore')
             else:
-                self.buffer+= sys.stdin.buffer.read()
+                self.buffer += sys.stdin.buffer.read(4096)
         return self.buffer
 
     def ord(self, d):

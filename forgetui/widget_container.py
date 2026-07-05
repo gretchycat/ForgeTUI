@@ -9,6 +9,7 @@ from .widget_input import WidgetButton, WidgetSlider
 #container widgets
 class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a vertical sequence
     def __init__(self, x=0, y=0, w='min', h='min', fg=7, bg=None,\
+
                  style=None, box_name='box',\
                  name='VBox'+str(uuid.uuid4()), parent=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style,\
@@ -117,35 +118,35 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
                 self.h_bar.max=max(0,self.content.fb.width-self.content.w)
                 self.h_bar.set_value(max(0,self.content.fb.cursor.x-self.content.w))
 
-    def h_update(self, val='auto'):
+    def h_update(self, val:int|str='auto'):
         if val=='auto': val=max(0,self.content.fb.cursor.x-self.content.w)
         self.pos_x=val
-        if val >= max(0,self.content.fb.cursor.x-self.content.w):
+        if int(val) >= max(0,self.content.fb.cursor.x-self.content.w):
             self.pos_x='auto'
         self.content.fb_x_offset=val
         self.on_update()
         return val
 
-    def v_update(self, val='auto'):
+    def v_update(self, val:int|str='auto'):
         if val=='auto': val=max(0,self.content.fb.cursor.y-self.content.h)
         self.pos_y=val
-        if val >= max(0,self.content.fb.cursor.y-self.content.h):
+        if int(val) >= max(0,self.content.fb.cursor.y-self.content.h):
             self.pos_y='auto'
         self.content.fb_y_offset=val
         self.on_update()
         return val
 
     def up(self, lines=1):
-        return self.v_update(self.pos_y-lines)
+        return self.v_update(int(self.pos_y)-lines)
 
     def down(self, lines=1):
-        return self.v_update(self.pos_y+lines)
+        return self.v_update(int(self.pos_y)+lines)
 
     def left(self, lines=1):
-        return self.h_update(self.pos_x-lines)
+        return self.h_update(int(self.pos_x)-lines)
 
     def right(self, lines=1):
-        return self.h_update(self.pos_x+lines)
+        return self.h_update(int(self.pos_x)+lines)
 
     def home(self):
         return self.h_update(0)

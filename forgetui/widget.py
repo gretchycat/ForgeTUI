@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, signal, uuid, termios
+import sys, os, signal, uuid, termios, inspect
 from libansiscreen.screen import Screen
 from libansiscreen.color.rgb import Color
 from .termcontrol import termcontrol
@@ -21,7 +21,9 @@ class EventTrigger:
     source: EventSource = EventSource.PROGRAM
 
 class Widget():
-    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=None, bg=None, parent=None, name=str(uuid.uuid4())):
+    def __init__(self, x:int|float=0, y:int|float=0,\
+                 w:int|float=1.0, h:int|float=1.0, fg=None, bg=None,\
+                 parent=None, name=str(uuid.uuid4())):
         self.log_file=None
         self.name=name
         self.force_refresh=True
@@ -88,14 +90,15 @@ class Widget():
                 self.t.output(self.t.alt_screen())
                 # Clean up termios back to normal before exiting
                 termios.tcsetattr(
-                    sys.stdin.fileno(), termios.TCSADRAIN, self.old_settings)
+                    sys.stdin.fileno(), termios.TCSADRAIN,\
+                    self.old_settings)
                 self.quit()
 
     def __del__(self):
         pass
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(id={id(self):x})"
+        return f"{self.__class__.__name__}(name={self.name})"
 
     def root(self):
         root = self
@@ -156,7 +159,7 @@ class Widget():
             return widgets  #return on top
         return None
 
-    def rel_mouse(self, event=None):
+    def rel_event(self, event=None):
         if type(event)==dict:
             ox,oy=self.offset()
             revent=event.copy()
@@ -279,7 +282,7 @@ class Widget():
                 if self.captured_widget==None:
                     self.captured_widget=self.get_focused()
                     event.pop('drag start',None)
-                    self.drag_start=self.captured_widget.rel_mouse(event)
+                    self.drag_start=self.captured_widget.rel_event(event)
                 return
         self.captured_widget=None
         self.drag_start=None
@@ -294,11 +297,16 @@ class Widget():
                     x=event.get('x')
                     y=event.get('y')
                     ws=self.widgets_at_coordinate(x,y)
-                    if ws:
-                        for w in ws: #FIXME:
+                    if ws is not None:
+                        #purge parents
+                        ws_p=ws.copy()
+                        for w in ws:
+                            if w.parent in ws:
+                                if w.parent in ws_p:
+                                    ws_p.remove(w.parent)
+                        self.log(ws_p)
+                        for w in ws_p: #FIXME:
                             if w.focus==True:
-                                focused=w
-                            if w.parent in ws and w.parent.focus==True:
                                 focused=w
                         if focused:
                             focused.set_focus()
@@ -340,15 +348,24 @@ class Widget():
                 if type(target)==str:
                     target=self.get_widget_by_name(target)
                 if w.focus==True or persist or w==target:
-                    rel_mouse=w.rel_mouse(event)
-                    if e==rel_mouse or e=='' or (type(rel_mouse)==dict and e==rel_mouse['action']):
-                        if f'{type(func)}' in [ "function", "<class 'method'>" ,"<class 'function'>"]:
-                            w.action=func
-                            if 'method' in f'{type(func)}':
-                                w.action(event=rel_mouse)
-                            elif 'function' in f'{type(func)}':
-                                w.action(w, event=rel_mouse)
-                            w.action=None
+                    rel_event=w.rel_event(event)
+                    if e==rel_event or e=='' or\
+                        (type(rel_event)==dict and\
+                         e==rel_event['action']):
+                        if callable(func):
+                            try:
+                                sig = inspect.signature(func)
+                                has_event_param = 'event' in sig.parameters
+                            except (TypeError, ValueError):
+                                has_event_param = True
+                            kwargs = {'event': rel_event} if has_event_param else {}
+                            wdgt=w
+                            if target: wdgt=target
+                            if inspect.ismethod(func):
+                                wdgt.run=func
+                                wdgt.run(**kwargs)
+                            else:
+                                func(wdgt, **kwargs)
                         else:
                             w.log(f'invalid action for "{e}" type: {type(func)}')
         if root.drag_start:
@@ -359,7 +376,9 @@ class Widget():
         else:
             root.drag_previous=None
 
-    def guiLoop(self, outputmode=[]):
+    def mainLoop(self, outputmode=[]):
+        if self.parent is not None:
+            return
         self.old_settings = termios.tcgetattr(sys.stdin.fileno())
         self.go=True
         self.input=termInput()
@@ -368,7 +387,6 @@ class Widget():
         self.t.output(self.t.enable_mouse())
         self.t.output(self.t.alt_screen())
         self.t.output(self.t.clear())
-        #home=self.t.gotoxy(self.x, self.y)
         home=self.t.gotoxy(1, 1)
         s_start=self.t.start_sync()
         s_end=self.t.end_sync()
@@ -390,9 +408,7 @@ class Widget():
                     self.force_refresh=False
                     self.t.output(s_start+home+\
                         self.fb.emit(raw=True)+s_end)
-                    self.log(f'emit full')
                 else:
-                    self.log(f'emit diff {pbuffer}')
                     self.t.output(s_start+home+\
                         self.fb.emit_diff(pbuffer, raw=True)+s_end)
                 for inp in self.input.read_input():
@@ -413,9 +429,12 @@ class Widget():
         self.t.output(self.t.normal_screen())
         try: sys.stdout.flush()
         except: pass
+        termios.tcsetattr(
+            sys.stdin.fileno(), termios.TCSADRAIN,\
+            self.old_settings)
 
-    def quit(self, event=None):
-        self.go=False
+    def quit(self):
+        self.root().go=False
 
     def makeDirty(self):
         w=self
@@ -534,7 +553,6 @@ class Widget():
                            int(max(0, w.fb_y_offset)),
                            max(1, min(w.w,w.fb.width)),
                            max(1, min(w.h,w.fb.height)))
-                    w.log(str(inbox))
                 if w.focus!=False:
                     last=w
                     lastbox=inbox
