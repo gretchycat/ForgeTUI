@@ -115,13 +115,17 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         if self.v_bar:
             self.v_bar.max=self.max_y
             if self.pos_y=='auto':
-                self.v_bar.set_value(max(0,self.content.fb.cursor.y-self.content.h))
+                self.v_bar.set_value(max(0,self.max_y))
+            else:
+                self.v_bar.set_value(max(0,self.pos_y))
         self.max_x=max(0,self.content.fb.width-self.content.w)
         self.h_update(self.pos_x)
         if self.h_bar:
             self.h_bar.max=self.max_x
             if self.pos_x=='auto':
-                self.h_bar.set_value(max(0,self.content.fb.cursor.x-self.content.w))
+                self.h_bar.set_value(max(0,self.max_x))
+            else:
+                self.h_bar.set_value(max(0,self.pos_x))
 
     def h_update(self, val:int|str='auto'):
         if val=='auto': val=self.max_x
