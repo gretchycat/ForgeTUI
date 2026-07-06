@@ -82,24 +82,28 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
             self.v_bar=super().addWidget( \
                     WidgetSlider(-1,0,h=c_h, \
                         bar_name='scroll', name=name+'v_bar'))
-            #def u(self): 
-            #    self.parent.v_update(val='auto')
-            #self.v_bar.on_update=types.MethodType(u,self.v_bar)
+            self.v_bar.on_update=self.v_bar_on_update
         if h_bar:
             if v_bar:c_w=-1
             c_h=-1
             self.h_bar=super().addWidget( \
                     WidgetSlider(0,-1,w=c_w, \
                         bar_name='scroll', name=name+'h_bar'))
-            #def u(self): 
-            #    self.parent.h_update(val='auto')
-            #self.h_bar.on_update=types.MethodType(u,self.h_bar)
+            self.h_bar.on_update=self.h_bar_on_update
         self.content=super().addWidget( \
                 Widget(0,0,w=c_w, h=c_h, fg=fg, bg=bg, \
                     parent=parent, name=self.name+'.content'))
         self.content.fb_resize=False #'grow'
         self.pos_x=0
         self.pos_y='auto'
+
+    def v_bar_on_update(self):
+        return
+        self.parent.v_update(val=self.value)
+
+    def h_bar_on_update(self):
+        return
+        self.parent.h_update(val=self.value)
 
     def addWidget(self, widget, focus=True):
         return self.content.addWidget(widget, focus=focus)
@@ -136,7 +140,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.pos_x=max(0,val)
         if int(val) >= self.max_x:
             val=self.max_x
-        if self.h_bar and val==self.auto_x:
+        if val==self.auto_x:
             self.pos_x='auto'
         self.content.fb_x_offset=val
         self.on_update()
@@ -147,7 +151,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.pos_y=max(0,val)
         if int(val) >= self.max_y:
             val=self.max_y
-        if self.v_bar and val==self.auto_y:
+        if val==self.auto_y:
             self.pos_y='auto'
         self.content.fb_y_offset=val
         self.on_update()
@@ -204,6 +208,11 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
         cy=max(1,self.frame['h'])
         cw=cx*-2
         ch=-1*(cy+self.frame['h'])
+        if type(content)==WidgetScrollArea:
+            if content.v_bar:
+                cw=-cx
+            if content.h_bar:
+                ch=-cy
         content.set_geometry(cx,cy,cw,ch)
         self.content=content
         self.title=title
