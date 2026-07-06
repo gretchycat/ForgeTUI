@@ -69,7 +69,7 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
 class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name='ScrollArea'+str(uuid.uuid4()), \
-            v_bar=True, h_bar=False):
+            v_bar=True, h_bar=True):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, \
                 parent=parent, name=name)
         c_w=1.0
@@ -77,17 +77,19 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.v_bar=None
         self.h_bar=None
         if v_bar:
+            if h_bar: c_h=-1
             c_w=-1
             self.v_bar=super().addWidget( \
-                    WidgetSlider(-1,0,h=-1, \
+                    WidgetSlider(-1,0,h=c_h, \
                         bar_name='scroll', name=name+'v_bar'))
             #def u(self): 
             #    self.parent.v_update(val='auto')
             #self.v_bar.on_update=types.MethodType(u,self.v_bar)
         if h_bar:
+            if v_bar:c_w=-1
             c_h=-1
             self.h_bar=super().addWidget( \
-                    WidgetSlider(0,-1,w=-1, \
+                    WidgetSlider(0,-1,w=c_w, \
                         bar_name='scroll', name=name+'h_bar'))
             #def u(self): 
             #    self.parent.h_update(val='auto')
