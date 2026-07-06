@@ -7,6 +7,20 @@ from .termcontrol import termcontrol
 from .terminput import termInput
 from dataclasses import dataclass
 from enum import Enum, auto
+import os
+import psutil
+
+def get_detailed_memory():
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    
+    # rss = Resident Set Size (Physical RAM)
+    # vms = Virtual Memory Size (Total Virtual Memory allocated)
+    return {
+        "rss_mb": mem_info.rss / (1024 * 1024),
+        "vms_mb": mem_info.vms / (1024 * 1024)
+    }
+
 
 class EventSource(Enum):
     INPUT = auto()
@@ -408,6 +422,8 @@ class Widget():
                     self.force_refresh=False
                     self.t.output(s_start+home+\
                         self.fb.emit(raw=True)+s_end)
+                    stats = get_detailed_memory()
+                    self.log(f"Physical RAM: {stats['rss_mb']:.2f} MB | Virtual Allocated: {stats['vms_mb']:.2f} MB")
                 else:
                     self.t.output(s_start+home+\
                         self.fb.emit_diff(pbuffer, raw=True)+s_end)
