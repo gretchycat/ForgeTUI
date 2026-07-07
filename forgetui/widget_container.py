@@ -69,7 +69,7 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
 class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name='ScrollArea'+str(uuid.uuid4()), \
-            v_bar=True, h_bar=True):
+            v_bar=True, h_bar=True, content_events=True):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, \
                 parent=parent, name=name)
         c_w=1.0
@@ -94,16 +94,40 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
                 Widget(0,0,w=c_w, h=c_h, fg=fg, bg=bg, \
                     parent=parent, name=self.name+'.content'))
         self.content.fb_resize=False #'grow'
+        if content_events:
+            self.addContentEvents()
         self.pos_x=0
-        self.pos_y='auto'
+        self.pos_y='follow'
 
     def v_bar_on_update(self):
-        return
-        self.parent.v_update(val=self.value)
+        self.v_update(val=self.v_bar.value)
 
     def h_bar_on_update(self):
-        return
-        self.parent.h_update(val=self.value)
+        self.h_update(val=self.h_bar.value)
+
+    def addContentEvents(self):
+        self.content.addEvent('scroll up', self.up, target=self)
+        self.content.addEvent('scroll down', self.down, target=self)
+        self.content.addEvent('scroll left', self.left, target=self)
+        self.content.addEvent('scroll right', self.right, target=self)
+        self.content.addEvent('Up', self.up, target=self)
+        self.content.addEvent('Down', self.down, target=self)
+        self.content.addEvent('Left', self.left, target=self)
+        self.content.addEvent('Right', self.right, target=self)
+
+        self.content.addEvent('PgUp', self.page_up, target=self)
+        self.content.addEvent('PgDn', self.page_down, target=self)
+        self.content.addEvent('Ctrl Up', self.page_up, target=self)
+        self.content.addEvent('Ctrl Down', self.page_down, target=self)
+        self.content.addEvent('Ctrl Left', self.page_left, target=self)
+        self.content.addEvent('Ctrl Right', self.page_right, target=self)
+
+        self.content.addEvent('Ctrl PgUp', self.top, target=self)
+        self.content.addEvent('Ctrl PgDn', self.bottom, target=self)
+        self.content.addEvent('Ctrl Home', self.top, target=self)
+        self.content.addEvent('Ctrl End', self.bottom, target=self)
+        self.content.addEvent('Home', self.home, target=self)
+        self.content.addEvent('End', self.end, target=self)
 
     def addWidget(self, widget, focus=True):
         return self.content.addWidget(widget, focus=focus)
@@ -121,7 +145,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.v_update(self.pos_y)
         if self.v_bar:
             self.v_bar.max=self.max_y
-            if self.pos_y=='auto':
+            if self.pos_y=='follow':
                 self.v_bar.set_value(max(0,self.auto_y))
             else:
                 self.v_bar.set_value(max(0,self.pos_y))
@@ -130,56 +154,68 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.h_update(self.pos_x)
         if self.h_bar:
             self.h_bar.max=self.max_x
-            if self.pos_x=='auto':
+            if self.pos_x=='follow':
                 self.h_bar.set_value(max(0,self.auto_x))
             else:
                 self.h_bar.set_value(max(0,self.pos_x))
 
-    def h_update(self, val:int|str='auto'):
-        if val=='auto': val=self.auto_x
+    def h_update(self, val:int|str='follow'):
+        if val=='follow': val=self.auto_x
         self.pos_x=max(0,val)
         if int(val) >= self.max_x:
             val=self.max_x
-        if val==self.auto_x:
-            self.pos_x='auto'
+        if val>=self.auto_x:
+            self.pos_x='follow'
         self.content.fb_x_offset=val
         self.on_update()
         return val
 
-    def v_update(self, val:int|str='auto'):
-        if val=='auto': val=self.auto_y
+    def v_update(self, val:int|str='follow'):
+        if val=='follow': val=self.auto_y
         self.pos_y=max(0,val)
         if int(val) >= self.max_y:
             val=self.max_y
         if val==self.auto_y:
-            self.pos_y='auto'
+            self.pos_y='follow'
         self.content.fb_y_offset=val
         self.on_update()
         return val
 
     def up(self, lines=1):
         y=self.pos_y
-        if y=='auto':
+        if y=='follow':
             y=self.max_y
         return self.v_update(y-lines)
 
     def down(self, lines=1):
         y=self.pos_y
-        if y=='auto':
+        if y=='follow':
             y=self.max_y
         return self.v_update(y+lines)
 
     def left(self, lines=1):
         x=self.pos_x
-        if x=='auto':
+        if x=='follow':
             x=self.max_x
         return self.h_update(x-lines)
 
     def right(self, lines=1):
         x=self.pos_x
-        if x=='auto':
+        if x=='follow':
             x=self.max_x
         return self.h_update(x+lines)
+
+    def page_up(self):
+        self.up(lines=self.h//2)
+
+    def page_down(self):
+        self.down(lines=self.h//2)
+
+    def page_left(self):
+        self.left(lines=self.w//2)
+
+    def page_right(self):
+        self.right(lines=self.w//2)
 
     def home(self):
         return self.h_update(0)
@@ -208,7 +244,7 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
         cy=max(1,self.frame['h'])
         cw=cx*-2
         ch=-1*(cy+self.frame['h'])
-        if type(content)==WidgetScrollArea:
+        if isinstance(content,WidgetScrollArea):
             if content.v_bar:
                 cw=-cx
             if content.h_bar:
