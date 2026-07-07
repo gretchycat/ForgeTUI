@@ -164,7 +164,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.pos_x=max(0,val)
         if int(val) >= self.max_x:
             val=self.max_x
-        if val>=self.cursor_x:
+        if int(val)>=self.cursor_x:
             self.pos_x='follow'
         self.content.fb_x_offset=val
         self.on_update()
@@ -175,7 +175,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.pos_y=max(0,val)
         if int(val) >= self.max_y:
             val=self.max_y
-        if val>=self.cursor_y:
+        if int(val)>=self.cursor_y:
             self.pos_y='follow'
         self.content.fb_y_offset=val
         self.on_update()
