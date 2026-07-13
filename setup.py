@@ -1,26 +1,23 @@
 #!/usr/bin/python3
 from setuptools import setup, find_packages
-import shutil
 
 with open('README.md') as f:
     long_description = f.read()
-shutil.copyfile('forgetui/termcontrol.py', 'forgetui/__init__.py')
 
 setup(
     name='forgetui',
-    version='0.0.3',
+    version='0.0.4',
     license='GPL3',
-    url='https://github.com/gretchycat/termcontrol',
+    url='https://github.com/gretchycat/ForgeTUI',
     author='Gretchen Maculo',
     author_email='gretchen.maculo@gmail.com',
-    description='python terminal control and basïc gui',
+    description='python tui framework',
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=find_packages(),
     install_requires=[
-        'pyte',
+        'libAnsiScreen',
     ],
     tests_require=[
     ],
-    #scripts=['termcontrol/termcontrol']
 )

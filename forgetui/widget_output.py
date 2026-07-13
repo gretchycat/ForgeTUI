@@ -98,8 +98,5 @@ class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justifi
 class WidgetList(Widget): #one dimensional list of data arranged vertically
     pass
 
-class WidgetMatrix(Widget): #a two-dimensional Matrix of data
-    pass
-
 class WidgetProgressBar(Widget): #a bar going from 0 to 100%
     pass

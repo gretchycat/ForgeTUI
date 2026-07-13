@@ -463,7 +463,7 @@ class Widget():
         self.resize()
         return self.widgetList[-1]
 
-    def set_geometry(self, x, y, w, h):
+    def set_geometry(self, x, y, w, h, force=False):
         scr=self.t.get_terminal_size()
         if self.parent:
             scr['columns']=self.parent.w
@@ -510,8 +510,8 @@ class Widget():
             self.h=int(h)%scr['rows']
         if self.w==0: self.w=scr['columns']
         if self.h==0: self.h=scr['rows']
-        if self.fb_resize:
-            if self.fb_resize=='grow':
+        if self.fb_resize or force:
+            if self.fb_resize=='grow' and not force:
                 self.fb.resize(max(self.fb.width, self.w),
                                    max(self.fb.height, self.h))
             else:

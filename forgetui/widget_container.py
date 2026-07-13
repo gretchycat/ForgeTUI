@@ -66,6 +66,9 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
         self.minH=self.frame['h']*2+max_h
         super().resize()
 
+class WidgetMatrix(WidgetVBox): #a two-dimensional Matrix of data
+    pass
+
 class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name='ScrollArea'+str(uuid.uuid4()), \
@@ -98,6 +101,8 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
             self.addContentEvents()
         self.pos_x=0
         self.pos_y='follow'
+        self.x_can_follow=False
+        self.y_can_follow=True
 
     def v_bar_on_update(self):
         self.v_update(val=self.v_bar.value)
@@ -142,19 +147,19 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
     def auto_scroll(self):
         self.max_y=max(0,self.content.fb.height-self.content.h)
         self.cursor_y=max(0,self.content.fb.cursor.y-self.content.h)
-        self.v_update(self.pos_y)
         if self.v_bar:
             self.v_bar.max=self.max_y
             if self.pos_y=='follow':
+                self.v_update(self.pos_y)
                 self.v_bar.set_value(max(0,self.cursor_y))
             else:
                 self.v_bar.set_value(max(0,self.pos_y))
         self.max_x=max(0,self.content.fb.width-self.content.w)
         self.cursor_x=max(0,self.content.fb.cursor.x-self.content.w)
-        self.h_update(self.pos_x)
         if self.h_bar:
             self.h_bar.max=self.max_x
             if self.pos_x=='follow':
+                self.h_update(self.pos_x)
                 self.h_bar.set_value(max(0,self.cursor_x))
             else:
                 self.h_bar.set_value(max(0,self.pos_x))
@@ -164,7 +169,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.pos_x=max(0,val)
         if int(val) >= self.max_x:
             val=self.max_x
-        if int(val)>=self.cursor_x:
+        if self.x_can_follow and int(val)>=self.cursor_x:
             self.pos_x='follow'
         self.content.fb_x_offset=val
         self.on_update()
@@ -175,7 +180,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
         self.pos_y=max(0,val)
         if int(val) >= self.max_y:
             val=self.max_y
-        if int(val)>=self.cursor_y:
+        if self.y_can_follow and int(val)>=self.cursor_y:
             self.pos_y='follow'
         self.content.fb_y_offset=val
         self.on_update()
@@ -183,27 +188,23 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
 
     def up(self, lines=1):
         y=self.pos_y
-        if y=='follow':
-            y=self.cursor_y
-        return self.v_update(y-lines)
+        if y=='follow': y=self.cursor_y
+        return self.v_update(int(y)-lines)
 
     def down(self, lines=1):
         y=self.pos_y
-        if y=='follow':
-            y=self.cursor_y
-        return self.v_update(y+lines)
+        if y=='follow': y=self.cursor_y
+        return self.v_update(int(y)+lines)
 
     def left(self, lines=1):
         x=self.pos_x
-        if x=='follow':
-            x=self.cursor_x
-        return self.h_update(x-lines)
+        if x=='follow': x=self.cursor_x
+        return self.h_update(int(x)-lines)
 
     def right(self, lines=1):
         x=self.pos_x
-        if x=='follow':
-            x=self.cursor_x
-        return self.h_update(x+lines)
+        if x=='follow': x=self.cursor_x
+        return self.h_update(int(x)+lines)
 
     def page_up(self):
         self.up(lines=self.h//2)
@@ -229,7 +230,7 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
     def bottom(self):
         return self.v_update(self.max_y)
 
-class WidgetTabController(Widget): #Houses multiple containers in a tabs
+class WidgetTabs(Widget): #Houses multiple containers in a tabs
     pass
 
 class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
@@ -249,9 +250,8 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
                 cw=-cx
             if content.h_bar:
                 ch=-cy
-        content.set_geometry(cx,cy,cw,ch)
-        self.content=content
-        self.title=title
+        self.content=super().addWidget(content)
+        self.content.set_geometry(cx,cy,cw,ch, force=True)
         title_bar_space=4
         self.title_bar=super().addWidget(\
             WidgetHBox(x=title_bar_space,w=-2*title_bar_space, h=1, \
@@ -261,7 +261,6 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
                         bg=4, fg=15, parent=self.title_bar))
         self.addEvent('drag', self.drag_handler)
         self.title_label.addEvent('drag', self.drag_handler)
-        super().addWidget(content)
 
     def __repr__(self):
         return f"Window: (title={self.title})"

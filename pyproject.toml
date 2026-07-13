@@ -1,7 +1,6 @@
 [build-system]
 include = ["forgetui"]
 requires = [
-    "pyte",
     "setuptools>=42",
     "wheel"
 ]
