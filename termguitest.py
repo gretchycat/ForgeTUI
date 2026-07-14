@@ -3,18 +3,21 @@ from forgetui.widget import Widget
 from forgetui.widget_input import WidgetButton
 from forgetui.widget_container import WidgetWindow, WidgetVBox,WidgetScrollArea
 from forgetui.widget_terminal import WidgetLog
-import os,psutil
+import os
 
 def get_detailed_memory():
-    process = psutil.Process(os.getpid())
-    mem_info = process.memory_info()
-    
-    # rss = Resident Set Size (Physical RAM)
-    # vms = Virtual Memory Size (Total Virtual Memory allocated)
-    return {
-        "rss_mb": mem_info.rss / (1024 * 1024),
-        "vms_mb": mem_info.vms / (1024 * 1024)
-    }
+    try:
+        import psutil
+        process = psutil.Process(os.getpid())
+        mem_info = process.memory_info()
+        
+        # rss = Resident Set Size (Physical RAM)
+        # vms = Virtual Memory Size (Total Virtual Memory allocated)
+        return {
+            "rss_mb": mem_info.rss / (1024 * 1024),
+            "vms_mb": mem_info.vms / (1024 * 1024)
+        }
+    except: return { 'rss_mb':0, 'vms_mb':0}
 
 def clear(self):
     self.feed(self.t.clear())
@@ -26,17 +29,20 @@ def get_dims(self):
 def draw_ruler(self):
     self.feed(self.t.drawRuler(self.w, self.h))
 
+def ruler(self, width=1, height=1):
+    self.feed(self.t.drawRuler(width, height))
+
 def eventout(self, event=None):
-    w=self.get_widget_by_name('bluebox')
     if type(event)==str or True:
         self.log(f'{repr(event)}')
-    stats = get_detailed_memory()
+    #stats = get_detailed_memory()
     #self.log(f"Physical RAM: {stats['rss_mb']:.2f} MB | Virtual Allocated: {stats['vms_mb']:.2f} MB")
 
 def corrupt(self):
     print('\x1b[2J')
 
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
+s.background=ruler
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16, name='green'))
 log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
         title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor',\

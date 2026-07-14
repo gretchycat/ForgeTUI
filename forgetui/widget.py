@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import sys, os, signal, uuid, termios, inspect
-from libansiscreen.screen import Screen
+from libansiscreen.screen import Screen, frameBuffer
 from libansiscreen.color.rgb import Color
 from .termcontrol import termcontrol
 from .terminput import termInput
@@ -33,6 +33,7 @@ class Widget():
         self.hidden=False
         self.reorder=True
         self.parent=parent
+        self.background=None
         self.fg0=7
         self.bg0=0
         self.minW=1
@@ -312,6 +313,35 @@ class Widget():
                         else:
                             ws[-1].set_focus()
 
+    def run_callback(self, func, kwargs):
+        if callable(func):
+            try:
+                sig = inspect.signature(func)
+                # Filter kwargs to only include parameters accepted by the function
+                # (Handles positional-or-keyword and keyword-only parameters)
+                has_kwargs_param = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values())
+                
+                if not has_kwargs_param:
+                    filtered_kwargs = {
+                        k: v for k, v in kwargs.items() 
+                        if k in sig.parameters and sig.parameters[k].kind not in (
+                            inspect.Parameter.POSITIONAL_ONLY, 
+                            inspect.Parameter.VAR_POSITIONAL
+                        )
+                    }
+                else:
+                    filtered_kwargs = kwargs
+                    
+                return func(**filtered_kwargs)
+            except (TypeError, ValueError):
+                # Fallback if signature inspection fails (e.g., some C extensions)
+                return func(**kwargs)
+        else:
+            # Assuming frameBuffer is already defined in your scope
+            if isinstance(func, (frameBuffer, str)):
+                return func
+            return None
+
     def runEvent(self, event):
         if event=='' or not event:
             return
@@ -351,22 +381,7 @@ class Widget():
                     if e==rel_event or e=='' or\
                         (type(rel_event)==dict and\
                          e==rel_event['action']):
-                        if callable(func):
-                            try:
-                                sig = inspect.signature(func)
-                                has_event_param = 'event' in sig.parameters
-                            except (TypeError, ValueError):
-                                has_event_param = True
-                            kwargs = {'event': rel_event} if has_event_param else {}
-                            wdgt=w
-                            if target: wdgt=target
-                            if inspect.ismethod(func):
-                                wdgt.run=func
-                                wdgt.run(**kwargs)
-                            else:
-                                func(wdgt, **kwargs)
-                        else:
-                            w.log(f'invalid action for "{e}" type: {type(func)}')
+                        w.run_callback(func, {'self':w,'event': rel_event})
         if root.drag_start:
             event.pop('drag previous',None)
             event.pop('drag start',None)
@@ -546,7 +561,6 @@ class Widget():
             if not w.hidden:
                 if w.dirty or True: #FIXME: make sure all widgets are refreshed
                     w.draw()
-                    w.dirty=False
                 if w.fb_x_offset or w.fb_y_offset:
                     inbox=(int(max(0, w.fb_x_offset)),
                            int(max(0, w.fb_y_offset)),
@@ -568,10 +582,18 @@ class Widget():
         return screen
 
     def draw(self):
-        if self.bg==None and not self.parent:
-            self.bg=0
-        if self.fg==None and self.parent:
-            self.fg=self.parent.fg
+        if self.dirty:
+            if self.bg==None and not self.parent:
+                self.bg=0
+            if self.fg==None and self.parent:
+                self.fg=self.parent.fg
+            if self.background is not None:
+                ret=self.run_callback(self.background, {'self':self, 'width':self.w, 'height':self.h})
+                if isinstance(ret, str):
+                    self.fb.feed(ret)
+                if isinstance(ret, frameBuffer):
+                    self.fb.tile(ret)
+            self.dirty=False
         return self.drawChildren()
 
     def on_focus(self):

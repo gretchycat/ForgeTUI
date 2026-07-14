@@ -24,18 +24,22 @@ class WidgetButton(WidgetBox): #a button for interaction
     def __repr__(self):
         return f"{self.__class__.__name__}(caption={self.caption})({self.x}, {self.y})"
 
-    def b_down(self, event=None):
-        if event['button']==0:
-            if 0<=event['x']<self.w and 0<=event['y']<self.h:
-                self.active=True
-                self.active_disp=True #make sure that at least one frame has the Pressed button
-                self.pre_click()
+    def b_down(self, event:dict|None=None):
+        if event is not None:
+            if event['button']==0:
+                if 0<=event['x']<self.w and 0<=event['y']<self.h:
+                    self.active=True
+                    self.active_disp=True #make sure that at least one frame has the Pressed button
+                    self.makeDirty()
+                    self.pre_click()
 
-    def b_up(self, event=None):
-        if event['button']==0:
-            if 0<=event['x']<self.w and 0<=event['y']<self.h:
-                self.active=False
-                self.on_click()
+    def b_up(self, event:dict|None=None):
+        if event is not None:
+            if event['button']==0:
+                if 0<=event['x']<self.w and 0<=event['y']<self.h:
+                    self.active=False
+                    self.makeDirty()
+                    self.on_click()
 
     def draw(self):
         self.fg0=7
