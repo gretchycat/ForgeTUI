@@ -1,7 +1,32 @@
 [build-system]
-include = ["forgetui"]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "forge-terminal-ui"
+version = "0.0.4"
+description = "Python TUI framework and terminal control"
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [
+    { name = "Gretchen Maculo", email = "gretchen.maculo@gmail.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: User Interfaces",
+]
+dependencies = [
+    "libAnsiScreen",
+]
+
+[project.urls]
+Homepage = "https://github.com/gretchycat/ForgeTUI"
+Repository = "https://github.com/gretchycat/ForgeTUI"
+
+[tool.setuptools]
+packages = ["forgetui"]
+license-files = []

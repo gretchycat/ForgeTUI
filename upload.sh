@@ -1,2 +1,2 @@
 #!/bin/bash
-twine upload dist/*
+python3 -m twine upload --verbose dist/*

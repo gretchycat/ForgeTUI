@@ -9,7 +9,7 @@ rgb_file_path = '/usr/share/X11/rgb.txt'
 
 class termcontrol:
     def __init__(self):
-        self.x11_colors = self.parse_rgb_file(rgb_file_path)
+        #self.x11_colors = self.parse_rgb_file(rgb_file_path)
         self.image_support=[]
         self.img_cache={}
         term=os.environ.get('TERM', '')
