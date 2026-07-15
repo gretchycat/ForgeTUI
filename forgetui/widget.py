@@ -26,8 +26,8 @@ class Widget():
                  parent=None, name=str(uuid.uuid4())):
         self.log_file=None
         self.name=name
-        self.force_refresh=True
-        self.dirty=True
+        self.force_refresh=True     #for the emitter
+        self.dirty=True             #redraw widget into frameBuffer
         self.can_focus=True
         self.focus=False
         self.hidden=False

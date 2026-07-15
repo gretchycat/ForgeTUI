@@ -6,8 +6,8 @@ from .termkeymap import gen_keymap
 
 class termInput:
     def __init__(self):
-        fps=30
-        self.timeout=1/fps
+        self.fps=60
+        self.timeout=1/self.fps
         self.start=0
         self.keymap=gen_keymap()
         self.buffer=''
