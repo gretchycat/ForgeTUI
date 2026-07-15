@@ -92,7 +92,7 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
         self.step=step
         self.page_steps=page_steps
         self.set_value(value)
-        self.lock=lock
+        self.is_locked=lock
         self.box_type='focus'
         if w==1 and h>1:
             self.addEvent('Up', self.up)
@@ -124,10 +124,10 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
             pass #horizontal callback
 
     def lock(self):
-        self.lock=True
+        self.is_locked=True
 
     def unlock(self):
-        self.lock=False
+        self.is_locked=False
     
     def set_value(self, value):
         reverse=False
@@ -163,7 +163,7 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
         if not t:
             t=self.theme.get('focus')
         handle=t[f'{bn}.handle'] # handle cell
-        if self.lock:
+        if self.is_locked:
             handle=t[f'{bn}.handle_lock'] # locked handle cell
         if self.w==1 and self.h>1: # vertical
             # draw verticsl bar

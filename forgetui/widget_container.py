@@ -152,8 +152,10 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
             if self.pos_y=='follow':
                 self.v_update(self.pos_y)
                 self.v_bar.set_value(max(0,self.cursor_y))
+                self.v_bar.unlock()
             else:
                 self.v_bar.set_value(max(0,self.pos_y))
+                self.v_bar.lock()
         self.max_x=max(0,self.content.fb.width-self.content.w)
         self.cursor_x=max(0,self.content.fb.cursor.x-self.content.w)
         if self.h_bar:
@@ -161,8 +163,10 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
             if self.pos_x=='follow':
                 self.h_update(self.pos_x)
                 self.h_bar.set_value(max(0,self.cursor_x))
+                self.h_bar.unlock()
             else:
                 self.h_bar.set_value(max(0,self.pos_x))
+                self.h_bar.lock()
 
     def h_update(self, val:int|str='follow'):
         if val=='follow': val=self.cursor_x

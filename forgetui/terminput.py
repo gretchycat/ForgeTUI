@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import sys, os, fcntl, select, asyncio, time, termios, tty, re
+from typing import final
 
 from .termkeymap import gen_keymap
 
@@ -73,13 +74,18 @@ class termInput:
             return int.from_bytes(d)
         return int(d)
 
-    def split_codes(self, buffer): #TODO split by all of the key map values and then every character individually
-        inputlist=buffer.split('\x1b')
-        for k,i in enumerate(inputlist[1:], start=1):
-            inputlist[k]='\x1b'+i
-        if inputlist[0]=='':
-            inputlist.pop(0)
-        return inputlist
+    def split_codes(self, buffer):
+        if not buffer:
+            return []
+        inputlist = re.split(r'(?=\x1b)', buffer)
+        finallist=[]
+        for i in inputlist:
+            if len(i)>0:
+                if i[0]=='\x1b':
+                    finallist.append(i)
+                else:
+                    finallist.extend(list(i))
+        return finallist
 
     def mouse_input(self, buffer):
         m = re.match(r"\x1b\[<(\d+);(\d+);(\d+)([Mm])", buffer)
