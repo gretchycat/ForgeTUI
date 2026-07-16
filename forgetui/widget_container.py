@@ -66,9 +66,6 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
         self.minH=self.frame['h']*2+max_h
         super().resize()
 
-class WidgetMatrix(WidgetVBox): #a two-dimensional Matrix of data
-    pass
-
 class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area, and allows you to scroll.
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name='ScrollArea'+str(uuid.uuid4()), \
@@ -234,9 +231,6 @@ class WidgetScrollArea(Widget): #Houses a Screen larger than the printable area,
     def bottom(self):
         return self.v_update(self.max_y)
 
-class WidgetTabs(Widget): #Houses multiple containers in a tabs
-    pass
-
 class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
     def __init__(self, x, y, w, h, fg=None, bg=None, style='plot',\
                  title='Untitled Window', content=None,\
@@ -316,3 +310,55 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
                 self.resize(self.w+m['x'], self.h+m['y'])
 
             self.on_update()
+
+class WidgetTabs(Widget): #Houses multiple containers in tabs
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
+            parent=None, name='Tabs'+str(uuid.uuid4())):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, \
+                parent=parent, name=name)
+        self.can_focus=False
+        self.tab_list=[]
+        self.hbox=self.addWidget(WidgetHBox(x=0,y=0,w=1.0, h=3,parent=self))
+
+    def activate_tab(self, index):
+        if not self.tab_list:
+            return False
+        resolved_index = index % len(self.tab_list)
+        for i,t in enumerate(self.tab_list):
+            if i==resolved_index:
+                t['widget'].set_focus()
+            else:
+                t['widget'].hide()
+
+    def rename_tab(self, index, name):
+        if not self.tab_list:
+            return False
+        resolved_index = index % len(self.tab_list)
+        self.tab_list[resolved_index]['name']=name
+
+    def remove_tab(self, index):
+        if not self.tab_list:
+            return False
+        resolved_index = index % len(self.tab_list)
+        t=self.tab_list[resolved_index]
+        self.remove_child(t['widget'])
+        self.hbox.remove_child(t['tab_button'])
+        self.tab_list.pop(resolved_index)
+        if resolved_index<len(self.tab_list):
+            self.activate_tab(resolved_index)
+        else:
+             self.activate_tab(resolved_index-1)
+        return True
+
+    def add_tab(self, tab_name, hotkey,widget:Widget):
+        b=self.hbox.addWidget(WidgetButton(x=0,y=0,w='min', h=3,\
+                            caption=tab_name,parent=self.hbox,\
+                            name=f'Tab{str(uuid.uuid4())}'))
+        self.addWidget(widget)
+        widget.set_geometry(0,2,1.0,-2)
+        self.tab_list.append({'name':tab_name,'tab_button':b,\
+                              'hotkey':hotkey,'widget':widget})
+        self.activate_tab(len(self.tab_list)-1)
+
+class WidgetMatrix(Widget): #a two-dimensional Matrix of data
+    pass

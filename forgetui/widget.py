@@ -101,6 +101,12 @@ class Widget():
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name})"
 
+    def remove_child(self, widget:Widget):
+        try:
+            self.widgetList.remove(widget)
+            return True
+        except ValueError:return False
+                
     def root(self):
         root = self
         while root.parent:

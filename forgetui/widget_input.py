@@ -7,11 +7,14 @@ from .theme import make_theme
 
 #input widgets
 class WidgetButton(WidgetBox): #a button for interaction
-    def __init__(self, x, y, w=0, h=1, fg=7, bg=None, style='curve', box_name='button', caption='Button', toggle=False,name='Button'+str(uuid.uuid4())):
+    def __init__(self, x:int|float, y:int|float, w:int|float|str=0, h:int|float|str=1, fg=7, bg=None,\
+                 style='curve', box_name='button',\
+                 caption='Button', toggle=False,\
+                 name='Button'+str(uuid.uuid4()),parent=None):
         minw=len(caption)+4
         if w<minw:
             w=minw
-        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, box_name=box_name, name=name)
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, box_name=box_name, name=name, parent=parent)
         self.active=False
         self.active_disp=False
         self.style=style
