@@ -11,9 +11,11 @@ class WidgetButton(WidgetBox): #a button for interaction
                  style='curve', box_name='button',\
                  caption='Button', toggle=False,\
                  name='Button'+str(uuid.uuid4()),parent=None):
-        minw=len(caption)+4
-        if w<minw:
-            w=minw
+        self.minW=len(caption)+4
+        if w=='min': w=self.minW
+        if h=='min': h=3
+        if w<self.minW:
+            w=self.minW
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, style=style, box_name=box_name, name=name, parent=parent)
         self.active=False
         self.active_disp=False

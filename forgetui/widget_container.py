@@ -25,7 +25,7 @@ class WidgetVBox(WidgetBox): #a structure that automatically places widgets in a
         if w==None: w=self.w
         if h==None: h=self.h
         self.set_geometry(self.x,self.y,self.w,self.h)
-        wc=len(self.widgetList)
+        w=len(self.widgetList)
         total_h=0
         max_w=0
         for wd in self.widgetList:
@@ -318,23 +318,29 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
                 parent=parent, name=name)
         self.can_focus=False
         self.tab_list=[]
+        self.active_tab=None
         self.hbox=self.addWidget(WidgetHBox(x=0,y=0,w=1.0, h=3,parent=self))
 
     def activate_tab(self, index):
         if not self.tab_list:
+            self.active_tab=None
             return False
         resolved_index = index % len(self.tab_list)
         for i,t in enumerate(self.tab_list):
             if i==resolved_index:
                 t['widget'].set_focus()
+                self.active_tab=resolved_index
             else:
                 t['widget'].hide()
+        self.fix_tab_size()
+        self.fix_tab_colors()
 
     def rename_tab(self, index, name):
         if not self.tab_list:
             return False
         resolved_index = index % len(self.tab_list)
         self.tab_list[resolved_index]['name']=name
+        self.fix_tab_size()
 
     def remove_tab(self, index):
         if not self.tab_list:
@@ -348,17 +354,28 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
             self.activate_tab(resolved_index)
         else:
              self.activate_tab(resolved_index-1)
+        self.fix_tab_size()
         return True
+
+    def fix_tab_size(self):
+        pass
+
+    def fix_tab_colors(self):
+        pass
 
     def add_tab(self, tab_name, hotkey,widget:Widget):
         b=self.hbox.addWidget(WidgetButton(x=0,y=0,w='min', h=3,\
                             caption=tab_name,parent=self.hbox,\
+                            box_name='box', fg=self.fg,\
                             name=f'Tab{str(uuid.uuid4())}'))
+        self.fix_tab_size()
         self.addWidget(widget)
         widget.set_geometry(0,2,1.0,-2)
         self.tab_list.append({'name':tab_name,'tab_button':b,\
                               'hotkey':hotkey,'widget':widget})
-        self.activate_tab(len(self.tab_list)-1)
+        if len(self.tab_list)==1:
+            self.activate_tab(len(self.tab_list)-1)
+        return widget
 
 class WidgetMatrix(Widget): #a two-dimensional Matrix of data
     pass

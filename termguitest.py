@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from forgetui.widget import Widget
 from forgetui.widget_input import WidgetButton
-from forgetui.widget_container import WidgetWindow, WidgetVBox,WidgetScrollArea
+from forgetui.widget_container import WidgetTabs, WidgetWindow, WidgetVBox,WidgetScrollArea
 from forgetui.widget_terminal import WidgetLog
 import os
 
@@ -40,8 +40,10 @@ def eventout(self, event=None):
 
 def corrupt(self):
     print('\x1b[2J')
-
+tabs=WidgetTabs(0,0,0,0,bg=7,fg=0)
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
+tabs.add_tab('Main', widget=s , hotkey='Ctrl Home')
+e=tabs.add_tab('Next', widget=Widget() , hotkey='Ctrl End')
 s.background=ruler
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16, name='green'))
 log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
@@ -72,5 +74,5 @@ box.content.addEvent('Ctrl L', clear)
 box.content.addEvent('Ctrl D', get_dims)
 box.content.addEvent('Ctrl R', draw_ruler)
 log.content.content.addEvent('', eventout)
-s.mainLoop()
+tabs.mainLoop()
 
