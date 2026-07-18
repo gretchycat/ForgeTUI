@@ -60,7 +60,7 @@ class WidgetHBox(WidgetBox): #a structure that automatically places widgets in a
         for wd in self.widgetList:
             wd.x=total_w+self.frame['w']
             wd.y=self.frame['h']
-            total_w+=wd.h
+            total_w+=wd.w
             max_h=max(max_h,wd.h)
         self.minW=self.frame['w']*2+total_w
         self.minH=self.frame['h']*2+max_h
