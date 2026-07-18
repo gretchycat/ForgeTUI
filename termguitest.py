@@ -10,7 +10,6 @@ def get_detailed_memory():
         import psutil
         process = psutil.Process(os.getpid())
         mem_info = process.memory_info()
-        
         # rss = Resident Set Size (Physical RAM)
         # vms = Virtual Memory Size (Total Virtual Memory allocated)
         return {
@@ -40,10 +39,11 @@ def eventout(self, event=None):
 
 def corrupt(self):
     print('\x1b[2J')
+
 tabs=WidgetTabs(0,0,0,0,bg=7,fg=0)
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
 tabs.add_tab('Main', widget=s , hotkey='Ctrl Home')
-e=tabs.add_tab('Next', widget=Widget() , hotkey='Ctrl End')
+e=tabs.add_tab('Next', widget=Widget(bg=1) , hotkey='Ctrl End')
 s.background=ruler
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16, name='green'))
 log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
@@ -66,11 +66,10 @@ log.feed("Inputs here\n")
 s.addEvent('r', s.refresh, persist=True)
 s.addEvent('Ctrl Q', s.quit, persist=True)
 s.addEvent('', eventout)
-s.addEvent('Ctrl L', clear)
 s.addEvent('Ctrl D', get_dims)
 s.addEvent('Ctrl R', draw_ruler)
 box.content.addEvent('', eventout)
-box.content.addEvent('Ctrl L', clear)
+box.content.addEvent('Ctrl L', box.content.fb.cls)
 box.content.addEvent('Ctrl D', get_dims)
 box.content.addEvent('Ctrl R', draw_ruler)
 log.content.content.addEvent('', eventout)

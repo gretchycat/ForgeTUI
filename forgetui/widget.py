@@ -106,7 +106,7 @@ class Widget():
             self.widgetList.remove(widget)
             return True
         except ValueError:return False
-                
+
     def root(self):
         root = self
         while root.parent:
@@ -148,7 +148,7 @@ class Widget():
         ox,oy=self.offset()
         rx=x-ox
         ry=y-oy
-        return  0<=rx<=self.w and 0<=ry<=self.h 
+        return 0<=rx<=self.w and 0<=ry<=self.h
 
     def widgets_at_coordinate(self, x, y):
         stack=[ self.root() ] #traversal/find widgets.
@@ -162,8 +162,8 @@ class Widget():
         for w in full_stack:
             if w.coordinate_in_widget(x,y):
                 widgets.append(w)
-        if len(widgets):
-            return widgets  #return on top
+        if widgets:
+            return widgets
         return None
 
     def rel_event(self, event=None):
@@ -226,6 +226,7 @@ class Widget():
             self.on_focus()
 
     def next_focus(self):
+        return None
         next=False
         if self.parent:
             for w in self.parent.widgetList:
@@ -237,6 +238,7 @@ class Widget():
         return None
 
     def prev_focus(self):
+        return None
         prev=None
         if self.parent:
             for w in self.parent.widgetList:
@@ -275,12 +277,11 @@ class Widget():
             self.set_focus()
         return True
 
-    def refresh(self, event=None):
+    def refresh(self):
         self.root().force_refresh=True
 
-    def addEvent(self, trigger, func, persist=False, target='__focus__'):
-        self.eventList[trigger]={ 'func':func, 'persist':persist, 'target':target }
-
+    def addEvent(self, trigger, func, persist=False, target='__focus__', data=None):
+        self.eventList[trigger]={ 'func':func, 'persist':persist, 'target':target, 'data':data}
     def check_captured(self, event):
         if event=='':
             return
@@ -320,30 +321,29 @@ class Widget():
                             ws[-1].set_focus()
 
     def run_callback(self, func, kwargs):
+        self.makeDirty()
         if callable(func):
             try:
                 sig = inspect.signature(func)
                 # Filter kwargs to only include parameters accepted by the function
                 # (Handles positional-or-keyword and keyword-only parameters)
                 has_kwargs_param = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values())
-                
                 if not has_kwargs_param:
                     filtered_kwargs = {
-                        k: v for k, v in kwargs.items() 
+                        k: v for k, v in kwargs.items()
                         if k in sig.parameters and sig.parameters[k].kind not in (
-                            inspect.Parameter.POSITIONAL_ONLY, 
+                            inspect.Parameter.POSITIONAL_ONLY,
                             inspect.Parameter.VAR_POSITIONAL
                         )
                     }
                 else:
                     filtered_kwargs = kwargs
-                    
                 return func(**filtered_kwargs)
             except (TypeError, ValueError):
                 # Fallback if signature inspection fails (e.g., some C extensions)
                 return func(**kwargs)
+            self.makeDirty()
         else:
-            # Assuming frameBuffer is already defined in your scope
             if isinstance(func, (frameBuffer, str)):
                 return func
             return None
@@ -378,6 +378,7 @@ class Widget():
                 func=m.get('func')
                 persist=m.get('persist')
                 target=m.get('target')
+                data=m.get('data')
                 if target=='__focus__':
                     target=self.get_focused()
                 if type(target)==str:
@@ -385,9 +386,10 @@ class Widget():
                 if w.focus==True or persist or w==target:
                     rel_event=w.rel_event(event)
                     if e==rel_event or e=='' or\
-                        (type(rel_event)==dict and\
-                         e==rel_event['action']):
-                        w.run_callback(func, {'self':w,'event': rel_event})
+                            type(rel_event)==dict and\
+                            (e==rel_event['action'] or\
+                            e=='click' and rel_event['action']=='button up'):
+                        w.run_callback(func, {'self':w,'event': rel_event,'data':data})
         if root.drag_start:
             event.pop('drag previous',None)
             event.pop('drag start',None)
@@ -565,7 +567,7 @@ class Widget():
         for w in self.widgetList:
             inbox=None
             if not w.hidden:
-                if w.dirty or True: #FIXME: make sure all widgets are refreshed
+                if w.dirty: #FIXME: make sure all widgets are refreshed
                     w.draw()
                 if w.fb_x_offset or w.fb_y_offset:
                     inbox=(int(max(0, w.fb_x_offset)),
@@ -588,7 +590,7 @@ class Widget():
         return screen
 
     def draw(self):
-        if self.dirty:
+        if self.dirty and not self.hidden:
             if self.bg==None and not self.parent:
                 self.bg=0
             if self.fg==None and self.parent:

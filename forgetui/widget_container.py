@@ -313,7 +313,7 @@ class WidgetWindow(WidgetBox): #A movable/resizable/dragable box with a titlebar
 
 class WidgetTabs(Widget): #Houses multiple containers in tabs
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
-            parent=None, name='Tabs'+str(uuid.uuid4())):
+            parent=None, name='Tabs.'+str(uuid.uuid4())):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, \
                 parent=parent, name=name)
         self.can_focus=False
@@ -327,11 +327,11 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
             return False
         resolved_index = index % len(self.tab_list)
         for i,t in enumerate(self.tab_list):
-            if i==resolved_index:
-                t['widget'].set_focus()
-                self.active_tab=resolved_index
-            else:
+            if i!=resolved_index:
                 t['widget'].hide()
+        self.tab_list[resolved_index]['widget'].set_focus()
+        self.active_tab=resolved_index
+        self.makeDirty()
         self.fix_tab_size()
         self.fix_tab_colors()
 
@@ -341,6 +341,7 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
         resolved_index = index % len(self.tab_list)
         self.tab_list[resolved_index]['name']=name
         self.fix_tab_size()
+        self.makeDirty()
 
     def remove_tab(self, index):
         if not self.tab_list:
@@ -355,26 +356,40 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
         else:
              self.activate_tab(resolved_index-1)
         self.fix_tab_size()
+        self.makeDirty()
         return True
 
     def fix_tab_size(self):
-        pass
+        self.makeDirty()
 
     def fix_tab_colors(self):
-        pass
+        self.makeDirty()
+
+    def select_tab(self, event=None, data=None):
+        self.log(event)
+        for k,t in enumerate(self.tab_list):
+            if t['hotkey']==event or data==t:
+                #type(event)==dict and self event['x'], event['y']
+                self.activate_tab(k)
+                self.makeDirty()
+                self.log(f'activating tab {k}')
 
     def add_tab(self, tab_name, hotkey,widget:Widget):
         b=self.hbox.addWidget(WidgetButton(x=0,y=0,w='min', h=3,\
                             caption=tab_name,parent=self.hbox,\
                             box_name='box', fg=self.fg,\
-                            name=f'Tab{str(uuid.uuid4())}'))
+                            name=f'Tab{str(uuid.uuid4())}'), focus=not self.tab_list)
+        self.tab_list.append({'tab_button':b, 'widget':widget, 'hotkey':hotkey})
+        b.addEvent('click', self.select_tab, data=self.tab_list[-1])
+        b.addEvent(hotkey, self.select_tab, persist=True)
         self.fix_tab_size()
         self.addWidget(widget)
         widget.set_geometry(0,2,1.0,-2)
-        self.tab_list.append({'name':tab_name,'tab_button':b,\
-                              'hotkey':hotkey,'widget':widget})
         if len(self.tab_list)==1:
             self.activate_tab(len(self.tab_list)-1)
+        else:
+            widget.hide()
+            self.makeDirty()
         return widget
 
 class WidgetMatrix(Widget): #a two-dimensional Matrix of data
