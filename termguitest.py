@@ -51,7 +51,7 @@ log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
         name='bluebox', content=WidgetLog(fg=15, bg=None,\
         name='bluescroll', filename='output.log')))
 w=s.addWidget(WidgetButton(5,3, style='plot',box_name='box',h=3, bg=248,fg=0,caption=f'Corrupt', name='corrupt'))
-w.addEvent('button up', corrupt)
+w.addEvent('click', corrupt)
 w.addEvent('Ctrl T', corrupt, persist=True)
 vbox=s.addWidget(WidgetVBox(-0.3, 0.25, name='buttonbox'))
 for n in range(4):
