@@ -386,9 +386,9 @@ class Widget(): #base Widget class.
                 if w.focus==True or persist or w==target:
                     rel_event=w.rel_event(event)
                     if e==rel_event or e=='' or\
-                            type(rel_event)==dict and\
-                            (e==rel_event['action'] or\
-                            e=='click' and rel_event['action']=='button up'):
+                            (type(rel_event)==dict and\
+                            e==rel_event['action'] or\
+                            (e=='click' and rel_event['action']=='button up')):
                         w.run_callback(func, {'self':w,'event': rel_event,'data':data})
         if root.drag_start:
             event.pop('drag previous',None)
@@ -472,6 +472,7 @@ class Widget(): #base Widget class.
     def feed(self, s):
         self.fb.print(s)
         self.on_update()
+        self.makeDirty()
 
     def addWidget(self, widget, focus=True):
         widget.parent=self
