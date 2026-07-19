@@ -360,13 +360,20 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
         return True
 
     def fix_tab_size(self):
+        if not self.tab_list:
+            return False
         self.makeDirty()
 
     def fix_tab_colors(self):
+        if not self.tab_list:
+            return False
+        for k,t in enumerate(self.tab_list):
+            t['tab_button'].active=k==self.active_tab
         self.makeDirty()
 
     def select_tab(self, event=None, data=None):
-        self.log(event)
+        if not self.tab_list:
+            return False
         for k,t in enumerate(self.tab_list):
             if t['hotkey']==event or data==t:
                 #type(event)==dict and self event['x'], event['y']
@@ -377,14 +384,14 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
     def add_tab(self, tab_name, hotkey,widget:Widget):
         b=self.hbox.addWidget(WidgetButton(x=0,y=0,w='min', h=3,\
                             caption=tab_name,parent=self.hbox,\
-                            box_name='box', fg=self.fg,\
+                            box_name='box',fg=self.fg, bg=self.bg, style='2line',\
                             name=f'Tab{str(uuid.uuid4())}'), focus=not self.tab_list)
         self.tab_list.append({'tab_button':b, 'widget':widget, 'hotkey':hotkey})
         b.addEvent('click', self.select_tab, data=self.tab_list[-1])
         b.addEvent(hotkey, self.select_tab, persist=True)
         self.fix_tab_size()
         self.addWidget(widget)
-        widget.set_geometry(0,2,1.0,-2)
+        widget.set_geometry(0,b.h,1.0,-b.h)
         if len(self.tab_list)==1:
             self.activate_tab(len(self.tab_list)-1)
         else:

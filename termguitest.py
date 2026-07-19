@@ -40,10 +40,11 @@ def eventout(self, event=None):
 def corrupt(self):
     print('\x1b[2J')
 
-tabs=WidgetTabs(0,0,0,0,bg=7,fg=0)
+tabs=WidgetTabs(0,0,0,0,bg=0,fg=7)
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
 tabs.add_tab('Main', widget=s , hotkey='Ctrl Home')
 e=tabs.add_tab('Next', widget=Widget(bg=1) , hotkey='Ctrl End')
+e=tabs.add_tab('Last', widget=Widget(bg=12) , hotkey='Ctrl 3')
 s.background=ruler
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16, name='green'))
 log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\

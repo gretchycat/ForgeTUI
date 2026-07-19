@@ -205,8 +205,8 @@ def shift_theme(theme, change=None):
     return theme
 
 def make_theme(style=None, template=theme_template, fg="#aaa", bg="#000",
-               inactive={'h':0,'s':0.0,'v':-0.25}, parent=None,
-               active={'h':0,'s':0.0,'v':0.25}):
+               inactive={'h':0,'s':0.0,'v':-0.75}, parent=None,
+               active={'h':0,'s':0.0,'v':0.2}):
     fcs_thm={}
     for k,v in template.items():
         if type(v)==tuple:
