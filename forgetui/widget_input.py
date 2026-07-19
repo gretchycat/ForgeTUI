@@ -307,6 +307,12 @@ class WidgetRadioBox(Widget):
 class WidgetDropDown(Widget):
     pass
 
+class WidgetItemList(Widget):
+    pass
+
 class WidgetSpinner(Widget):
+    pass
+
+class WidgetFilrSelect(Widget):
     pass
 

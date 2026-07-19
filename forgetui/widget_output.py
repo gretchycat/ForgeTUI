@@ -95,8 +95,14 @@ class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justifi
         self.fb.cursor_goto(x,y)
         self.feed(self.text)
 
+class WidgetMarquee(WidgetLabel): #a blurb of text made into a widget.it can be justified, have text attributes and colored
+    pass
+
 class WidgetList(Widget): #one dimensional list of data arranged vertically
     pass
 
 class WidgetProgressBar(Widget): #a bar going from 0 to 100%
+    pass
+
+class WidgetGraph(Widget):
     pass
