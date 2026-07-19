@@ -289,30 +289,30 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
     def end(self, event=None):
         self.set_value(self.max)
 
-class WidgetMenuBar(Widget):
+class WidgetMenuBar(Widget): #TODO:
     pass
 
-class WidgetTextInput(Widget):
+class WidgetTextInput(Widget): #TODO:
     pass
 
-class WidgetTextArea(Widget):
+class WidgetTextArea(Widget): #TODO:
     pass
 
-class WidgetCheckBox(Widget):
+class WidgetCheckBox(Widget): #TODO:
     pass
 
-class WidgetRadioBox(Widget):
+class WidgetRadioBox(Widget): #TODO:
     pass
 
-class WidgetDropDown(Widget):
+class WidgetDropDown(Widget): #TODO:
     pass
 
-class WidgetItemList(Widget):
+class WidgetItemList(Widget): #TODO:
     pass
 
-class WidgetSpinner(Widget):
+class WidgetSpinner(Widget): #TODO:
     pass
 
-class WidgetFilrSelect(Widget):
+class WidgetFileSelect(Widget): #TODO:
     pass
 

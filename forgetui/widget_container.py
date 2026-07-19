@@ -399,5 +399,5 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
             self.makeDirty()
         return widget
 
-class WidgetMatrix(Widget): #a two-dimensional Matrix of data
+class WidgetMatrix(Widget): #TODO:a two-dimensional Matrix of data
     pass

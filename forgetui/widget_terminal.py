@@ -4,7 +4,7 @@ import uuid,os
 from .widget_container import WidgetScrollArea
 
 #terminal widgets
-class WidgetLog(WidgetScrollArea):
+class WidgetLog(WidgetScrollArea): #folloe a text file
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name=None, v_bar=True, h_bar=True,\
             content_events=True, filename='output.log'):
@@ -53,7 +53,7 @@ class WidgetLog(WidgetScrollArea):
                 self.handle = None
         super().draw()
 
-class WidgetTerminal(WidgetScrollArea):
+class WidgetTerminal(WidgetScrollArea):  #TODO: general terminal i/o
     def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None, \
             parent=None, name=None, v_bar=True, h_bar=True,):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, parent=parent, \

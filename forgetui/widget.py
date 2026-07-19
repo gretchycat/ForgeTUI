@@ -20,7 +20,7 @@ class EventTrigger:
     event: any=None
     source: EventSource = EventSource.PROGRAM
 
-class Widget():
+class Widget(): #base Widget class.
     def __init__(self, x:int|float=0, y:int|float=0,\
                  w:int|float=1.0, h:int|float=1.0, fg=None, bg=None,\
                  parent=None, name=str(uuid.uuid4())):
