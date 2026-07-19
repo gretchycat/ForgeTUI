@@ -348,7 +348,7 @@ class Widget(): #base Widget class.
                 return func
             return None
 
-    def runEvent(self, event):
+    def runEvent(self, event): #TODO: implement timer events
         if event=='' or not event:
             return
         root = self.root()
