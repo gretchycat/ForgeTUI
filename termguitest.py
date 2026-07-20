@@ -3,7 +3,7 @@ from forgetui.widget import Widget
 from forgetui.widget_input import WidgetButton
 from forgetui.widget_container import WidgetTabs, WidgetWindow, WidgetVBox,WidgetScrollArea
 from forgetui.widget_terminal import WidgetLog
-import os
+import os,random
 
 def get_detailed_memory():
     try:
@@ -32,10 +32,15 @@ def ruler(self, width=1, height=1):
     self.feed(self.t.drawRuler(width, height))
 
 def eventout(self, event=None):
-    if type(event)==str or True:
+    if type(event)==str:
         self.log(f'{repr(event)}')
     #stats = get_detailed_memory()
     #self.log(f"Physical RAM: {stats['rss_mb']:.2f} MB | Virtual Allocated: {stats['vms_mb']:.2f} MB")
+
+def maze(self, width, height):
+    random.seed(42)
+    for _ in range(width*height):
+        self.feed(chr(0x2571+random.randint(0,1)))
 
 def corrupt(self):
     print('\x1b[2J')
@@ -43,8 +48,10 @@ def corrupt(self):
 tabs=WidgetTabs(0,0,0,0,bg=0,fg=7)
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
 tabs.add_tab('Main', widget=s , hotkey='Ctrl Home')
-e=tabs.add_tab('Next', widget=Widget(bg=1) , hotkey='Ctrl End')
-e=tabs.add_tab('Last', widget=Widget(bg=12) , hotkey='Ctrl 3')
+e=tabs.add_tab('Next', widget=Widget(fg=9,bg=1) , hotkey='Ctrl End')
+l=tabs.add_tab('Last', widget=Widget(fg=12,bg=4) , hotkey='Ctrl 3')
+e.background=maze
+l.background=maze
 s.background=ruler
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16, name='green'))
 log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\

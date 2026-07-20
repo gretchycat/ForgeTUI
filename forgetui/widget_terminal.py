@@ -15,7 +15,7 @@ class WidgetLog(WidgetScrollArea): #follow a text file
         self.filename = filename
         self.handle = None
         self._last_size = 0
-        self.addEvent('', self.watch_file,persist=True)
+        self.addEvent(0.25, self.watch_file, persist=True)
 
     def watch_file(self):
         if self.handle:

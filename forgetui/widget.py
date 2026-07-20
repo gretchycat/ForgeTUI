@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, signal, uuid, termios, inspect
+import sys, os, signal, uuid, termios, inspect, time
 from libansiscreen.screen import Screen, frameBuffer
 from libansiscreen.color.rgb import Color
 from .termcontrol import termcontrol
@@ -14,6 +14,7 @@ class EventSource(Enum):
     MOUSE = auto()
     SYSTEM = auto()   # Timers, window resizes
     PROGRAM = auto()  # Programmatic/functional triggers
+    TIMER = auto()  # Programmatic/functional triggers
 
 @dataclass
 class EventTrigger:
@@ -39,6 +40,7 @@ class Widget(): #base Widget class.
         self.minW=1
         self.minH=1
         self.content=None
+        self.target_time=0.0
         self.t=termcontrol()
         self._x, self._y=None, None
         self._w, self._h=None, None
@@ -385,10 +387,19 @@ class Widget(): #base Widget class.
                     target=self.get_widget_by_name(target)
                 if w.focus==True or persist or w==target:
                     rel_event=w.rel_event(event)
-                    if e==rel_event or e=='' or\
-                            (type(rel_event)==dict and\
-                            e==rel_event['action'] or\
-                            (e=='click' and rel_event['action']=='button up')):
+                    run=False
+                    if e==rel_event or e=='':
+                        run=True
+                    elif isinstance(rel_event,dict):
+                        if e==rel_event['action']:
+                            run=True
+                        elif e=='click' and rel_event['action']=='button up':
+                            run=True
+                    elif isinstance(rel_event,float) and isinstance(e,float):
+                        if rel_event>=w.target_time:
+                            w.target_time=e+rel_event
+                            run=True
+                    if run:
                         w.run_callback(func, {'self':w,'event': rel_event,'data':data})
         if root.drag_start:
             event.pop('drag previous',None)
@@ -433,13 +444,15 @@ class Widget(): #base Widget class.
                 else:
                     self.t.output(s_start+home+\
                         self.fb.emit_diff(pbuffer, raw=True)+s_end)
+                timer=time.time()
+                self.event_buffer.append(EventTrigger(timer, EventSource.TIMER))
                 for inp in self.input.read_input():
                     if inp != '':
                         if type(inp)==str:
                             self.event_buffer.append(EventTrigger(inp,EventSource.KEYBOARD))
                         if type(inp)==dict:
                             self.event_buffer.append(EventTrigger(inp,EventSource.MOUSE))
-                while len(self.event_buffer):
+                while self.event_buffer:
                     inp=self.event_buffer.pop(0)
                     if inp.source==EventSource.MOUSE:
                         self.check_mouse_focus_change(inp.event)
@@ -468,6 +481,9 @@ class Widget(): #base Widget class.
         self.fg, self.bg=fg, bg
         self.fb.set_foreground(Color.set(fg))
         self.fb.set_background(Color.set(bg))
+
+    def clear(self):
+        self.feed(self.t.clear())
 
     def feed(self, s):
         self.fb.print(s)
