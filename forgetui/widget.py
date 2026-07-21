@@ -344,7 +344,6 @@ class Widget(): #base Widget class.
             except (TypeError, ValueError):
                 # Fallback if signature inspection fails (e.g., some C extensions)
                 return func(**kwargs)
-            self.makeDirty()
         else:
             if isinstance(func, (frameBuffer, str)):
                 return func
@@ -376,31 +375,32 @@ class Widget(): #base Widget class.
             for n in reversed(node.widgetList):
                 stack.append(n)
         for w in full_stack:
-            for  e, m in w.eventList.items():
-                func=m.get('func')
-                persist=m.get('persist')
-                target=m.get('target')
-                data=m.get('data')
-                if target=='__focus__':
-                    target=self.get_focused()
-                if type(target)==str:
-                    target=self.get_widget_by_name(target)
-                if w.focus==True or persist or w==target:
-                    rel_event=w.rel_event(event)
-                    run=False
-                    if e==rel_event or e=='':
-                        run=True
-                    elif isinstance(rel_event,dict):
-                        if e==rel_event['action']:
+            if not w.hidden:
+                for  e, m in w.eventList.items():
+                    func=m.get('func')
+                    persist=m.get('persist')
+                    target=m.get('target')
+                    data=m.get('data')
+                    if target=='__focus__':
+                        target=self.get_focused()
+                    if type(target)==str:
+                        target=self.get_widget_by_name(target)
+                    if w.focus==True or persist or w==target:
+                        rel_event=w.rel_event(event)
+                        run=False
+                        if e==rel_event or e=='':
                             run=True
-                        elif e=='click' and rel_event['action']=='button up':
-                            run=True
-                    elif isinstance(rel_event,float) and isinstance(e,float):
-                        if rel_event>=w.target_time:
-                            w.target_time=e+rel_event
-                            run=True
-                    if run:
-                        w.run_callback(func, {'self':w,'event': rel_event,'data':data})
+                        elif isinstance(rel_event,dict):
+                            if e==rel_event['action']:
+                                run=True
+                            elif e=='click' and rel_event['action']=='button up':
+                                run=True
+                        elif isinstance(rel_event,float) and isinstance(e,float):
+                            if rel_event>=w.target_time:
+                                w.target_time=e+rel_event
+                                run=True
+                        if run:
+                            w.run_callback(func, {'self':w,'event': rel_event,'data':data})
         if root.drag_start:
             event.pop('drag previous',None)
             event.pop('drag start',None)
@@ -471,11 +471,13 @@ class Widget(): #base Widget class.
     def quit(self):
         self.root().go=False
 
-    def makeDirty(self):
+    def makeDirty(self, recurse=True): #TODO: can this be set the False?
         w=self
-        while w:
-            w.dirty=True
-            w=w.parent
+        if recurse:
+            while w:
+                w.dirty=True
+                w=w.parent
+        else: self.dirty=True
 
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
@@ -564,13 +566,13 @@ class Widget(): #base Widget class.
         if h==None: h=self.h
         self.set_geometry(self.x,self.y,w,h)
         if w!=self.w or h!=self.w:
-            self.makeDirty()
+            self.makeDirty(recurse=True)
             for wd in self.widgetList:
                 wd.resize(wd.w,wd.h)
 
     def move(self, x,y):
         if self.parent:
-            self.parent.makeDirty()
+            self.parent.makeDirty(Recurse=True)
             self.parent.fb.cls()
             self.root().force_refresh=True
             self.x=max(0, min(self.parent.w-1-self.w,x))
@@ -613,6 +615,7 @@ class Widget(): #base Widget class.
             if self.fg==None and self.parent:
                 self.fg=self.parent.fg
             if self.background is not None:
+                self.fb.cls()
                 ret=self.run_callback(self.background, {'self':self, 'width':self.w, 'height':self.h})
                 if isinstance(ret, str):
                     self.fb.feed(ret)

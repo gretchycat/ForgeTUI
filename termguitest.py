@@ -59,7 +59,7 @@ e.addWidget(WidgetMarquee(0.1,10,-0.2,1,text='[[[['+'pingpong long—'*20+']]]]'
 l=tabs.add_tab('Last', widget=Widget(fg=12,bg=4) , hotkey='Ctrl 3')
 l.addWidget(WidgetMarquee(0.1,5,-0.2,1,text='This is Blue'))
 e.background=maze
-l.background=maze
+l.background='—'*l.w*l.h
 s.background=ruler
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16, name='green'))
 log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
@@ -79,8 +79,8 @@ for i in range(100):
 log.feed("Line1\nLine2\nLine3\nLine4\n")
 log.feed("Inputs here\n")
 
-s.addEvent('r', s.refresh, persist=True)
-s.addEvent('Ctrl Q', s.quit, persist=True)
+tabs.addEvent('r', s.refresh, persist=True)
+tabs.addEvent('Ctrl Q', s.quit, persist=True)
 s.addEvent('', eventout)
 s.addEvent('Ctrl D', get_dims)
 s.addEvent('Ctrl R', draw_ruler)
