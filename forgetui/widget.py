@@ -14,7 +14,7 @@ class EventSource(Enum):
     MOUSE = auto()
     SYSTEM = auto()   # Timers, window resizes
     PROGRAM = auto()  # Programmatic/functional triggers
-    TIMER = auto()  # Programmatic/functional triggers
+    TIMER = auto()  # timer triggers
 
 @dataclass
 class EventTrigger:
