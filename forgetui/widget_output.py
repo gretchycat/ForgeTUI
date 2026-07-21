@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import uuid
+import uuid, math
 from .theme import make_theme
 from .widget import Widget
 
@@ -69,7 +69,6 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         return super().draw()
 
 class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justified, have text attributes and colored
-
     def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, style='', \
                   name='label'+str(uuid.uuid4()), parent=None, \
                   text='Label', align='left', valign='top'):
@@ -95,11 +94,44 @@ class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justifi
         self.fb.cursor_goto(x,y)
         self.feed(self.text)
 
-class WidgetMarquee(WidgetLabel): #TODO: a blurb of text made into a widget.it can be justified, have text attributes and colored
-    pass
+class WidgetMarquee(WidgetLabel): # a scrolling blurb of text made a widget.it can be justified, have text attributes and colored
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, style='', \
+                  name='Marquee '+str(uuid.uuid4()), parent=None,\
+                  text='marquee', direction='ltr', speed=0.1):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent, text=text)
+        self.o_text=text
+        self.text_offset=0
+        self.color_offset=0
+        self.direction=direction
+        self.resize()
+        self.addEvent(float(speed), self.shift, persist=True)
 
-class WidgetList(Widget): #TODO: one dimensional list of data arranged vertically
-    pass
+    def shift(self):
+        if self.direction.lower()=='pingpong':
+                if self.text_offset<=0:
+                    self.dir=1
+                if self.text_offset>=len(self.text_line)-self.right-len(self.o_text):
+                    self.dir=-1
+        self.text=self.text_line[self.text_offset:]
+        self.text_offset=(self.text_offset+self.dir)%(len(self.text_line))
+
+    def resize(self, w=None, h=None):
+        ret = super().resize(w, h)
+        match self.direction.lower():
+            case 'ltr':
+                self.left=self.w
+                self.right=0
+                self.dir=-1
+            case 'rtl':
+                self.left=self.w
+                self.right=0
+                self.dir=1
+            case 'pingpong':
+                self.left=self.w-len(self.o_text)
+                self.right=self.w-len(self.o_text)
+        self.text_line=' '*self.left+self.o_text+' '*self.right
+        return ret
 
 class WidgetProgressBar(Widget): #TODO:a bar going from 0 to 100%
     pass

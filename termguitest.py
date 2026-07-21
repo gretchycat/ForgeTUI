@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from forgetui.widget import Widget
 from forgetui.widget_input import WidgetButton
+from forgetui.widget_output import WidgetMarquee
 from forgetui.widget_container import WidgetTabs, WidgetWindow, WidgetVBox,WidgetScrollArea
 from forgetui.widget_terminal import WidgetLog
 import os,random
@@ -49,7 +50,14 @@ tabs=WidgetTabs(0,0,0,0,bg=0,fg=7)
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
 tabs.add_tab('Main', widget=s , hotkey='Ctrl Home')
 e=tabs.add_tab('Next', widget=Widget(fg=9,bg=1) , hotkey='Ctrl End')
+e.addWidget(WidgetMarquee(0.1,5,-0.2,1,text='ltr short', direction='ltr'))
+e.addWidget(WidgetMarquee(0.1,7,-0.2,1,text='[[[['+'ltr long '*20+']]]]', direction='ltr'))
+e.addWidget(WidgetMarquee(0.1,6,-0.2,1,text='rtl short', direction='rtl'))
+e.addWidget(WidgetMarquee(0.1,8,-0.2,1,text='[[[['+'rtl long '*20+']]]]', direction='rtl'))
+e.addWidget(WidgetMarquee(0.1,9,-0.2,1,text='pingpong short', direction='pingpong'))
+e.addWidget(WidgetMarquee(0.1,10,-0.2,1,text='[[[['+'pingpong long—'*20+']]]]', direction='pingpong'))
 l=tabs.add_tab('Last', widget=Widget(fg=12,bg=4) , hotkey='Ctrl 3')
+l.addWidget(WidgetMarquee(0.1,5,-0.2,1,text='This is Blue'))
 e.background=maze
 l.background=maze
 s.background=ruler

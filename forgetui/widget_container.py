@@ -319,7 +319,7 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
         self.can_focus=False
         self.tab_list=[]
         self.active_tab=None
-        self.hbox=self.addWidget(WidgetHBox(x=0,y=0,w=1.0, h=3,parent=self))
+        self.hbox=super().addWidget(WidgetHBox(x=0,y=0,w=1.0, h=3,parent=self))
 
     def activate_tab(self, index):
         if not self.tab_list:
@@ -390,7 +390,7 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
         b.addEvent('click', self.select_tab, data=self.tab_list[-1])
         b.addEvent(hotkey, self.select_tab, persist=True)
         self.fix_tab_size()
-        self.addWidget(widget)
+        super().addWidget(widget)
         widget.set_geometry(0,b.h,1.0,-b.h)
         if len(self.tab_list)==1:
             self.activate_tab(len(self.tab_list)-1)
@@ -398,6 +398,11 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
             widget.hide()
             self.makeDirty()
         return widget
+
+    def addWidget(self, widget, focus=True):
+        if not self.tab_list:
+            return None
+        return self.tab_list[self.active_tab]['widget'].addWidget(widget, focus)
 
 class WidgetMatrix(Widget): #TODO:a two-dimensional Matrix of data
     pass
