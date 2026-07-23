@@ -618,7 +618,7 @@ class Widget(): #base Widget class.
                 self.fb.cls()
                 ret=self.run_callback(self.background, {'self':self, 'width':self.w, 'height':self.h})
                 if isinstance(ret, str):
-                    self.fb.feed(ret)
+                    self.fb.char_tile(ret)
                 if isinstance(ret, frameBuffer):
                     self.fb.tile(ret)
             self.dirty=False
