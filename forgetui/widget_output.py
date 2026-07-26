@@ -35,36 +35,36 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         if self.style is not None:
             if self.style in ['plot']:
                 if fill:
-                    for y in range(1, fb.height-1):
-                        for x in range(1, fb.width-1):
+                    for y in range(1, fb.height):
+                        for x in range(1, fb.width):
                             fb.set_cell(x,y,t[f'{bn}.middle_center'])
                 fb.plot(0,0,t[f'{bn}.top_left'].fg)
                 fb.plot(fb.width-1,0,t[f'{bn}.top_right'].fg)
                 for x in range(1,fb.width-1):
                     fb.plot(x,0,t[f'{bn}.top_center'].fg)
                     fb.plot(x,1,t[f'{bn}.middle_center'].bg)
-                    fb.plot(x,fb.height*2-3,t[f'{bn}.bottom_center'].fg)
-                for y in range(1, (fb.height-1)*2-1):
+                    fb.plot(x,fb.height*2-1,t[f'{bn}.bottom_center'].fg)
+                for y in range(1, (fb.height)*2-1):
                     fb.plot(0,y,t[f'{bn}.middle_left'].fg)
                     fb.plot(1,y,t[f'{bn}.middle_center'].bg)
                     fb.plot(fb.width-2,y,t[f'{bn}.middle_center'].bg)
                     fb.plot(fb.width-1,y,t[f'{bn}.middle_right'].fg)
-                fb.plot(0,(fb.height-1)*2-1,t[f'{bn}.bottom_left'].fg)
-                fb.plot(fb.width-1,(fb.height-1)*2-1,t[f'{bn}.bottom_right'].fg)
+                fb.plot(0,(fb.height)*2-1,t[f'{bn}.bottom_left'].fg)
+                fb.plot(fb.width-1,(fb.height)*2-1,t[f'{bn}.bottom_right'].fg)
             else:
                 fb.set_cell(0,0,t[f'{bn}.top_left'])
                 fb.set_cell(fb.width-1,0,t[f'{bn}.top_right'])
                 for x in range(1, fb.width-1):
                     fb.set_cell(x,0,t[f'{bn}.top_center'])
-                    fb.set_cell(x,fb.height-2,t[f'{bn}.bottom_center'])
-                for y in range(1, fb.height-2):
+                    fb.set_cell(x,fb.height-1,t[f'{bn}.bottom_center'])
+                for y in range(1, fb.height-1):
                     fb.set_cell(0,y,t[f'{bn}.middle_left'])
                     fb.set_cell(fb.width-1,y,t[f'{bn}.middle_right'])
                     if fill:
                         for x in range(1, fb.width-1):
                             fb.set_cell(x,y,t[f'{bn}.middle_center'])
-                fb.set_cell(0,fb.height-2,t[f'{bn}.bottom_left'])
-                fb.set_cell(fb.width-1,fb.height-2,t[f'{bn}.bottom_right'])
+                fb.set_cell(0,fb.height-1,t[f'{bn}.bottom_left'])
+                fb.set_cell(fb.width-1,fb.height-1,t[f'{bn}.bottom_right'])
         #else: fb.cls()
         return super().draw()
 
