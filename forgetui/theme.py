@@ -146,6 +146,15 @@ theme['2line']={
         'TB':'3BAR','TT':' ',
         }
 
+theme['wide']={
+        'TL': 'RD.w', 'TC': 'LR.w', 'TR': 'LD.w',
+        'ML': 'UD.w', 'MC': 'B0', 'MR': 'UD.w',
+        'BL': 'UR.w', 'BC': 'LR.w', 'BR': 'UL.w',
+        'SU': 'UP','SD':'DOWN', 'SL':'LEFT', 'SR':'RIGHT',
+        'SHR':'B25', 'SVR':'B25','SH':'B100',
+        'TB':'3BAR','TT':' ',
+        }
+
 theme_template={
         'box.top_left': ( 'RD', '#fff', '#bg', 0, None),
         'box.top_center': ( 'LR', '#ddd', '#bg', 0, None),

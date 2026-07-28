@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import uuid, math
+
+from libansiscreen.screen_ops.spixel import MODE_BRAILLE, MODE_OCTANT, MODE_QUADRANT, MODE_SEXTANT
 from .theme import make_theme
+from libansiscreen.color.rgb import Color
 from .widget import Widget
 
 #output widgets
@@ -25,47 +28,79 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         x=self.x
         y=self.y
         fill=True
-        box_name=self.box_name
-        w=self.w
-        h=self.h
         bn=self.box_name
         t=self.theme.get(self.box_type)
         if not t:
             t=self.theme.get('focus')
-        if self.style is not None:
-            if self.style in ['plot']:
+        if isinstance(t, dict) and self.style is not None:
+            tl=t[f'{bn}.top_left']
+            tc=t[f'{bn}.top_center']
+            tr=t[f'{bn}.top_right']
+            ml=t[f'{bn}.middle_left']
+            mc=t[f'{bn}.middle_center']
+            mr=t[f'{bn}.middle_right']
+            bl=t[f'{bn}.bottom_left']
+            bc=t[f'{bn}.bottom_center']
+            br=t[f'{bn}.bottom_right']
+            if self.style in ['plot', MODE_BRAILLE,MODE_QUADRANT,MODE_SEXTANT,MODE_OCTANT]:
                 if fill:
                     for y in range(1, fb.height):
                         for x in range(1, fb.width):
-                            fb.set_cell(x,y,t[f'{bn}.middle_center'])
-                fb.plot(0,0,t[f'{bn}.top_left'].fg)
-                fb.plot(fb.width-1,0,t[f'{bn}.top_right'].fg)
-                for x in range(1,fb.width-1):
-                    fb.plot(x,0,t[f'{bn}.top_center'].fg)
-                    fb.plot(x,1,t[f'{bn}.middle_center'].bg)
-                    fb.plot(x,fb.height*2-1,t[f'{bn}.bottom_center'].fg)
-                for y in range(1, (fb.height)*2-1):
-                    fb.plot(0,y,t[f'{bn}.middle_left'].fg)
-                    fb.plot(1,y,t[f'{bn}.middle_center'].bg)
-                    fb.plot(fb.width-2,y,t[f'{bn}.middle_center'].bg)
-                    fb.plot(fb.width-1,y,t[f'{bn}.middle_right'].fg)
-                fb.plot(0,(fb.height)*2-1,t[f'{bn}.bottom_left'].fg)
-                fb.plot(fb.width-1,(fb.height)*2-1,t[f'{bn}.bottom_right'].fg)
+                            fb.set_cell(x,y,mc)
+                if self.style=='plot':
+                    for x in range(1,fb.width-1):
+                        fb.plot(x,0,tc.fg)
+                        fb.plot(x,1,mc.bg)
+                        fb.plot(x,fb.height*2-1,bc.fg)
+                    for y in range(1, (fb.height)*2-1):
+                        fb.plot(0,y,ml.fg)
+                        fb.plot(1,y,mc.bg)
+                        fb.plot(fb.width-2,y,mc.bg)
+                        fb.plot(fb.width-1,y,mr.fg)
+                    fb.plot(0,0,tl.fg)
+                    fb.plot(fb.width-1,0,tr.fg)
+                    fb.plot(0,(fb.height)*2-1,bl.fg)
+                    fb.plot(fb.width-1,(fb.height)*2-1,br.fg)
+                else:
+                    for x in range(1,fb.width-1):
+                        fb.put_cell(x,0,fg=tc.fg, bg=mc.bg)
+                        fb.put_cell(x,fb.height-1,fg=bc.fg, bg=mc.bg)
+                    for y in range(1, (fb.height)-1):
+                        fb.put_cell(0,y,fg=ml.fg, bg=mc.bg)
+                        fb.put_cell(fb.width-1,y,fg=mr.fg, bg=mc.bg)
+                    fb.put_cell(0,0,fg=tl.fg, bg=mc.bg)
+                    fb.put_cell(fb.width-1,0,fg=tr.fg, bg=mc.bg)
+                    fb.put_cell(0,(fb.height)-1,fg=bl.fg, bg=mc.bg)
+                    fb.put_cell(fb.width-1,(fb.height)-1,fg=br.fg, bg=mc.bg)
+                    y_mul=2
+                    x_mul=2
+                    match self.style:
+                        case 'braille' | 'octant':
+                            y_mul=4
+                        case 'sextant':
+                            y_mul=3
+                        case 'quadrant':
+                            pass
+                    for x in range(1,fb.width*x_mul-1):
+                        fb.plot(x,0,True,mode=self.style)
+                        fb.plot(x,fb.height*y_mul-1,True,mode=self.style)
+                    for y in range(0, (fb.height)*y_mul):
+                        fb.plot(0,y,True,mode=self.style)
+                        fb.plot(fb.width*x_mul-1,y,True,mode=self.style)
             else:
-                fb.set_cell(0,0,t[f'{bn}.top_left'])
-                fb.set_cell(fb.width-1,0,t[f'{bn}.top_right'])
+                fb.set_cell(0,0,tl)
+                fb.set_cell(fb.width-1,0,tr)
                 for x in range(1, fb.width-1):
-                    fb.set_cell(x,0,t[f'{bn}.top_center'])
-                    fb.set_cell(x,fb.height-1,t[f'{bn}.bottom_center'])
+                    fb.set_cell(x,0,tc)
+                    fb.set_cell(x,fb.height-1,bc)
                 for y in range(1, fb.height-1):
-                    fb.set_cell(0,y,t[f'{bn}.middle_left'])
-                    fb.set_cell(fb.width-1,y,t[f'{bn}.middle_right'])
+                    fb.set_cell(0,y,ml)
+                    fb.set_cell(fb.width-1,y,mr)
                     if fill:
                         for x in range(1, fb.width-1):
-                            fb.set_cell(x,y,t[f'{bn}.middle_center'])
-                fb.set_cell(0,fb.height-1,t[f'{bn}.bottom_left'])
-                fb.set_cell(fb.width-1,fb.height-1,t[f'{bn}.bottom_right'])
-        #else: fb.cls()
+                            fb.set_cell(x,y,mc)
+                fb.set_cell(0,fb.height-1,bl)
+                fb.set_cell(fb.width-1,fb.height-1,br)
         return super().draw()
 
 class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justified, have text attributes and colored

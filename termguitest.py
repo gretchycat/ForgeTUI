@@ -69,9 +69,11 @@ log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
 w=s.addWidget(WidgetButton(5,3, style='plot',box_name='box',h=3, bg=248,fg=0,caption=f'Corrupt', name='corrupt'))
 w.addEvent('click', corrupt)
 w.addEvent('Ctrl R', corrupt, persist=True)
-vbox=s.addWidget(WidgetVBox(-0.3, 0.25, name='buttonbox'))
-for n in range(4):
-    w=vbox.addWidget(WidgetButton(0,0, style='plot',box_name='box',h=3, bg=248+n,fg=0,caption=f'Button {n+7}', name=f'button {n+7}'))
+vbox=s.addWidget(WidgetVBox(-20, 0, w=20, h=1.0,name='buttonbox'))
+styles=['', 'c', '2', 'w', 'd2', 'd3', 'd4', 'braille', 'octant', 'sextant', 'quadrant', 'plot', ]
+for n in range(len(styles)):
+    st=styles[n%len(styles)]
+    w=vbox.addWidget(WidgetButton(0,0, w=20, h=3, style=st,box_name='box', bg=248,fg=0,caption=f"Style '{st}'", name=f'button {n+1}'))
     w.addEvent('', eventout)
 
 for i in range(100):
