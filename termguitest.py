@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from forgetui.widget import Widget
-from forgetui.widget_input import WidgetButton
-from forgetui.widget_output import WidgetMarquee
+from forgetui.widget_input import WidgetButton, WidgetSlider
+from forgetui.widget_output import WidgetMarquee, WidgetProgressBar
 from forgetui.widget_container import WidgetTabs, WidgetWindow, WidgetVBox,WidgetScrollArea
 from forgetui.widget_terminal import WidgetLog
 import os,random
@@ -40,8 +40,15 @@ def eventout(self, event=None):
 
 def maze(self, width, height):
     random.seed(42)
-    for _ in range(width*height):
-        self.feed(chr(0x2571+random.randint(0,1)))
+    for _ in range(height):
+        for _ in range(width):
+            self.feed(chr(0x2571+random.randint(0,1)))
+        self.feed('\n')
+def pb_cycle(self):
+    p=self.progress+self.total/100
+    if p>self.total:
+        p=0
+    self.set_progress(p)
 
 def corrupt(self):
     print('\x1b[2J')
@@ -56,6 +63,9 @@ e.addWidget(WidgetMarquee(0.1,6,-0.2,1,text='rtl short', direction='rtl'))
 e.addWidget(WidgetMarquee(0.1,8,-0.2,1,text='[[[['+'rtl long '*20+']]]]', direction='rtl'))
 e.addWidget(WidgetMarquee(0.1,9,-0.2,1,text='pingpong short', direction='pingpong'))
 e.addWidget(WidgetMarquee(0.1,10,-0.2,1,text='[[[['+'pingpong long—'*20+']]]]', direction='pingpong'))
+pb=e.addWidget(WidgetProgressBar(0.1,15,-0.2,1))
+bgsl=e.addWidget(WidgetSlider(0.1,20,-0.2, discreet={'maze':maze, 'sequence':'-|\n_-\n'}))
+pb.addEvent(0.1, pb_cycle, persist=True)
 l=tabs.add_tab('Last', widget=Widget(fg=12,bg=4) , hotkey='Ctrl 3')
 l.addWidget(WidgetMarquee(0.1,5,-0.2,1,text='This is Blue'))
 e.background=maze
@@ -78,8 +88,7 @@ for n in range(len(styles)):
 
 for i in range(100):
     box.feed(f'Line {i}\n')
-log.feed("Line1\nLine2\nLine3\nLine4\n")
-log.feed("Inputs here\n")
+log.feed("Debug Log\n*********\n")
 
 tabs.addEvent('r', s.refresh, persist=True)
 tabs.addEvent('Ctrl Q', s.quit, persist=True)

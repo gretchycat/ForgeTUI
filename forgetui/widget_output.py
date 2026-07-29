@@ -104,7 +104,7 @@ class WidgetBox(Widget): #Draws a box the size of the widget
         return super().draw()
 
 class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justified, have text attributes and colored
-    def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, style='', \
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, \
                   name='label'+str(uuid.uuid4()), parent=None, \
                   text='Label', align='left', valign='top'):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
@@ -130,14 +130,13 @@ class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justifi
         self.feed(self.text)
 
 class WidgetMarquee(WidgetLabel): # a scrolling blurb of text made a widget.it can be justified, have text attributes and colored
-    def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, style='', \
-                  name='Marquee '+str(uuid.uuid4()), parent=None,\
-                  text='marquee', direction='ltr', speed=0.1):
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, \
+                name='Marquee '+str(uuid.uuid4()), parent=None,\
+                text='marquee', direction='ltr', speed=0.05):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
-                         name=name, parent=parent, text=text)
+                name=name, parent=parent, text=text, align='left')
         self.o_text=text
         self.text_offset=0
-        self.color_offset=0
         self.direction=direction
         self.resize()
         self.addEvent(float(speed), self.shift, persist=True)
@@ -150,6 +149,7 @@ class WidgetMarquee(WidgetLabel): # a scrolling blurb of text made a widget.it c
                     self.dir=-1
         self.text=self.text_line[self.text_offset:]
         self.text_offset=(self.text_offset+self.dir)%(len(self.text_line))
+        self.makeDirty()
 
     def resize(self, w=None, h=None):
         ret = super().resize(w, h)
@@ -168,8 +168,38 @@ class WidgetMarquee(WidgetLabel): # a scrolling blurb of text made a widget.it c
         self.text_line=' '*self.left+self.o_text+' '*self.right
         return ret
 
-class WidgetProgressBar(Widget): #TODO:a bar going from 0 to 100%
-    pass
+class WidgetProgressBar(Widget): #a bar going from 0% to 100%
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Progress Bar '+str(uuid.uuid4()), parent=None, total=1.0):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
+        self.progress=0
+        self.total=total
+        pass
+
+    def set_progress(self, p):
+        self.progress=p
+        self.makeDirty()
+
+    def set_total(self, t):
+        self.total=t
+        self.makeDirty()
+
+    def draw(self):
+        pct=self.progress/self.total
+        for y in range(self.h):
+            for x in range(self.w):
+                bg=self.bg
+                fg=self.fg
+                if pct<=(x/(self.w)):
+                    bg=self.fg
+                    fg=self.bg
+                self.fb.put_cell(x,y,char=' ',fg=fg,bg=bg)
+        pctstr=f'{int(pct*100)}%'
+        px=int(self.w/2-len(pctstr)/2)
+        py=self.h//2
+        self.fb.cursor.set(px,py)
+        self.fb.put_text(pctstr, raw=True)
 
 class WidgetGraph(Widget): #TODO: different graph types
     pass

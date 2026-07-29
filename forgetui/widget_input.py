@@ -81,7 +81,7 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
     def __init__(self, x=0, y=0, w=1, h=1, fg=7, bg=None, style='', \
                  bar_name='slider', name='slider'+str(uuid.uuid4()), \
                  value=0.0, minimum=0.0, maximum=1.0, step=None, \
-                 page_steps=10, lock=False):
+                 page_steps=10, lock=False, discreet=None):
         super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, name=name)
         w,h=self.w,self.h
         if w==1 and h==1:
@@ -97,6 +97,7 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
         self.step=step
         self.page_steps=page_steps
         self.set_value(value)
+        self.discreet=discreet
         self.is_locked=lock
         self.box_type='focus'
         if w==1 and h>1:
