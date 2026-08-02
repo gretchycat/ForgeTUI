@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from __future__ import annotations
 import uuid
+from collections.abc import Iterable
 from .widget import Widget
 from .widget_output import WidgetBox
 from .theme import make_theme
@@ -98,6 +99,10 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
         self.page_steps=page_steps
         self.set_value(value)
         self.discreet=discreet
+        if isinstance(discreet, Iterable):
+            self.min=0
+            self.step=1
+            self.max=len(discreet)-1
         self.is_locked=lock
         self.box_type='focus'
         if w==1 and h>1:
@@ -134,28 +139,34 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
 
     def unlock(self):
         self.is_locked=False
-    
+
     def set_value(self, value):
-        reverse=False
         minimum=self.min
         maximum=self.max
         if self.min>self.max:
             minimum=self.max
             maximum=self.min
-            reverse=True
-        if value<minimum:
-            self.value=minimum
-        elif value>maximum:
-            self.value=maximum
+        if self.step is None:
+            if value<minimum:
+                self.value=minimum
+            elif value>maximum:
+                self.value=maximum
+            else:
+                self.value=value
         else:
-            self.value=value
+            if value<minimum:
+                self.value=minimum
+            elif value>maximum:
+                self.value=maximum
+            else:
+                self.value=int(value+(self.step/2))
         self.on_update()
 
     def draw(self):
-        orientation=''
         reverse=False
         minimum=self.min
         maximum=self.max
+        step=self.step
         if self.min>self.max:
             minimum=self.max
             maximum=self.min
@@ -175,26 +186,40 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
             # draw verticsl bar
             self.fb.set_cell(0,0,t[f'{bn}.up'])
             self.fb.set_cell(0,self.h-1,t[f'{bn}.down'])
+            found=[]
             for y in range(1,self.h-1):
-                self.fb.set_cell(0,y,t[f'{bn}.v'])
+                pct=y/(self.h-2)
+                v=int(pct*self.max)
+                if step and v not in found and v%step==0:
+                    found.append(v)
+                    self.fb.set_cell(0,y,t[f'{bn}.v_tick'])
+                else:
+                    self.fb.set_cell(0,y,t[f'{bn}.v'])
             if reverse:
                 # draw handle at 1.0-value
-                self.fb.set_cell(0,int((self.h-3)*(1-value))+1,handle) 
+                self.fb.set_cell(0,int((self.h-3)*(1-value))+1,handle)
             else:
                 # draw handle at value
-                self.fb.set_cell(0,int((self.h-3)*value)+1,handle) 
+                self.fb.set_cell(0,int((self.h-3)*value)+1,handle)
         if self.h==1 and self.w>1: # horizontal
             # draw horizontal bar
             self.fb.set_cell(0,0,t[f'{bn}.left'])
             self.fb.set_cell(self.w-1,0,t[f'{bn}.right'])
+            found=[]
             for x in range(1,self.w-1):
-                self.fb.set_cell(x,0,t[f'{bn}.h'])
+                pct=x/(self.w-2)
+                v=int(pct*self.max)
+                if step and v not in found and v%step==0:
+                    found.append(v)
+                    self.fb.set_cell(x,0,t[f'{bn}.h_tick'])
+                else:
+                    self.fb.set_cell(x,0,t[f'{bn}.h'])
             if reverse:
                 # draw handle at 1.0-value
-                self.fb.set_cell(int((self.w-3)*(1-value))+1,0,handle) 
+                self.fb.set_cell(int((self.w-3)*(1-value))+1,0,handle)
             else:
                 # draw handle at value
-                self.fb.set_cell(int((self.w-3)*value)+1,0,handle) 
+                self.fb.set_cell(int((self.w-3)*value)+1,0,handle)
 
     def up(self, event=None):
         step=self.step

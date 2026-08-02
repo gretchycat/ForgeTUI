@@ -127,7 +127,7 @@ class WidgetLabel(Widget): #a blurb of text made into a widget.it can be justifi
         self.setColors(self.fg,self.bg)
         self.fb.cls()
         self.fb.cursor_goto(x,y)
-        self.feed(self.text)
+        self.feed(self.text[:(self.w-x)])
 
 class WidgetMarquee(WidgetLabel): # a scrolling blurb of text made a widget.it can be justified, have text attributes and colored
     def __init__(self, x=0, y=0, w=1.0, h=1, fg=7, bg=None, \
