@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from __future__ import annotations
-import sys, os, fcntl, select, re
+import sys, os, fcntl, select
 from libansiscreen.screen import Screen
 from libansiscreen.renderer.ansi_emitter import ANSIEmitter, Box
 from forgetui.termkeymap import gen_keymap
@@ -9,7 +9,7 @@ rgb_file_path = '/usr/share/X11/rgb.txt'
 
 class termcontrol:
     def __init__(self):
-        self.x11_colors = self.parse_rgb_file(rgb_file_path)
+        #self.x11_colors = self.parse_rgb_file(rgb_file_path)
         self.image_support=[]
         self.img_cache={}
         term=os.environ.get('TERM', '')
@@ -160,21 +160,37 @@ class termcontrol:
         if type(color)==str:
             regex = r'^([A-Fa-f0-9]{6})$'
             if re.match(regex, color) is not None:
-                r, g, b = int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16)
-                return {'red': r, 'green': g, 'blue': b, 'r': r, 'g': g, 'b': b}
+                color={
+                        'red'  :int(color[0:2], 16),
+                        'green':int(color[2:4], 16),
+                        'blue' :int(color[4:6], 16),
+                      }
+                return color
             regex = r'^([A-Fa-f0-9]{3})$'
             if re.match(regex, color) is not None:
-                r, g, b = int(color[0:1], 16)*17, int(color[1:2], 16)*17, int(color[2:3], 16)*17
-                return {'red': r, 'green': g, 'blue': b, 'r': r, 'g': g, 'b': b}
+                color={
+                        'red'  :int(color[0:1], 16)*16,
+                        'green':int(color[1:2], 16)*16,
+                        'blue' :int(color[2:3], 16)*16,
+                      }
+                return color
             regex = r'^#([A-Fa-f0-9]{6})$'
             if re.match(regex, color) is not None:
-                r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
-                return {'red': r, 'green': g, 'blue': b, 'r': r, 'g': g, 'b': b}
+                color={
+                        'red'  :int(color[1:3], 16),
+                        'green':int(color[3:5], 16),
+                        'blue' :int(color[5:7], 16),
+                      }
+                return color
             regex = r'^#([A-Fa-f0-9]{3})$'
             if re.match(regex, color) is not None:
-                r, g, b = int(color[1:2], 16)*17, int(color[2:3], 16)*17, int(color[3:4], 16)*17
-                return {'red': r, 'green': g, 'blue': b, 'r': r, 'g': g, 'b': b}
-            if co.get(color.lower()) is not None:
+                color={
+                        'red'  :int(color[1:2], 16)*16,
+                        'green':int(color[2:3], 16)*16,
+                        'blue' :int(color[3:4], 16)*16,
+                      }
+                return color
+            if co.get(color):
                 return co.get(color.lower())
             return self.x11_colors.get(color.lower())
         return None

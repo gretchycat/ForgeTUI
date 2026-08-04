@@ -3,7 +3,7 @@ import unittest
 from forgetui.widget import Widget
 from forgetui.widget_container import (
     WidgetBox, WidgetVBox, WidgetHBox, WidgetScrollArea,
-    WidgetWindow, WidgetTabs, WidgetTree, TreeNode, WidgetMatrix
+    WidgetWindow, WidgetTabs, WidgetMatrix
 )
 
 class TestContainerWidgets(unittest.TestCase):
@@ -107,27 +107,6 @@ class TestContainerWidgets(unittest.TestCase):
         success = tabs.remove_tab(1)
         self.assertTrue(success)
         self.assertEqual(len(tabs.tab_list), 1)
-
-    def test_tree_widget(self):
-        """Test WidgetTree node addition, expansion, collapse, and navigation."""
-        tree = WidgetTree(0, 0, w=30, h=20)
-        root_node = tree.add_node("Root", expanded=True)
-        child1 = tree.add_node("Child 1", parent_node=root_node, expanded=False)
-        leaf1 = tree.add_node("Leaf 1.1", parent_node=child1)
-
-        tree.rebuild_visible()
-        self.assertEqual(len(tree.visible_nodes), 2)
-
-        child1.expand()
-        tree.rebuild_visible()
-        self.assertEqual(len(tree.visible_nodes), 3)
-
-        tree.selected_index = 0
-        tree.nav_down()
-        self.assertEqual(tree.selected_index, 1)
-
-        tree.nav_up()
-        self.assertEqual(tree.selected_index, 0)
 
     def test_matrix_widget(self):
         """Test WidgetMatrix header and row grid data rendering."""

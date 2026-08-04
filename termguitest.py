@@ -53,11 +53,6 @@ def pb_cycle(self):
 def corrupt(self):
     print('\x1b[2J')
 
-def change_bg(self):
-    self.log(self.value)
-    self.parent.bg=self.discreet[self.value]
-    self.parent.makeDirty()
-
 tabs=WidgetTabs(0,0,0,0,bg=0,fg=7)
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
 tabs.add_tab('Main', widget=s , hotkey='Ctrl Home')
@@ -71,7 +66,6 @@ e.addWidget(WidgetMarquee(0.1,10,-0.2,1,text='[[[['+'pingpong long—'*20+']]]]'
 pb=e.addWidget(WidgetProgressBar(0.1,15,-0.2,1))
 bgsl=e.addWidget(WidgetSlider(0.1,20,-0.2, discreet=[maze, '-|\n_-\n',' #\n# \n']))
 pb.addEvent(0.1, pb_cycle, persist=True)
-bgsl.addEvent('', change_bg)
 l=tabs.add_tab('Last', widget=Widget(fg=12,bg=4) , hotkey='Ctrl 3')
 l.addWidget(WidgetMarquee(0.1,5,-0.2,1,text='This is Blue'))
 e.background=maze
