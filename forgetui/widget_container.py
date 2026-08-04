@@ -404,5 +404,226 @@ class WidgetTabs(Widget): #Houses multiple containers in tabs
             return None
         return self.tab_list[self.active_tab]['widget'].addWidget(widget, focus)
 
-class WidgetMatrix(Widget): #TODO:a two-dimensional Matrix of data
-    pass
+class WidgetMatrix(WidgetScrollArea): # Prototype two-dimensional Matrix/Table grid data widget
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None,
+                 parent=None, name=None, headers=None, rows=None):
+        if name is None:
+            name = 'Matrix' + str(uuid.uuid4())
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, parent=parent,
+                         name=name, v_bar=True, h_bar=True, content_events=True)
+        self.headers = headers or []
+        self.rows = rows or []
+        self.selected_row = 0
+        self.selected_col = 0
+
+        self.content.addEvent('Up', self.nav_up, target=self)
+        self.content.addEvent('Down', self.nav_down, target=self)
+        self.content.addEvent('Left', self.nav_left, target=self)
+        self.content.addEvent('Right', self.nav_right, target=self)
+
+    def nav_up(self):
+        if self.selected_row > 0:
+            self.selected_row -= 1
+            self.makeDirty()
+
+    def nav_down(self):
+        if self.selected_row < len(self.rows) - 1:
+            self.selected_row += 1
+            self.makeDirty()
+
+    def nav_left(self):
+        if self.selected_col > 0:
+            self.selected_col -= 1
+            self.makeDirty()
+
+    def nav_right(self):
+        num_cols = len(self.headers) if self.headers else (len(self.rows[0]) if self.rows else 0)
+        if self.selected_col < num_cols - 1:
+            self.selected_col += 1
+            self.makeDirty()
+
+    def draw(self):
+        self.content.fb.cls()
+        if not self.rows and not self.headers:
+            return super().draw()
+
+        num_cols = max(len(self.headers), max((len(r) for r in self.rows), default=0))
+        col_widths = []
+        for c in range(num_cols):
+            w_h = len(str(self.headers[c])) if c < len(self.headers) else 0
+            w_r = max((len(str(r[c])) for r in self.rows if c < len(r)), default=0)
+            col_widths.append(max(w_h, w_r, 4))
+
+        if self.headers:
+            header_str = " | ".join(str(h).ljust(col_widths[i]) for i, h in enumerate(self.headers))
+            self.content.feed(f"\x1b[1m{header_str}\x1b[22m\n")
+            separator = "-+-".join("-" * col_widths[i] for i in range(num_cols))
+            self.content.feed(f"{separator}\n")
+
+        for r_idx, row in enumerate(self.rows):
+            cells = []
+            for c_idx in range(num_cols):
+                val = str(row[c_idx]) if c_idx < len(row) else ""
+                cell_text = val.ljust(col_widths[c_idx])
+                if r_idx == self.selected_row and c_idx == self.selected_col:
+                    cell_text = f"\x1b[7m{cell_text}\x1b[27m"
+                cells.append(cell_text)
+            self.content.feed(" | ".join(cells) + "\n")
+
+        return super().draw()
+
+
+class TreeNode:
+    """Represents a single node in a WidgetTree hierarchy."""
+    def __init__(self, label: str, data: any = None, expanded: bool = False, parent: TreeNode | None = None):
+        self.label = label
+        self.data = data
+        self.expanded = expanded
+        self.parent = parent
+        self.children: list[TreeNode] = []
+
+    def add_child(self, label: str, data: any = None, expanded: bool = False) -> TreeNode:
+        node = TreeNode(label=label, data=data, expanded=expanded, parent=self)
+        self.children.append(node)
+        return node
+
+    def is_leaf(self) -> bool:
+        return len(self.children) == 0
+
+    def toggle(self):
+        if not self.is_leaf():
+            self.expanded = not self.expanded
+
+    def expand(self):
+        if not self.is_leaf():
+            self.expanded = True
+
+    def collapse(self):
+        if not self.is_leaf():
+            self.expanded = False
+
+
+class WidgetTree(WidgetScrollArea):
+    """Hierarchical Tree View widget for displaying nested structures."""
+    def __init__(self, x=0, y=0, w=1.0, h=1.0, fg=7, bg=None,
+                 parent=None, name=None, v_bar=True, h_bar=True,
+                 icon_expanded='[-] ', icon_collapsed='[+] ', icon_leaf='  • '):
+        if name is None:
+            name = 'Tree' + str(uuid.uuid4())
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg, parent=parent,
+                         name=name, v_bar=v_bar, h_bar=h_bar, content_events=True)
+        self.root_nodes: list[TreeNode] = []
+        self.selected_index: int = 0
+        self.visible_nodes: list[tuple[TreeNode, int]] = []
+        self.icon_expanded = icon_expanded
+        self.icon_collapsed = icon_collapsed
+        self.icon_leaf = icon_leaf
+
+        self.content.addEvent('Up', self.nav_up, target=self)
+        self.content.addEvent('Down', self.nav_down, target=self)
+        self.content.addEvent('Right', self.expand_or_nav_down, target=self)
+        self.content.addEvent('Left', self.collapse_or_nav_up, target=self)
+        self.content.addEvent('Enter', self.toggle_selected, target=self)
+        self.content.addEvent('Space', self.toggle_selected, target=self)
+        self.content.addEvent('click', self.on_tree_click, target=self)
+
+    def add_node(self, label: str, data: any = None, expanded: bool = False, parent_node: TreeNode | None = None) -> TreeNode:
+        if parent_node is None:
+            node = TreeNode(label=label, data=data, expanded=expanded)
+            self.root_nodes.append(node)
+        else:
+            node = parent_node.add_child(label=label, data=data, expanded=expanded)
+        self.rebuild_visible()
+        return node
+
+    def rebuild_visible(self):
+        self.visible_nodes.clear()
+        def traverse(node: TreeNode, depth: int):
+            self.visible_nodes.append((node, depth))
+            if node.expanded and not node.is_leaf():
+                for child in node.children:
+                    traverse(child, depth + 1)
+
+        for root in self.root_nodes:
+            traverse(root, 0)
+
+        if self.selected_index >= len(self.visible_nodes):
+            self.selected_index = max(0, len(self.visible_nodes) - 1)
+        self.makeDirty()
+
+    def get_selected() -> tuple[TreeNode | None, any]:
+        if 0 <= self.selected_index < len(self.visible_nodes):
+            node, _ = self.visible_nodes[self.selected_index]
+            return node, node.data
+        return None, None
+
+    def nav_up(self):
+        if self.selected_index > 0:
+            self.selected_index -= 1
+            self.makeDirty()
+
+    def nav_down(self):
+        if self.selected_index < len(self.visible_nodes) - 1:
+            self.selected_index += 1
+            self.makeDirty()
+
+    def toggle_selected(self):
+        if 0 <= self.selected_index < len(self.visible_nodes):
+            node, _ = self.visible_nodes[self.selected_index]
+            node.toggle()
+            self.rebuild_visible()
+
+    def expand_or_nav_down(self):
+        if 0 <= self.selected_index < len(self.visible_nodes):
+            node, _ = self.visible_nodes[self.selected_index]
+            if not node.is_leaf() and not node.expanded:
+                node.expand()
+                self.rebuild_visible()
+            else:
+                self.nav_down()
+
+    def collapse_or_nav_up(self):
+        if 0 <= self.selected_index < len(self.visible_nodes):
+            node, _ = self.visible_nodes[self.selected_index]
+            if not node.is_leaf() and node.expanded:
+                node.collapse()
+                self.rebuild_visible()
+            elif node.parent:
+                for idx, (vnode, _) in enumerate(self.visible_nodes):
+                    if vnode == node.parent:
+                        self.selected_index = idx
+                        break
+                self.makeDirty()
+
+    def on_tree_click(self, event=None):
+        if isinstance(event, dict) and event.get('y') is not None:
+            click_y = event['y']
+            if 0 <= click_y < len(self.visible_nodes):
+                if self.selected_index == click_y:
+                    self.toggle_selected()
+                else:
+                    self.selected_index = click_y
+                    self.makeDirty()
+
+    def draw(self):
+        self.rebuild_visible()
+        self.content.fb.cls()
+        for idx, (node, depth) in enumerate(self.visible_nodes):
+            indent = "  " * depth
+            if node.is_leaf():
+                prefix = self.icon_leaf
+            elif node.expanded:
+                prefix = self.icon_expanded
+            else:
+                prefix = self.icon_collapsed
+
+            line_text = f"{indent}{prefix}{node.label}"
+
+            if idx == self.selected_index:
+                line_str = f"\x1b[7m{line_text}\x1b[27m\n"
+            else:
+                line_str = f"{line_text}\n"
+            self.content.feed(line_str)
+
+        return super().draw()
+

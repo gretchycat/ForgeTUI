@@ -42,14 +42,13 @@ class Widget(): #base Widget class.
         self.content=None
         self.target_time=0.0
         self.t=termcontrol()
-        self._x, self._y=None, None
-        self._w, self._h=None, None
-        self.fb_resize=False
-        self.set_geometry(x, y, w, h)
+        self._x, self._y = None, None
+        self._w, self._h = None, None
+        self.fb=Screen(width=1, height=1)
         self.fb_resize=True
+        self.set_geometry(x, y, w, h)
         self.fb_x_offset=0
         self.fb_y_offset=0
-        self.fb=Screen(width=self.w)
         self.setColors(fg, bg)
         self.fb.cls()
         self.widgetList=[]
@@ -481,8 +480,12 @@ class Widget(): #base Widget class.
 
     def setColors(self, fg, bg):
         self.fg, self.bg=fg, bg
-        self.fb.set_foreground(Color.set(fg))
-        self.fb.set_background(Color.set(bg))
+        c_fg = self.t.color(fg) if fg is not None else None
+        c_bg = self.t.color(bg) if bg is not None else None
+        if c_fg is not None:
+            self.fb.set_foreground(Color.set(c_fg))
+        if c_bg is not None:
+            self.fb.set_background(Color.set(c_bg))
 
     def clear(self):
         self.feed(self.t.clear())
@@ -497,9 +500,6 @@ class Widget(): #base Widget class.
         widget.set_geometry(widget._x,widget._y,widget._w,widget._h)
         widget.fg0=self.fg
         widget.bg0=self.bg
-        #widget.fb=Screen(width=widget.w)
-        #widget.setColors(widget.fg, widget.bg)
-        #widget.fb.cls()
         self.widgetList.append(widget)
         if focus: widget.set_focus()
         self.resize()
@@ -510,56 +510,55 @@ class Widget(): #base Widget class.
         if self.parent:
             scr['columns']=self.parent.w
             scr['rows']=self.parent.h
-        if type(x) in [ float, str ]: self._x=x
-        if type(y) in [ float, str ]: self._y=y
-        if type(w) in [ float, str ]: self._w=w
-        if type(h) in [ float, str ]: self._h=h
-        if type(x)==int and x<0: self._x=x
-        if type(y)==int and y<0: self._y=y
-        if type(w)==int and w<=0: self._w=w
-        if type(h)==int and h<=0: self._h=h
-        if self._x is not None: x=self._x
-        if self._y is not None: y=self._y
-        if self._w is not None: w=self._w
-        if self._h is not None: h=self._h
-        if x=='min':
-            x=0
-        if y=='min':
-            y=0
-        if w=='min':
-            w=self.minW
-        if h=='min':
-            h=self.minH
-        if type(x)==float:
-            if abs(x)<=1.0:
-                x=int(x*scr['columns'])
-        if type(y)==float:
-            if abs(y)<=1.0:
-               y=int(y*scr['rows'])
-        if type(w)==float:
-            if abs(w)<=1.0:
-                w=int(w*scr['columns'])
-        if type(h)==float:
-            if abs(h)<=1.0:
-                h=int(h*scr['rows'])
-        if x is not None:
-            self.x=int(x)%scr['columns']
-        if y is not None:
-            self.y=int(y)%scr['rows']
-        if w is not None:
-            self.w=int(w)%scr['columns']
-        if h is not None:
-            self.h=int(h)%scr['rows']
-        if self.w==0: self.w=scr['columns']
-        if self.h==0: self.h=scr['rows']
+        if x is not None: self._x=x
+        if y is not None: self._y=y
+        if w is not None: self._w=w
+        if h is not None: self._h=h
+
+        cur_x = self._x if self._x is not None else x
+        cur_y = self._y if self._y is not None else y
+        cur_w = self._w if self._w is not None else w
+        cur_h = self._h if self._h is not None else h
+
+        if cur_x == 'min':
+            self.x = 0
+        elif isinstance(cur_x, float) and abs(cur_x) <= 1.0:
+            self.x = int(cur_x * scr['columns']) if cur_x >= 0 else max(0, scr['columns'] + int(cur_x * scr['columns']))
+        elif isinstance(cur_x, int):
+            self.x = cur_x if cur_x >= 0 else max(0, scr['columns'] + cur_x)
+
+        if cur_y == 'min':
+            self.y = 0
+        elif isinstance(cur_y, float) and abs(cur_y) <= 1.0:
+            self.y = int(cur_y * scr['rows']) if cur_y >= 0 else max(0, scr['rows'] + int(cur_y * scr['rows']))
+        elif isinstance(cur_y, int):
+            self.y = cur_y if cur_y >= 0 else max(0, scr['rows'] + cur_y)
+
+        if cur_w == 'min':
+            self.w = self.minW
+        elif isinstance(cur_w, float) and abs(cur_w) <= 1.0:
+            self.w = int(cur_w * scr['columns']) if cur_w > 0 else max(1, scr['columns'] + int(cur_w * scr['columns']))
+        elif isinstance(cur_w, int):
+            self.w = cur_w if cur_w > 0 else max(1, scr['columns'] + cur_w)
+
+        if cur_h == 'min':
+            self.h = self.minH
+        elif isinstance(cur_h, float) and abs(cur_h) <= 1.0:
+            self.h = int(cur_h * scr['rows']) if cur_h > 0 else max(1, scr['rows'] + int(cur_h * scr['rows']))
+        elif isinstance(cur_h, int):
+            self.h = cur_h if cur_h > 0 else max(1, scr['rows'] + cur_h)
+
+        if self.w == 0: self.w = scr['columns']
+        if self.h == 0: self.h = scr['rows']
+
         if self.fb_resize or force:
             if self.fb_resize=='grow' and not force:
                 self.fb.resize(max(self.fb.width, self.w),
-                                   max(self.fb.height, self.h))
+                               max(self.fb.height, self.h))
             else:
                 self.fb.resize(self.w, self.h)
             self.fb.cls()
-        return(w,h)
+        return (self.w, self.h)
 
     def resize(self, w=None, h=None):
         if w==None: w=self.w
@@ -572,7 +571,7 @@ class Widget(): #base Widget class.
 
     def move(self, x,y):
         if self.parent:
-            self.parent.makeDirty(Recurse=True)
+            self.parent.makeDirty(recurse=True)
             self.parent.fb.cls()
             self.root().force_refresh=True
             self.x=max(0, min(self.parent.w-1-self.w,x))
