@@ -44,6 +44,7 @@ def maze(self, width, height):
         for _ in range(width):
             self.feed(chr(0x2571+random.randint(0,1)))
         self.feed('\n')
+
 def pb_cycle(self):
     p=self.progress+self.total/100
     if p>self.total:
@@ -64,13 +65,13 @@ e.addWidget(WidgetMarquee(0.1,8,-0.2,1,text='[[[['+'rtl long '*20+']]]]', direct
 e.addWidget(WidgetMarquee(0.1,9,-0.2,1,text='pingpong short', direction='pingpong'))
 e.addWidget(WidgetMarquee(0.1,10,-0.2,1,text='[[[['+'pingpong long—'*20+']]]]', direction='pingpong'))
 pb=e.addWidget(WidgetProgressBar(0.1,15,-0.2,1))
-bgsl=e.addWidget(WidgetSlider(0.1,20,-0.2, discreet=[maze, '-|\n_-\n',' #\n# \n']))
 pb.addEvent(0.1, pb_cycle, persist=True)
+bgsl=e.addWidget(WidgetSlider(0.1,20,-0.2, discreet=[maze, '-|\n_-\n',' #\n# \n']))
 l=tabs.add_tab('Last', widget=Widget(fg=12,bg=4) , hotkey='Ctrl 3')
 l.addWidget(WidgetMarquee(0.1,5,-0.2,1,text='This is Blue'))
-e.background=maze
-l.background='██ \n▄▄°\n▀▀.'
-s.background=ruler
+e.set_callback('background', maze)
+l.set_callback('background', '██ \n▄▄°\n▀▀.')
+s.set_callback('background', ruler)
 box=s.addWidget(WidgetScrollArea(10, 5, w=0.5, h=0.5, bg=65,fg=16, name='green'))
 log=s.addWidget(WidgetWindow(-0.95, 0.5, 0.9, 0.5, style='w', bg=75,fg=0,\
         title='blue d d6tgfr4yjnngr4hhrudu38udhdkdikdmek3orlkekeor',\

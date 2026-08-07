@@ -54,6 +54,7 @@ class Widget(): #base Widget class.
         self.fb.cls()
         self.widgetList=[]
         self.eventList={}
+        self.callbacks={}
         self.parent=None
         self.captured_widget=None
         self.drag_start=None
@@ -322,7 +323,7 @@ class Widget(): #base Widget class.
                         else:
                             ws[-1].set_focus()
 
-    def run_callback(self, func, kwargs):
+    def run_callback(self, func, kwargs={}):
         self.makeDirty()
         if callable(func):
             try:
@@ -614,9 +615,10 @@ class Widget(): #base Widget class.
                 self.bg=0
             if self.fg==None and self.parent:
                 self.fg=self.parent.fg
-            if self.background is not None:
+            if self.callbacks.get('background') is not None:
                 self.fb.cls()
-                ret=self.run_callback(self.background, {'self':self, 'width':self.w, 'height':self.h})
+                ret=self.run_callback(self.callbacks['background'],\
+                        {'self':self, 'width':self.w, 'height':self.h})
                 if isinstance(ret, str):
                     self.fb.char_tile(ret)
                 if isinstance(ret, frameBuffer):
@@ -624,11 +626,23 @@ class Widget(): #base Widget class.
             self.dirty=False
         return self.drawChildren()
 
+    def set_callback(self, name, callback):
+        self.callbacks[name]=callback
+
     def on_focus(self):
+        func=self.callbacks.get('on_focus')
+        if func is not None:
+            self.run_callback(func)
         self.makeDirty()
 
     def on_defocus(self):
+        func=self.callbacks.get('on_defocus')
+        if func is not None:
+            self.run_callback(func)
         self.makeDirty()
 
     def on_update(self):
+        func=self.callbacks.get('on_update')
+        if func is not None:
+            self.run_callback(func)
         self.makeDirty()
