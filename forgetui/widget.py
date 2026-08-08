@@ -34,7 +34,6 @@ class Widget(): #base Widget class.
         self.hidden=False
         self.reorder=True
         self.parent=parent
-        self.background=None
         self.fg0=7
         self.bg0=0
         self.minW=1
@@ -323,7 +322,9 @@ class Widget(): #base Widget class.
                         else:
                             ws[-1].set_focus()
 
-    def run_callback(self, func, kwargs={}):
+    def run_callback(self, func, kwargs=None):
+        if kwargs is None:
+            kwargs={'self':self}
         self.makeDirty()
         if callable(func):
             try:
@@ -628,6 +629,7 @@ class Widget(): #base Widget class.
 
     def set_callback(self, name, callback):
         self.callbacks[name]=callback
+        self.makeDirty()
 
     def on_focus(self):
         func=self.callbacks.get('on_focus')

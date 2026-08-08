@@ -54,6 +54,10 @@ def pb_cycle(self):
 def corrupt(self):
     print('\x1b[2J')
 
+def set_bg_from_slider(self):
+    self.parent.set_callback('background', self.discreet[self.value])
+    pass
+
 tabs=WidgetTabs(0,0,0,0,bg=0,fg=7)
 s=Widget(0,0,0,0, bg=8, fg=15, name='root')
 tabs.add_tab('Main', widget=s , hotkey='Ctrl Home')
@@ -66,7 +70,8 @@ e.addWidget(WidgetMarquee(0.1,9,-0.2,1,text='pingpong short', direction='pingpon
 e.addWidget(WidgetMarquee(0.1,10,-0.2,1,text='[[[['+'pingpong long—'*20+']]]]', direction='pingpong'))
 pb=e.addWidget(WidgetProgressBar(0.1,15,-0.2,1))
 pb.addEvent(0.1, pb_cycle, persist=True)
-bgsl=e.addWidget(WidgetSlider(0.1,20,-0.2, discreet=[maze, '-|\n_-\n',' #\n# \n']))
+bgsl=e.addWidget(WidgetSlider(0.1,20,-0.2, discreet=[maze, '-|\n_-',' #\n# ']))
+bgsl.set_callback('on_update', set_bg_from_slider)
 l=tabs.add_tab('Last', widget=Widget(fg=12,bg=4) , hotkey='Ctrl 3')
 l.addWidget(WidgetMarquee(0.1,5,-0.2,1,text='This is Blue'))
 e.set_callback('background', maze)
