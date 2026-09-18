@@ -403,13 +403,14 @@ class Widget(): #base Widget class.
                                 run=True
                         if run:
                             w.run_callback(func, {'self':w,'event': rel_event,'data':data})
-        if root.drag_start:
-            event.pop('drag previous',None)
-            event.pop('drag start',None)
-            event.pop('drag handle',None)
-            root.drag_previous=event.copy()
-        else:
-            root.drag_previous=None
+        if type(event)==dict:
+            if root.drag_start:
+                event.pop('drag previous',None)
+                event.pop('drag start',None)
+                event.pop('drag handle',None)
+                root.drag_previous=event.copy()
+            else:
+                root.drag_previous=None
 
     def mainLoop(self, outputmode=[]):
         if self.parent is not None:

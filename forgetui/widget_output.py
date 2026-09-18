@@ -202,4 +202,10 @@ class WidgetProgressBar(Widget): #a bar going from 0% to 100%
         self.fb.put_text(pctstr, raw=True)
 
 class WidgetGraph(Widget): #TODO: different graph types
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Graph '+str(uuid.uuid4()), parent=None,\
+                 range='auto', coordinate='rect', fill_mode='to_zero',\
+                 gragh_style='discreet', show_axes=True, axes_label=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
+        

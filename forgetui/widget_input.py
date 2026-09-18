@@ -316,29 +316,56 @@ class WidgetSlider(Widget): #a numeric value display or selector widget
         self.set_value(self.max)
 
 class WidgetMenuBar(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Menu Bar '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetTextInput(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Text Input '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetTextArea(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Text Area '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetCheckBox(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Chck Bbox '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetRadioBox(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Radio Box '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetDropDown(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Drop Down '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetItemList(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Item List '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetSpinner(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='Spinner '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
 class WidgetFileSelect(Widget): #TODO:
-    pass
+    def __init__(self, x=0, y=0, w=1.0, h=1, fg=4, bg=15, \
+                 name='File Selector '+str(uuid.uuid4()), parent=None):
+        super().__init__(x=x, y=y, w=w, h=h, fg=fg, bg=bg,\
+                         name=name, parent=parent)
 
